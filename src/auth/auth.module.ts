@@ -1,0 +1,51 @@
+import { Module } from '@nestjs/common';
+import { JwtModule } from '@nestjs/jwt';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { AuthController } from './infrastructure/controllers/auth.controller';
+import { UserController } from './infrastructure/controllers/user.controller';
+import { LoginUseCase } from './application/use-cases/login.use-case';
+import { CreateUserUseCase } from './application/use-cases/create-user.use-case';
+import { UpdateUserUseCase } from './application/use-cases/update-user.use-case';
+import { UserRepository } from './infrastructure/repositories/user.repository';
+import { USER_REPOSITORY } from './domain/repositories/user.repository.interface';
+import { User } from './domain/entities/user.entity';
+import { InitService } from './infrastructure/services/init.service';
+import { getTypeOrmConfig } from '../config/typeorm.config';
+import { JwtStrategy } from './infrastructure/strategies/jwt.strategy';
+
+@Module({
+  imports: [
+    ConfigModule.forRoot(),
+    TypeOrmModule.forRootAsync({
+      imports: [ConfigModule],
+      useFactory: getTypeOrmConfig,
+      inject: [ConfigService],
+    }),
+    TypeOrmModule.forFeature([User]),
+    JwtModule.registerAsync({
+      imports: [ConfigModule],
+      useFactory: async (configService: ConfigService) => ({
+        global: true,
+        secret: configService.get<string>('JWT_SECRET'),
+        signOptions: { 
+          expiresIn: configService.get<string>('JWT_EXPIRATION')
+        },
+      }),
+      inject: [ConfigService],
+    }),
+  ],
+  controllers: [AuthController, UserController],
+  providers: [
+    LoginUseCase,
+    CreateUserUseCase,
+    UpdateUserUseCase,
+    InitService,
+    JwtStrategy,
+    {
+      provide: USER_REPOSITORY,
+      useClass: UserRepository,
+    },
+  ],
+})
+export class AuthModule {}
