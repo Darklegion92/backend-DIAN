@@ -15,6 +15,8 @@ import { Resolution } from './domain/entities/resolution.entity';
 import { TypeDocument } from '../document/domain/entities/type-document.entity';
 import { CompanyService } from './application/services/company.service';
 import { CompanyController } from './infrastructure/controllers/company.controller';
+import { SoftwareService } from './application/services/software.service';
+import { SoftwareController } from './infrastructure/controllers/software.controller';
 
 @Module({
   imports: [
@@ -34,8 +36,8 @@ import { CompanyController } from './infrastructure/controllers/company.controll
     HttpModule,
     NestConfigModule,
   ],
-  controllers: [CompanyController],
-  providers: [CompanyService],
-  exports: [CompanyService],
+  controllers: [CompanyController, SoftwareController],
+  providers: [CompanyService, SoftwareService],
+  exports: [CompanyService, SoftwareService],
 })
 export class ConfigModule {} 
