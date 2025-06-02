@@ -16,14 +16,14 @@ import { CertificateService } from '../../application/services/certificate.servi
 import { CreateCertificateDto } from '../../application/dto/create-certificate.dto';
 import { CertificateResponseDto } from '../../application/dto/certificate-response.dto';
 
-@ApiTags('config')
-@Controller('config')
+@ApiTags('certificate')
+@Controller('certificate')
 @UseGuards(JwtAuthGuard)
 @ApiBearerAuth()
 export class CertificateController {
   constructor(private readonly certificateService: CertificateService) {}
 
-  @Put('certificate')
+  @Put('')
   @ApiOperation({
     summary: 'Crear certificado',
     description: `

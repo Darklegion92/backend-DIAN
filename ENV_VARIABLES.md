@@ -16,7 +16,7 @@ DB_DATABASE=nombre_base_datos
 JWT_SECRET=tu_clave_secreta_jwt_muy_segura
 JWT_EXPIRATION=1d
 
-# Configuración del servidor externo para creación de compañías y certificados
+# Configuración del servidor externo para creación de compañías, certificados y resoluciones
 # Esta es la URL base del servicio externo que maneja las compañías
 # El endpoint completo será: {EXTERNAL_SERVER_URL}/config/{nit}/{digito}
 EXTERNAL_SERVER_URL=https://url-del-servidor-externo.com
@@ -42,10 +42,11 @@ NODE_ENV=development
 - **JWT_EXPIRATION**: Tiempo de expiración de los tokens (ej: `1d`, `24h`, `3600s`)
 
 ### Servicio Externo
-- **EXTERNAL_SERVER_URL**: URL base del servicio externo para crear compañías y certificados
+- **EXTERNAL_SERVER_URL**: URL base del servicio externo para crear compañías, certificados y resoluciones
   - Ejemplo: `https://api.externos.com`
   - Endpoint compañías: `https://api.externos.com/config/901584620/0`
   - Endpoint certificados: `https://api.externos.com/config/certificate`
+  - Endpoint resoluciones: `https://api.externos.com/config/resolution`
 
 ### Aplicación
 - **PORT**: Puerto donde correrá la aplicación (opcional, por defecto 3000)
@@ -77,7 +78,7 @@ NODE_ENV=development
 
 ### Para Compañías
 
-#### Endpoint
+#### Endpoint local
 ```
 POST {EXTERNAL_SERVER_URL}/config/{nit}/{digito}
 ```
@@ -164,6 +165,90 @@ Content-Type: application/json
 }
 ```
 
+### Para Resoluciones
+
+#### Endpoint local
+```
+PUT /config/resolution
+```
+
+#### Headers requeridos
+```
+Authorization: Bearer {JWT_TOKEN_DE_AUTENTICACION}
+Content-Type: application/json
+```
+
+#### Body de la petición
+```json
+{
+  "type_document_id": 1,
+  "prefix": "SETP",
+  "resolution": "18760000001",
+  "resolution_date": "2019-01-19",
+  "technical_key": "fc8eac422eba16e22ffd8c6f94b3f40a6e38162c",
+  "from": 990000000,
+  "to": 995000000,
+  "generated_to_date": 0,
+  "date_from": "2019-01-19",
+  "date_to": "2030-01-19",
+  "bearerToken": "token_para_el_servicio_externo"
+}
+```
+
+#### Comunicación con servicio externo
+El sistema internamente hace una petición al servicio externo:
+
+**Endpoint externo:**
+```
+PUT {EXTERNAL_SERVER_URL}/config/resolution
+```
+
+**Headers enviados al servicio externo:**
+```
+Authorization: Bearer {bearerToken_del_body}
+Content-Type: application/json
+```
+
+**Body enviado al servicio externo:**
+```json
+{
+  "type_document_id": 1,
+  "prefix": "SETP",
+  "resolution": "18760000001",
+  "resolution_date": "2019-01-19",
+  "technical_key": "fc8eac422eba16e22ffd8c6f94b3f40a6e38162c",
+  "from": 990000000,
+  "to": 995000000,
+  "generated_to_date": 0,
+  "date_from": "2019-01-19",
+  "date_to": "2030-01-19"
+}
+```
+
+#### Respuesta esperada
+```json
+{
+  "success": true,
+  "message": "Resolución creada/actualizada con éxito",
+  "resolution": {
+    "type_document_id": 1,
+    "resolution": "18760000001",
+    "prefix": "SETP",
+    "resolution_date": "2019-01-19",
+    "technical_key": "fc8eac422eba16e22ffd8c6f94b3f40a6e38162c",
+    "from": 990000000,
+    "to": 995000000,
+    "date_from": "2019-01-19",
+    "date_to": "2030-01-19",
+    "updated_at": "2025-06-01 21:09:27",
+    "created_at": "2025-06-01 21:09:27",
+    "id": 1,
+    "number": 990000000,
+    "next_consecutive": "SETP990000000"
+  }
+}
+```
+
 ## Seguridad
 
 ⚠️ **Importante**: 
@@ -181,4 +266,5 @@ Para verificar que las variables están configuradas correctamente:
 2. Arranca la aplicación: `npm run start:dev`
 3. Verifica en los logs que no hay errores de conexión
 4. Prueba el endpoint de crear compañía externa 
-5. Prueba el endpoint de crear certificado con un bearer token válido 
+5. Prueba el endpoint de crear certificado con un bearer token válido
+6. Prueba el endpoint de crear resolución con un bearer token válido 
