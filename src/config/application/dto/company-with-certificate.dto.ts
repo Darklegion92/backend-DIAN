@@ -83,13 +83,7 @@ export class CompanyWithCertificateDto {
     description: 'ID del tipo de ambiente SD',
     example: 1,
   })
-  sdTypeEnvironmentId: number;
-
-  @ApiProperty({
-    description: 'Razón social de la empresa',
-    example: 'EMPRESA ABC S.A.S.',
-  })
-  name: string;
+  eqdocsTypeEnvironmentId: number;
 
   @ApiProperty({
     description: 'Dirección de la empresa',
@@ -103,18 +97,6 @@ export class CompanyWithCertificateDto {
   })
   phone: string;
 
-  @ApiPropertyOptional({
-    description: 'Sitio web de la empresa',
-    example: 'https://www.empresa.com',
-  })
-  web: string;
-
-  @ApiProperty({
-    description: 'Correo electrónico de la empresa',
-    example: 'info@empresa.com',
-  })
-  email: string;
-
   @ApiProperty({
     description: 'Matrícula mercantil',
     example: '12345678',
@@ -126,66 +108,6 @@ export class CompanyWithCertificateDto {
     example: true,
   })
   state: boolean;
-
-  @ApiProperty({
-    description: 'Plan de documentos',
-    example: 1000,
-  })
-  planDocuments: number;
-
-  @ApiProperty({
-    description: 'Plan de documentos RADIAN',
-    example: 500,
-  })
-  planRadianDocuments: number;
-
-  @ApiProperty({
-    description: 'Plan de documentos de nómina',
-    example: 200,
-  })
-  planPayrollDocuments: number;
-
-  @ApiProperty({
-    description: 'Plan de documentos DS',
-    example: 100,
-  })
-  planDsDocuments: number;
-
-  @ApiProperty({
-    description: 'Período del plan (0-Default, 1-Mensual, 2-Anual, 3-Paquete)',
-    example: 1,
-  })
-  planPeriod: number;
-
-  @ApiProperty({
-    description: 'Documentos enviados',
-    example: 150,
-  })
-  documentsSent: number;
-
-  @ApiProperty({
-    description: 'Documentos RADIAN enviados',
-    example: 50,
-  })
-  radianDocumentsSent: number;
-
-  @ApiProperty({
-    description: 'Documentos de nómina enviados',
-    example: 25,
-  })
-  payrollDocumentsSent: number;
-
-  @ApiProperty({
-    description: 'Documentos DS enviados',
-    example: 10,
-  })
-  dsDocumentsSent: number;
-
-  @ApiPropertyOptional({
-    description: 'Fecha de expiración del plan',
-    example: '2024-12-31T23:59:59Z',
-  })
-  planExpirationDate: Date;
 
   @ApiPropertyOptional({
     description: 'Contraseña de la empresa',
@@ -202,42 +124,30 @@ export class CompanyWithCertificateDto {
     description: 'Host del servidor de correo',
     example: 'smtp.gmail.com',
   })
-  mailHost: string;
+  imapServer: string;
 
   @ApiPropertyOptional({
     description: 'Puerto del servidor de correo',
     example: '587',
   })
-  mailPort: string;
+  imapPort: string;
 
   @ApiPropertyOptional({
     description: 'Usuario del servidor de correo',
     example: 'empresa@gmail.com',
   })
-  mailUsername: string;
+  imapUser: string;
 
   @ApiPropertyOptional({
     description: 'Contraseña del servidor de correo',
   })
-  mailPassword: string;
+  imapPassword: string;
 
   @ApiPropertyOptional({
     description: 'Tipo de encriptación del correo',
     example: 'tls',
   })
-  mailEncryption: string;
-
-  @ApiPropertyOptional({
-    description: 'Dirección de correo remitente',
-    example: 'noreply@empresa.com',
-  })
-  mailFromAddress: string;
-
-  @ApiPropertyOptional({
-    description: 'Nombre del remitente',
-    example: 'Empresa ABC',
-  })
-  mailFromName: string;
+  imapEncryption: string;
 
   @ApiPropertyOptional({
     description: 'ID del usuario Soltec asignado a la empresa',

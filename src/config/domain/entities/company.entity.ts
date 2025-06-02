@@ -107,15 +107,8 @@ export class Company {
     description: 'ID del tipo de ambiente SD',
     example: 1,
   })
-  @Column({ name: 'sd_type_environment_id', type: 'int', nullable: true })
-  sdTypeEnvironmentId: number;
-
-  @ApiProperty({
-    description: 'Razón social de la empresa',
-    example: 'EMPRESA ABC S.A.S.',
-  })
-  @Column({ name: 'name', type: 'varchar' })
-  name: string;
+  @Column({ name: 'eqdocs_type_environment_id', type: 'int', nullable: true })
+  eqdocsTypeEnvironmentId: number;
 
   @ApiProperty({
     description: 'Dirección de la empresa',
@@ -131,20 +124,6 @@ export class Company {
   @Column({ name: 'phone', type: 'varchar' })
   phone: string;
 
-  @ApiPropertyOptional({
-    description: 'Sitio web de la empresa',
-    example: 'https://www.empresa.com',
-  })
-  @Column({ name: 'web', type: 'varchar', nullable: true })
-  web: string;
-
-  @ApiProperty({
-    description: 'Correo electrónico de la empresa',
-    example: 'info@empresa.com',
-  })
-  @Column({ name: 'email', type: 'varchar' })
-  email: string;
-
   @ApiProperty({
     description: 'Matrícula mercantil',
     example: '12345678',
@@ -158,76 +137,6 @@ export class Company {
   })
   @Column({ name: 'state', type: 'boolean', default: true })
   state: boolean;
-
-  @ApiProperty({
-    description: 'Plan de documentos',
-    example: 1000,
-  })
-  @Column({ name: 'plan_documents', type: 'bigint', default: 0 })
-  planDocuments: number;
-
-  @ApiProperty({
-    description: 'Plan de documentos RADIAN',
-    example: 500,
-  })
-  @Column({ name: 'plan_radian_documents', type: 'bigint', default: 0 })
-  planRadianDocuments: number;
-
-  @ApiProperty({
-    description: 'Plan de documentos de nómina',
-    example: 200,
-  })
-  @Column({ name: 'plan_payroll_documents', type: 'bigint', default: 0 })
-  planPayrollDocuments: number;
-
-  @ApiProperty({
-    description: 'Plan de documentos DS',
-    example: 100,
-  })
-  @Column({ name: 'plan_ds_documents', type: 'bigint', default: 0 })
-  planDsDocuments: number;
-
-  @ApiProperty({
-    description: 'Período del plan (0-Default, 1-Mensual, 2-Anual, 3-Paquete)',
-    example: 1,
-  })
-  @Column({ name: 'plan_period', type: 'bigint', default: 0 })
-  planPeriod: number;
-
-  @ApiProperty({
-    description: 'Documentos enviados',
-    example: 150,
-  })
-  @Column({ name: 'documents_sent', type: 'bigint', default: 0 })
-  documentsSent: number;
-
-  @ApiProperty({
-    description: 'Documentos RADIAN enviados',
-    example: 50,
-  })
-  @Column({ name: 'radian_documents_sent', type: 'bigint', default: 0 })
-  radianDocumentsSent: number;
-
-  @ApiProperty({
-    description: 'Documentos de nómina enviados',
-    example: 25,
-  })
-  @Column({ name: 'payroll_documents_sent', type: 'bigint', default: 0 })
-  payrollDocumentsSent: number;
-
-  @ApiProperty({
-    description: 'Documentos DS enviados',
-    example: 10,
-  })
-  @Column({ name: 'ds_documents_sent', type: 'bigint', default: 0 })
-  dsDocumentsSent: number;
-
-  @ApiPropertyOptional({
-    description: 'Fecha de expiración del plan',
-    example: '2024-12-31T23:59:59Z',
-  })
-  @Column({ name: 'plan_expiration_date', type: 'datetime', nullable: true })
-  planExpirationDate: Date;
 
   @ApiPropertyOptional({
     description: 'Contraseña de la empresa',
@@ -246,49 +155,35 @@ export class Company {
     description: 'Host del servidor de correo',
     example: 'smtp.gmail.com',
   })
-  @Column({ name: 'mail_host', type: 'varchar', nullable: true })
-  mailHost: string;
+  @Column({ name: 'imap_server', type: 'varchar', nullable: true })
+  imapServer: string;
 
   @ApiPropertyOptional({
     description: 'Puerto del servidor de correo',
     example: '587',
   })
-  @Column({ name: 'mail_port', type: 'varchar', nullable: true })
-  mailPort: string;
+  @Column({ name: 'imap_port', type: 'varchar', nullable: true })
+  imapPort: string;
 
   @ApiPropertyOptional({
     description: 'Usuario del servidor de correo',
     example: 'empresa@gmail.com',
   })
-  @Column({ name: 'mail_username', type: 'varchar', nullable: true })
-  mailUsername: string;
+  @Column({ name: 'imap_user', type: 'varchar', nullable: true })
+  imapUser: string;
 
   @ApiPropertyOptional({
     description: 'Contraseña del servidor de correo',
   })
-  @Column({ name: 'mail_password', type: 'varchar', nullable: true })
-  mailPassword: string;
+  @Column({ name: 'imap_password', type: 'varchar', nullable: true })
+  imapPassword: string;
 
   @ApiPropertyOptional({
     description: 'Tipo de encriptación del correo',
     example: 'tls',
   })
-  @Column({ name: 'mail_encryption', type: 'varchar', nullable: true })
-  mailEncryption: string;
-
-  @ApiPropertyOptional({
-    description: 'Dirección de correo remitente',
-    example: 'noreply@empresa.com',
-  })
-  @Column({ name: 'mail_from_address', type: 'varchar', nullable: true })
-  mailFromAddress: string;
-
-  @ApiPropertyOptional({
-    description: 'Nombre del remitente',
-    example: 'Empresa ABC',
-  })
-  @Column({ name: 'mail_from_name', type: 'varchar', nullable: true })
-  mailFromName: string;
+  @Column({ name: 'imap_encryption', type: 'varchar', nullable: true })
+  imapEncryption: string;
 
   @ApiPropertyOptional({
     description: 'ID del usuario Soltec asignado a la empresa',

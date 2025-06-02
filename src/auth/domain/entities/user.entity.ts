@@ -1,11 +1,16 @@
-import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import {
+  Entity,
+  Column,
+  PrimaryGeneratedColumn,
+  CreateDateColumn,
+  UpdateDateColumn,
+} from 'typeorm';
 import { ApiProperty } from '@nestjs/swagger';
-import { Role } from '../enums/role.enum';
 
 export enum UserRole {
   ADMIN = 'ADMIN',
   DEALER = 'DEALER',
-  USER = 'USER'
+  USER = 'USER',
 }
 
 @Entity('users_soltec')
@@ -21,11 +26,11 @@ export class User {
     description: 'Nombre de usuario único',
     example: 'johndoe',
   })
-  @Column({ 
+  @Column({
     type: 'varchar',
     length: 255,
     unique: true,
-    nullable: false
+    nullable: false,
   })
   username: string;
 
@@ -33,10 +38,10 @@ export class User {
     description: 'Contraseña del usuario (hash)',
     example: '$2b$10$example...',
   })
-  @Column({ 
+  @Column({
     type: 'varchar',
     length: 255,
-    nullable: false
+    nullable: false,
   })
   password: string;
 
@@ -44,11 +49,11 @@ export class User {
     description: 'Correo electrónico único del usuario',
     example: 'john.doe@example.com',
   })
-  @Column({ 
+  @Column({
     type: 'varchar',
     length: 255,
     unique: true,
-    nullable: false
+    nullable: false,
   })
   email: string;
 
@@ -56,10 +61,10 @@ export class User {
     description: 'Nombre completo del usuario',
     example: 'John Doe',
   })
-  @Column({ 
+  @Column({
     type: 'varchar',
     length: 255,
-    nullable: false
+    nullable: false,
   })
   name: string;
 
@@ -72,7 +77,7 @@ export class User {
     type: 'enum',
     enum: UserRole,
     default: UserRole.USER,
-    nullable: false
+    nullable: false,
   })
   role: UserRole;
 
@@ -80,13 +85,13 @@ export class User {
     description: 'Fecha de creación del usuario',
     example: '2024-01-15T10:30:00Z',
   })
-  @CreateDateColumn()
+  @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
 
   @ApiProperty({
     description: 'Fecha de última actualización del usuario',
     example: '2024-01-15T10:30:00Z',
   })
-  @UpdateDateColumn()
+  @UpdateDateColumn({ name: 'updated_at' })
   updatedAt: Date;
-} 
+}

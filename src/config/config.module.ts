@@ -1,5 +1,7 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { HttpModule } from '@nestjs/axios';
+import { ConfigModule as NestConfigModule } from '@nestjs/config';
 import { Company } from './domain/entities/company.entity';
 import { Certificate } from './domain/entities/certificate.entity';
 import { User } from '../auth/domain/entities/user.entity';
@@ -29,6 +31,8 @@ import { CompanyController } from './infrastructure/controllers/company.controll
       Resolution,
       TypeDocument,
     ]),
+    HttpModule,
+    NestConfigModule,
   ],
   controllers: [CompanyController],
   providers: [CompanyService],

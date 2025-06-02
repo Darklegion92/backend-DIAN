@@ -1,18 +1,17 @@
 import { TypeOrmModuleOptions } from '@nestjs/typeorm';
 import { ConfigService } from '@nestjs/config';
 import { User } from '../auth/domain/entities/user.entity';
-import { Company } from './domain/entities/company.entity';
-import { Certificate } from './domain/entities/certificate.entity';
-import { Country } from './domain/entities/country.entity';
-import { TypeDocumentIdentification } from './domain/entities/type-document-identification.entity';
-import { PaymentForm } from './domain/entities/payment-form.entity';
-import { UnitMeasure } from './domain/entities/unit-measure.entity';
-import { TypeCurrency } from './domain/entities/type-currency.entity';
-import { Event } from './domain/entities/event.entity';
-import { Resolution } from './domain/entities/resolution.entity';
-import { TypeDocument } from '../document/domain/entities/type-document.entity';
+import { Company } from '../config/domain/entities/company.entity';
+import { Certificate } from '../config/domain/entities/certificate.entity';
 
-export const getTypeOrmConfig = (configService: ConfigService): TypeOrmModuleOptions => ({
+/**
+ * Configuración de TypeORM para el arranque inicial de la aplicación.
+ * Incluye todas las entidades necesarias para lectura/escritura de datos.
+ * NO modifica la estructura de tablas existentes (synchronize: false).
+ */
+export const getTypeOrmConfig = (
+  configService: ConfigService,
+): TypeOrmModuleOptions => ({
   type: 'mysql',
   host: configService.get('DB_HOST'),
   port: configService.get('DB_PORT'),
@@ -27,20 +26,11 @@ export const getTypeOrmConfig = (configService: ConfigService): TypeOrmModuleOpt
     acquireTimeout: 60000,
     timeout: 60000,
   },
-  entities: [
-    User,
-    Company,
-    Certificate,
-    Country,
-    TypeDocumentIdentification,
-    PaymentForm,
-    UnitMeasure,
-    TypeCurrency,
-    Event,
-    Resolution,
-    TypeDocument,
-  ],
+  // Entidades necesarias para operaciones de lectura/escritura
+  entities: [User, Company, Certificate],
+  // Sincronización deshabilitada para preservar estructura existente de BD
   synchronize: false,
+  // Habilitado para permitir carga automática de entidades de otros módulos
   autoLoadEntities: true,
   logging: configService.get('NODE_ENV') === 'development',
-}); 
+});

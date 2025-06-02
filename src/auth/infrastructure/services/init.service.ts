@@ -1,5 +1,7 @@
 import { Injectable, OnModuleInit, Logger } from '@nestjs/common';
 import { Inject } from '@nestjs/common';
+import { InjectDataSource } from '@nestjs/typeorm';
+import { DataSource } from 'typeorm';
 import { USER_REPOSITORY } from '../../domain/repositories/user.repository.interface';
 import { UserRepository } from '../../infrastructure/repositories/user.repository';
 import { UserRole } from '../../domain/entities/user.entity';
@@ -10,28 +12,56 @@ export class InitService implements OnModuleInit {
   private readonly logger = new Logger(InitService.name);
 
   constructor(
+    @InjectDataSource()
+    private readonly dataSource: DataSource,
     @Inject(USER_REPOSITORY)
     private readonly userRepository: UserRepository,
   ) {}
 
   async onModuleInit() {
     try {
+      await this.createUsersSoltecTableIfNotExists();
       await this.createDefaultAdmin();
     } catch (error) {
       this.logger.error('Error during initialization:', error.message);
-      this.logger.warn('Asegúrate de que la tabla users_soltec tenga las columnas: id, username, email, password, name, role, createdAt, updatedAt');
+    }
+  }
+
+  private async createUsersSoltecTableIfNotExists() {
+    try {
+      this.logger.log('Verificando si la tabla users_soltec existe...');
+
+      const createTableSQL = `
+        CREATE TABLE IF NOT EXISTS \`users_soltec\` (
+          \`id\` varchar(36) NOT NULL PRIMARY KEY,
+          \`username\` varchar(255) NOT NULL UNIQUE,
+          \`email\` varchar(255) NOT NULL UNIQUE,
+          \`password\` varchar(255) NOT NULL,
+          \`name\` varchar(255) NOT NULL,
+          \`role\` enum('ADMIN', 'DEALER', 'USER') NOT NULL DEFAULT 'USER',
+          \`created_at\` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+          \`updated_at\` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+      `;
+
+      await this.dataSource.query(createTableSQL);
+      this.logger.log('✅ Tabla users_soltec verificada/creada exitosamente');
+    } catch (error) {
+      this.logger.error('❌ Error creando tabla users_soltec:', error.message);
+      throw error;
     }
   }
 
   private async createDefaultAdmin() {
     try {
       this.logger.log('Verificando si el usuario admin existe...');
-      const adminExists = await this.userRepository.findByEmail('admin@example.com');
-      
+      const adminExists =
+        await this.userRepository.findByEmail('admin@example.com');
+
       if (!adminExists) {
         this.logger.log('Creando usuario admin por defecto...');
         const hashedPassword = await bcrypt.hash('admin123', 10);
-        
+
         const adminUserData = {
           email: 'admin@example.com',
           username: 'admin',
@@ -50,4 +80,4 @@ export class InitService implements OnModuleInit {
       throw error;
     }
   }
-} 
+}

@@ -1,12 +1,18 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { HttpService } from '@nestjs/axios';
+import { ConfigService } from '@nestjs/config';
 import { Company } from '../../domain/entities/company.entity';
 import { Certificate } from '../../domain/entities/certificate.entity';
 import { User, UserRole } from '../../../auth/domain/entities/user.entity';
 import { CompanyWithCertificateDto } from '../dto/company-with-certificate.dto';
+import { CreateCompanyExternalDto } from '../dto/create-company-external.dto';
+import { ExternalCompanyResponseDto } from '../dto/external-company-response.dto';
+import { ExternalValidationException } from '../exceptions/external-validation.exception';
 import { PaginationQueryDto } from '../../../common/dtos/pagination-query.dto';
 import { PaginatedResponseDto } from '../../../common/dtos/paginated-response.dto';
+import { firstValueFrom } from 'rxjs';
 
 @Injectable()
 export class CompanyService {
@@ -15,24 +21,116 @@ export class CompanyService {
     private readonly companyRepository: Repository<Company>,
     @InjectRepository(Certificate)
     private readonly certificateRepository: Repository<Certificate>,
+    private readonly httpService: HttpService,
+    private readonly configService: ConfigService,
   ) {}
 
+  async createCompanyInExternalService(
+    companyData: CreateCompanyExternalDto,
+    currentUser: User,
+  ): Promise<CompanyWithCertificateDto> {
+    try {
+      const externalServerUrl = this.configService.get<string>(
+        'EXTERNAL_SERVER_URL',
+      );
+
+      if (!externalServerUrl) {
+        throw new Error(
+          'EXTERNAL_SERVER_URL no está configurada en las variables de entorno',
+        );
+      }
+
+      // Extraer nit y digito del body
+      const { nit, digito, ...dataToSend } = companyData;
+      const url = `${externalServerUrl}/config/${nit}/${digito}`;
+
+      const response = await firstValueFrom(
+        this.httpService.post<ExternalCompanyResponseDto>(url, dataToSend, {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        }),
+      );
+
+      // Verificar que la respuesta sea exitosa
+      if (!('success' in response.data) || !response.data.success) {
+        throw new Error('Respuesta del servicio externo no fue exitosa');
+      }
+
+      const externalCompany = response.data.company;
+
+      // Buscar la empresa existente por identification_number
+      const existingCompany = await this.companyRepository.findOne({
+        where: { identificationNumber: externalCompany.identification_number },
+      });
+
+      if (!existingCompany) {
+        throw new Error(
+          `No se encontró una empresa con NIT ${externalCompany.identification_number} en la base de datos local`,
+        );
+      }
+
+      // Actualizar solo el soltec_user_id
+      existingCompany.soltecUserId = currentUser.id;
+      const updatedCompany = await this.companyRepository.save(existingCompany);
+
+      // Buscar el certificado asociado (si existe)
+      const certificate = await this.certificateRepository
+        .createQueryBuilder('certificate')
+        .where('certificate.company_id = :companyId', {
+          companyId: updatedCompany.id,
+        })
+        .getOne();
+
+      return this.mapToCompanyWithCertificateDto(updatedCompany, certificate);
+    } catch (error) {
+      console.log(error);
+
+      // Si la respuesta del servidor externo tiene datos de error estructurados
+      if (error.response?.data) {
+        console.log(error);
+
+        const errorData = error.response.data;
+
+        // Si la respuesta tiene el formato de error de validación esperado
+        if (errorData.message && errorData.errors) {
+          throw new ExternalValidationException(
+            errorData.message,
+            errorData.errors,
+          );
+        }
+      }
+
+      // Error genérico si no tiene la estructura esperada
+      throw new Error(
+        `Error al crear compañía en servicio externo: ${error.response?.data?.message || error.message}`,
+      );
+    }
+  }
+
   async getCompaniesByUserPaginated(
-    currentUser: User, 
-    paginationQuery: PaginationQueryDto
+    currentUser: User,
+    paginationQuery: PaginationQueryDto,
   ): Promise<PaginatedResponseDto<CompanyWithCertificateDto>> {
-    const { page = 1, limit = 10, sortBy = 'createdAt', sortOrder = 'DESC' } = paginationQuery;
-    
+    const {
+      page = 1,
+      limit = 10,
+      sortBy = 'createdAt',
+      sortOrder = 'DESC',
+    } = paginationQuery;
+
     // Calcular offset directamente
     const offset = (page - 1) * limit;
-    
+
     let queryBuilder = this.companyRepository
       .createQueryBuilder('company')
       .leftJoinAndSelect('company.soltecUser', 'soltecUser');
 
     // Aplicar filtros según rol
     if (currentUser.role !== UserRole.ADMIN) {
-      queryBuilder = queryBuilder.where('company.soltec_user_id = :userId', { userId: currentUser.id });
+      queryBuilder = queryBuilder.where('company.soltec_user_id = :userId', {
+        userId: currentUser.id,
+      });
     }
 
     // Aplicar ordenamiento y paginación
@@ -52,7 +150,9 @@ export class CompanyService {
         .where('certificate.company_id = :companyId', { companyId: company.id })
         .getOne();
 
-      companiesWithCertificates.push(this.mapToCompanyWithCertificateDto(company, certificate));
+      companiesWithCertificates.push(
+        this.mapToCompanyWithCertificateDto(company, certificate),
+      );
     }
 
     return PaginatedResponseDto.create(
@@ -63,7 +163,10 @@ export class CompanyService {
     );
   }
 
-  async getCompanyWithCertificateById(companyId: number, currentUser: User): Promise<CompanyWithCertificateDto | null> {
+  async getCompanyWithCertificateById(
+    companyId: number,
+    currentUser: User,
+  ): Promise<CompanyWithCertificateDto | null> {
     // Verificar permisos
     let company: Company;
 
@@ -78,7 +181,9 @@ export class CompanyService {
         .createQueryBuilder('company')
         .leftJoinAndSelect('company.soltecUser', 'soltecUser')
         .where('company.id = :companyId', { companyId })
-        .andWhere('company.soltec_user_id = :userId', { userId: currentUser.id })
+        .andWhere('company.soltec_user_id = :userId', {
+          userId: currentUser.id,
+        })
         .getOne();
     }
 
@@ -95,7 +200,10 @@ export class CompanyService {
     return this.mapToCompanyWithCertificateDto(company, certificate);
   }
 
-  private mapToCompanyWithCertificateDto(company: Company, certificate?: Certificate): CompanyWithCertificateDto {
+  private mapToCompanyWithCertificateDto(
+    company: Company,
+    certificate?: Certificate,
+  ): CompanyWithCertificateDto {
     return {
       id: company.id,
       identificationNumber: company.identificationNumber,
@@ -110,33 +218,18 @@ export class CompanyService {
       municipalityId: company.municipalityId,
       typeEnvironmentId: company.typeEnvironmentId,
       payrollTypeEnvironmentId: company.payrollTypeEnvironmentId,
-      sdTypeEnvironmentId: company.sdTypeEnvironmentId,
-      name: company.name,
+      eqdocsTypeEnvironmentId: company.eqdocsTypeEnvironmentId,
       address: company.address,
       phone: company.phone,
-      web: company.web,
-      email: company.email,
       merchantRegistration: company.merchantRegistration,
       state: company.state,
-      planDocuments: company.planDocuments,
-      planRadianDocuments: company.planRadianDocuments,
-      planPayrollDocuments: company.planPayrollDocuments,
-      planDsDocuments: company.planDsDocuments,
-      planPeriod: company.planPeriod,
-      documentsSent: company.documentsSent,
-      radianDocumentsSent: company.radianDocumentsSent,
-      payrollDocumentsSent: company.payrollDocumentsSent,
-      dsDocumentsSent: company.dsDocumentsSent,
-      planExpirationDate: company.planExpirationDate,
       password: company.password,
       allowSellerLogin: company.allowSellerLogin,
-      mailHost: company.mailHost,
-      mailPort: company.mailPort,
-      mailUsername: company.mailUsername,
-      mailPassword: company.mailPassword,
-      mailEncryption: company.mailEncryption,
-      mailFromAddress: company.mailFromAddress,
-      mailFromName: company.mailFromName,
+      imapServer: company.imapServer,
+      imapPort: company.imapPort,
+      imapUser: company.imapUser,
+      imapPassword: company.imapPassword,
+      imapEncryption: company.imapEncryption,
       soltecUserId: company.soltecUserId,
       createdAt: company.createdAt,
       updatedAt: company.updatedAt,
@@ -146,4 +239,4 @@ export class CompanyService {
       certificateName: certificate?.name || null,
     };
   }
-} 
+}

@@ -1,7 +1,9 @@
 import {
   Controller,
   Get,
+  Post,
   Param,
+  Body,
   UseGuards,
   NotFoundException,
   ParseIntPipe,
@@ -18,6 +20,8 @@ import {
 import { JwtAuthGuard } from '../../../auth/infrastructure/guards/jwt-auth.guard';
 import { CompanyService } from '../../application/services/company.service';
 import { CompanyWithCertificateDto } from '../../application/dto/company-with-certificate.dto';
+import { CreateCompanyExternalDto } from '../../application/dto/create-company-external.dto';
+import { ExternalCompanyResponseDto } from '../../application/dto/external-company-response.dto';
 import { PaginationQueryDto } from '../../../common/dtos/pagination-query.dto';
 import { PaginatedResponseDto } from '../../../common/dtos/paginated-response.dto';
 import { CurrentUser } from '../../../auth/infrastructure/decorators/current-user.decorator';
@@ -31,7 +35,7 @@ export class CompanyController {
   constructor(private readonly companyService: CompanyService) {}
 
   @Get()
-  @ApiOperation({ 
+  @ApiOperation({
     summary: 'Obtener lista paginada de compañías por usuario',
     description: `
       Consulta las compañías según el rol del usuario con paginación:
@@ -39,12 +43,32 @@ export class CompanyController {
       - DEALER/USER: Solo obtiene las compañías asignadas a su usuario
       
       La respuesta incluye todos los campos de la compañía y la información del certificado asociado.
-    `
+    `,
   })
-  @ApiQuery({ name: 'page', required: false, description: 'Número de página', example: 1 })
-  @ApiQuery({ name: 'limit', required: false, description: 'Elementos por página', example: 10 })
-  @ApiQuery({ name: 'sortBy', required: false, description: 'Campo para ordenar', example: 'createdAt' })
-  @ApiQuery({ name: 'sortOrder', required: false, description: 'Dirección del ordenamiento', example: 'DESC' })
+  @ApiQuery({
+    name: 'page',
+    required: false,
+    description: 'Número de página',
+    example: 1,
+  })
+  @ApiQuery({
+    name: 'limit',
+    required: false,
+    description: 'Elementos por página',
+    example: 10,
+  })
+  @ApiQuery({
+    name: 'sortBy',
+    required: false,
+    description: 'Campo para ordenar',
+    example: 'createdAt',
+  })
+  @ApiQuery({
+    name: 'sortOrder',
+    required: false,
+    description: 'Dirección del ordenamiento',
+    example: 'DESC',
+  })
   @ApiResponse({
     status: 200,
     description: 'Lista paginada de compañías obtenida exitosamente',
@@ -53,7 +77,7 @@ export class CompanyController {
       properties: {
         data: {
           type: 'array',
-          items: { $ref: '#/components/schemas/CompanyWithCertificateDto' }
+          items: { $ref: '#/components/schemas/CompanyWithCertificateDto' },
         },
         meta: {
           type: 'object',
@@ -64,18 +88,24 @@ export class CompanyController {
             totalPages: { type: 'number', example: 3 },
             hasPreviousPage: { type: 'boolean', example: false },
             hasNextPage: { type: 'boolean', example: true },
-          }
-        }
-      }
-    }
+          },
+        },
+      },
+    },
   })
   @ApiResponse({ status: 401, description: 'No autorizado' })
-  @ApiResponse({ status: 403, description: 'Sin permisos para acceder a las compañías' })
+  @ApiResponse({
+    status: 403,
+    description: 'Sin permisos para acceder a las compañías',
+  })
   async getCompanies(
     @Query() paginationQuery: PaginationQueryDto,
     @CurrentUser() currentUser: User,
   ): Promise<PaginatedResponseDto<CompanyWithCertificateDto>> {
-    return this.companyService.getCompaniesByUserPaginated(currentUser, paginationQuery);
+    return this.companyService.getCompaniesByUserPaginated(
+      currentUser,
+      paginationQuery,
+    );
   }
 
   @Get(':id')
@@ -107,7 +137,10 @@ export class CompanyController {
     status: 401,
     description: 'No autorizado - Token JWT requerido',
   })
-  @ApiResponse({ status: 403, description: 'Sin permisos para acceder a esta compañía' })
+  @ApiResponse({
+    status: 403,
+    description: 'Sin permisos para acceder a esta compañía',
+  })
   async getCompanyById(
     @Param('id', ParseIntPipe) companyId: number,
     @CurrentUser() currentUser: User,
@@ -125,4 +158,38 @@ export class CompanyController {
 
     return company;
   }
-} 
+
+  @Post('external')
+  @ApiOperation({
+    summary: 'Crear compañía en servicio externo',
+    description:
+      'Envía los datos de la compañía al servicio externo configurado en EXTERNAL_SERVER_URL. El NIT y dígito se envían en el body y se usan para construir la URL del servicio externo. Después de crear la compañía en el servicio externo, la guarda en la base de datos local y la asocia al usuario actual.',
+  })
+  @ApiResponse({
+    status: 201,
+    description:
+      'Compañía creada exitosamente en el servicio externo y guardada localmente',
+    type: CompanyWithCertificateDto,
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Datos de entrada inválidos',
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'No autorizado',
+  })
+  @ApiResponse({
+    status: 500,
+    description: 'Error al comunicarse con el servicio externo',
+  })
+  async createExternalCompany(
+    @Body() companyData: CreateCompanyExternalDto,
+    @CurrentUser() currentUser: User,
+  ): Promise<CompanyWithCertificateDto> {
+    return this.companyService.createCompanyInExternalService(
+      companyData,
+      currentUser,
+    );
+  }
+}
