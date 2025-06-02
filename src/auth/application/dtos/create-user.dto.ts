@@ -3,23 +3,44 @@ import { IsEmail, IsNotEmpty, IsString, MinLength, IsEnum } from 'class-validato
 import { UserRole } from '../../domain/entities/user.entity';
 
 export class CreateUserDto {
-  @ApiProperty({ example: 'john.doe@example.com' })
+  @ApiProperty({ 
+    description: 'Nombre de usuario único',
+    example: 'johndoe' 
+  })
+  @IsString()
+  @IsNotEmpty()
+  username: string;
+
+  @ApiProperty({ 
+    description: 'Correo electrónico del usuario',
+    example: 'john.doe@example.com' 
+  })
   @IsEmail()
   @IsNotEmpty()
   email: string;
 
-  @ApiProperty({ example: 'password123' })
+  @ApiProperty({ 
+    description: 'Contraseña del usuario (mínimo 6 caracteres)',
+    example: 'password123' 
+  })
   @IsString()
   @IsNotEmpty()
   @MinLength(6)
   password: string;
 
-  @ApiProperty({ example: 'John Doe' })
+  @ApiProperty({ 
+    description: 'Nombre completo del usuario',
+    example: 'John Doe' 
+  })
   @IsString()
   @IsNotEmpty()
   name: string;
 
-  @ApiProperty({ enum: UserRole, example: UserRole.USER })
+  @ApiProperty({ 
+    description: 'Rol del usuario en el sistema',
+    enum: UserRole, 
+    example: UserRole.USER 
+  })
   @IsEnum(UserRole)
   @IsNotEmpty()
   role: UserRole;

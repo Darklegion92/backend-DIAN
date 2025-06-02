@@ -26,6 +26,7 @@ export class CreateUserUseCase {
     user.password = hashedPassword;
     user.name = createUserDto.name;
     user.role = createUserDto.role;
+    user.username = createUserDto.username;
 
     return this.userRepository.save(user);
   }
