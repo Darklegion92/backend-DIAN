@@ -16,7 +16,7 @@ DB_DATABASE=nombre_base_datos
 JWT_SECRET=tu_clave_secreta_jwt_muy_segura
 JWT_EXPIRATION=1d
 
-# Configuración del servidor externo para creación de compañías
+# Configuración del servidor externo para creación de compañías y certificados
 # Esta es la URL base del servicio externo que maneja las compañías
 # El endpoint completo será: {EXTERNAL_SERVER_URL}/config/{nit}/{digito}
 EXTERNAL_SERVER_URL=https://url-del-servidor-externo.com
@@ -42,9 +42,10 @@ NODE_ENV=development
 - **JWT_EXPIRATION**: Tiempo de expiración de los tokens (ej: `1d`, `24h`, `3600s`)
 
 ### Servicio Externo
-- **EXTERNAL_SERVER_URL**: URL base del servicio externo para crear compañías
+- **EXTERNAL_SERVER_URL**: URL base del servicio externo para crear compañías y certificados
   - Ejemplo: `https://api.externos.com`
-  - Endpoint completo: `https://api.externos.com/config/901584620/0`
+  - Endpoint compañías: `https://api.externos.com/config/901584620/0`
+  - Endpoint certificados: `https://api.externos.com/config/certificate`
 
 ### Aplicación
 - **PORT**: Puerto donde correrá la aplicación (opcional, por defecto 3000)
@@ -74,20 +75,20 @@ NODE_ENV=development
 
 ## Uso del Servicio Externo
 
-El servicio externo se usa para crear compañías mediante:
+### Para Compañías
 
-### Endpoint
+#### Endpoint
 ```
 POST {EXTERNAL_SERVER_URL}/config/{nit}/{digito}
 ```
 
-### Ejemplo con URL configurada
+#### Ejemplo con URL configurada
 Si `EXTERNAL_SERVER_URL=https://api.externos.com`, el endpoint será:
 ```
 POST https://api.externos.com/config/901584620/0
 ```
 
-### Body de la petición
+#### Body de la petición
 ```json
 {
   "type_document_identification_id": 6,
@@ -103,11 +104,72 @@ POST https://api.externos.com/config/901584620/0
 }
 ```
 
+### Para Certificados
+
+#### Endpoint local
+```
+PUT /config/certificate
+```
+
+#### Headers requeridos
+```
+Authorization: Bearer {JWT_TOKEN_DE_AUTENTICACION}
+Content-Type: application/json
+```
+
+#### Body de la petición
+```json
+{
+  "certificate": "MIACAQMwgAYJKoZIhvcNAQcBoIAkgASCA+gwgDCABgkqhkiG9...",
+  "password": "bFOGqscdpZQlQWkd",
+  "bearerToken": "token_para_el_servicio_externo"
+}
+```
+
+#### Comunicación con servicio externo
+El sistema internamente hace una petición al servicio externo:
+
+**Endpoint externo:**
+```
+PUT {EXTERNAL_SERVER_URL}/config/certificate
+```
+
+**Headers enviados al servicio externo:**
+```
+Authorization: Bearer {bearerToken_del_body}
+Content-Type: application/json
+```
+
+**Body enviado al servicio externo:**
+```json
+{
+  "certificate": "MIACAQMwgAYJKoZIhvcNAQcBoIAkgASCA+gwgDCABgkqhkiG9...",
+  "password": "bFOGqscdpZQlQWkd"
+}
+```
+
+#### Respuesta esperada
+```json
+{
+  "success": true,
+  "message": "Certificado creado con éxito",
+  "certificado": {
+    "name": "9015846200.p12",
+    "password": "bFOGqscdpZQlQWkd",
+    "expiration_date": "2025/05/21 07:04:32",
+    "updated_at": "2025-06-01 20:51:35",
+    "created_at": "2025-06-01 20:51:35",
+    "id": 1
+  }
+}
+```
+
 ## Seguridad
 
 ⚠️ **Importante**: 
 - Nunca subas el archivo `.env` al repositorio
 - Usa variables seguras para `JWT_SECRET`
+- El `bearerToken` para el servicio externo debe ser proporcionado por el cliente en cada petición
 - Verifica que `EXTERNAL_SERVER_URL` apunte al servidor correcto
 - En producción, usa variables de entorno del sistema en lugar del archivo `.env`
 
@@ -119,3 +181,4 @@ Para verificar que las variables están configuradas correctamente:
 2. Arranca la aplicación: `npm run start:dev`
 3. Verifica en los logs que no hay errores de conexión
 4. Prueba el endpoint de crear compañía externa 
+5. Prueba el endpoint de crear certificado con un bearer token válido 

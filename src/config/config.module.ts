@@ -17,6 +17,8 @@ import { CompanyService } from './application/services/company.service';
 import { CompanyController } from './infrastructure/controllers/company.controller';
 import { SoftwareService } from './application/services/software.service';
 import { SoftwareController } from './infrastructure/controllers/software.controller';
+import { CertificateService } from './application/services/certificate.service';
+import { CertificateController } from './infrastructure/controllers/certificate.controller';
 
 @Module({
   imports: [
@@ -36,8 +38,8 @@ import { SoftwareController } from './infrastructure/controllers/software.contro
     HttpModule,
     NestConfigModule,
   ],
-  controllers: [CompanyController, SoftwareController],
-  providers: [CompanyService, SoftwareService],
-  exports: [CompanyService, SoftwareService],
+  controllers: [CompanyController, SoftwareController, CertificateController],
+  providers: [CompanyService, SoftwareService, CertificateService],
+  exports: [CompanyService, SoftwareService, CertificateService],
 })
 export class ConfigModule {} 
