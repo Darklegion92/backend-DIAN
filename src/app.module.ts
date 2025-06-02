@@ -5,6 +5,7 @@ import { AuthModule } from './auth/auth.module';
 import { ConfigModule } from './config/config.module';
 import { CommonModule } from './common/common.module';
 import { InvoiceModule } from './invoice/invoice.module';
+import { DocumentModule } from './document/document.module';
 
 @Module({
   imports: [
@@ -15,6 +16,7 @@ import { InvoiceModule } from './invoice/invoice.module';
     AuthModule,
     ConfigModule,
     InvoiceModule,
+    DocumentModule,
   ],
   controllers: [],
   providers: [],

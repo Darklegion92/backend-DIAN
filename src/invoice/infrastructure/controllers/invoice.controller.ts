@@ -3,21 +3,27 @@ import {
   Post,
   Body,
   HttpStatus,
-  HttpException,
   Logger,
+  UseGuards,
 } from '@nestjs/common';
 import {
   ApiTags,
   ApiOperation,
   ApiResponse,
   ApiBody,
+  ApiBearerAuth,
 } from '@nestjs/swagger';
 import { ExternalInvoiceService } from '../../domain/services/external-invoice.service';
 import { CreateInvoiceDto } from '../dto/invoice.dto';
 import { CreateInvoiceResponse } from '../../domain/entities/invoice.interface';
+import { JwtAuthGuard } from '../../../auth/infrastructure/guards/jwt-auth.guard';
+import { CurrentUser } from '../../../auth/infrastructure/decorators/current-user.decorator';
+import { User } from '../../../auth/domain/entities/user.entity';
 
 @ApiTags('Facturas')
 @Controller('invoice')
+@UseGuards(JwtAuthGuard)
+@ApiBearerAuth()
 export class InvoiceController {
   private readonly logger = new Logger(InvoiceController.name);
 
@@ -38,9 +44,9 @@ export class InvoiceController {
     4. Envía la factura a la DIAN para autorización
     5. Retorna la respuesta con CUFE, QR y documentos generados
     
-    **Autenticación:**
-    - Requiere token Bearer válido del sistema Laravel
-    - El token se obtiene mediante autenticación en el sistema principal
+    **Seguridad:**
+    - Requiere autenticación JWT Bearer token
+    - Utiliza el token de la compañía del usuario autenticado para llamadas al servicio externo
     
     **Documentos generados:**
     - XML firmado de la factura
@@ -240,6 +246,19 @@ export class InvoiceController {
     }
   })
   @ApiResponse({
+    status: HttpStatus.UNAUTHORIZED,
+    description: 'No autorizado - Token JWT requerido',
+    content: {
+      'application/json': {
+        example: {
+          statusCode: 401,
+          message: "Token JWT requerido para crear facturas",
+          error: "Unauthorized"
+        }
+      }
+    }
+  })
+  @ApiResponse({
     status: HttpStatus.BAD_REQUEST,
     description: 'Datos de factura inválidos',
     content: {
@@ -252,18 +271,6 @@ export class InvoiceController {
               "invoice_lines.0.description": ["La descripción del producto es requerida"]
             }
           }
-        }
-      }
-    }
-  })
-  @ApiResponse({
-    status: HttpStatus.UNAUTHORIZED,
-    description: 'Token de autenticación inválido',
-    content: {
-      'application/json': {
-        example: {
-          message: "Token de autenticación inválido",
-          details: "Verifica que el token Bearer sea válido"
         }
       }
     }
@@ -306,9 +313,13 @@ export class InvoiceController {
       }
     }
   })
-  async createInvoice(@Body() createInvoiceDto: CreateInvoiceDto): Promise<CreateInvoiceResponse> {
+  async createInvoice(
+    @Body() createInvoiceDto: CreateInvoiceDto,
+    @CurrentUser() currentUser: User,
+  ): Promise<CreateInvoiceResponse> {
     this.logger.log('Iniciando creación de factura');
     this.logger.debug('Datos recibidos:', JSON.stringify(createInvoiceDto, null, 2));
+    this.logger.debug('Usuario autenticado:', currentUser.id);
 
     const { token, ...invoiceData } = createInvoiceDto;
     
