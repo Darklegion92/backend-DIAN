@@ -184,4 +184,10 @@ export class CompanyWithCertificateDto {
     example: 'certificado_empresa.p12',
   })
   certificateName: string;
+
+  @ApiPropertyOptional({
+    description: 'Token API DIAN',
+    example: 'token-string-here',
+  })
+  tokenDian: string;
 } 

@@ -5,6 +5,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
 import { ConfigModule } from './config/config.module';
+import { InvoiceModule } from './invoice/invoice.module';
 
 @Module({
   imports: [
@@ -13,6 +14,7 @@ import { ConfigModule } from './config/config.module';
     }),
     AuthModule,
     ConfigModule,
+    InvoiceModule,
   ],
   controllers: [AppController],
   providers: [AppService],

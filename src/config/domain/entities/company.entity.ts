@@ -201,6 +201,13 @@ export class Company {
   soltecUser: User;
 
   @ApiProperty({
+    description: 'Usuario API DIAN',
+    example: 1,
+  })
+  @Column({ name: 'user_id', type: 'varchar', nullable: true })
+    userId: number;
+
+  @ApiProperty({
     description: 'Fecha de creación del registro',
     example: '2024-01-15T10:30:00Z',
   })

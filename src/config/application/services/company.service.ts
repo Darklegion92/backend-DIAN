@@ -6,6 +6,7 @@ import { ConfigService } from '@nestjs/config';
 import { Company } from '../../domain/entities/company.entity';
 import { Certificate } from '../../domain/entities/certificate.entity';
 import { User, UserRole } from '../../../auth/domain/entities/user.entity';
+import { UserDian } from '../../domain/entities/userDian.entity';
 import { CompanyWithCertificateDto } from '../dto/company-with-certificate.dto';
 import { CreateCompanyExternalDto } from '../dto/create-company-external.dto';
 import { ExternalCompanyResponseDto } from '../dto/external-company-response.dto';
@@ -21,6 +22,8 @@ export class CompanyService {
     private readonly companyRepository: Repository<Company>,
     @InjectRepository(Certificate)
     private readonly certificateRepository: Repository<Certificate>,
+    @InjectRepository(UserDian)
+    private readonly userDianRepository: Repository<UserDian>,
     private readonly httpService: HttpService,
     private readonly configService: ConfigService,
   ) {}
@@ -119,21 +122,18 @@ export class CompanyService {
       sortOrder = 'DESC',
     } = paginationQuery;
 
-    // Calcular offset directamente
     const offset = (page - 1) * limit;
 
     let queryBuilder = this.companyRepository
       .createQueryBuilder('company')
       .leftJoinAndSelect('company.soltecUser', 'soltecUser');
 
-    // Aplicar filtros según rol
     if (currentUser.role !== UserRole.ADMIN) {
       queryBuilder = queryBuilder.where('company.soltec_user_id = :userId', {
         userId: currentUser.id,
       });
     }
 
-    // Aplicar ordenamiento y paginación
     queryBuilder = queryBuilder
       .orderBy(`company.${sortBy}`, sortOrder)
       .skip(offset)
@@ -141,7 +141,6 @@ export class CompanyService {
 
     const [companies, totalItems] = await queryBuilder.getManyAndCount();
 
-    // Procesar companies con certificados
     const companiesWithCertificates: CompanyWithCertificateDto[] = [];
 
     for (const company of companies) {
@@ -150,9 +149,8 @@ export class CompanyService {
         .where('certificate.company_id = :companyId', { companyId: company.id })
         .getOne();
 
-      companiesWithCertificates.push(
-        this.mapToCompanyWithCertificateDto(company, certificate),
-      );
+      const companyDto = await this.mapToCompanyWithCertificateDto(company, certificate);
+      companiesWithCertificates.push(companyDto);
     }
 
     return PaginatedResponseDto.create(
@@ -200,10 +198,16 @@ export class CompanyService {
     return this.mapToCompanyWithCertificateDto(company, certificate);
   }
 
-  private mapToCompanyWithCertificateDto(
+  private async mapToCompanyWithCertificateDto(
     company: Company,
     certificate?: Certificate,
-  ): CompanyWithCertificateDto {
+  ): Promise<CompanyWithCertificateDto> {
+    const user = await this.userDianRepository.findOne({
+      where: { id: company.userId },
+    });
+
+    const tokenDian = user?.apiToken || null;
+
     return {
       id: company.id,
       identificationNumber: company.identificationNumber,
@@ -233,10 +237,10 @@ export class CompanyService {
       soltecUserId: company.soltecUserId,
       createdAt: company.createdAt,
       updatedAt: company.updatedAt,
-      // Información del certificado
       certificateExpirationDate: certificate?.expirationDate || null,
       certificateId: certificate?.id || null,
       certificateName: certificate?.name || null,
+      tokenDian,
     };
   }
 }

@@ -5,6 +5,7 @@ import { ConfigModule as NestConfigModule } from '@nestjs/config';
 import { Company } from './domain/entities/company.entity';
 import { Certificate } from './domain/entities/certificate.entity';
 import { User } from '../auth/domain/entities/user.entity';
+import { UserDian } from './domain/entities/userDian.entity';
 import { Country } from './domain/entities/country.entity';
 import { TypeDocumentIdentification } from './domain/entities/type-document-identification.entity';
 import { PaymentForm } from './domain/entities/payment-form.entity';
@@ -28,6 +29,7 @@ import { ResolutionController } from './infrastructure/controllers/resolution.co
       Company,
       Certificate,
       User,
+      UserDian,
       Country,
       TypeDocumentIdentification,
       PaymentForm,
