@@ -16,7 +16,7 @@ import { CertificateService } from '../../application/services/certificate.servi
 import { CreateCertificateDto } from '../../application/dto/create-certificate.dto';
 import { CertificateResponseDto } from '../../application/dto/certificate-response.dto';
 
-@ApiTags('certificate')
+@ApiTags('Certificados')
 @Controller('certificate')
 @UseGuards(JwtAuthGuard)
 @ApiBearerAuth()

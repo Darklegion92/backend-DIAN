@@ -10,7 +10,7 @@ import { SoftwareService } from '../../application/services/software.service';
 import { ApiBearerAuth, ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { JwtAuthGuard } from 'src/auth/infrastructure/guards/jwt-auth.guard';
 
-@ApiTags('software')
+@ApiTags('Software')
 @Controller('software')
 @UseGuards(JwtAuthGuard)
 @ApiBearerAuth()

@@ -13,6 +13,7 @@ import { UnitMeasure } from './domain/entities/unit-measure.entity';
 import { TypeCurrency } from './domain/entities/type-currency.entity';
 import { Event } from './domain/entities/event.entity';
 import { Resolution } from './domain/entities/resolution.entity';
+import { Software } from './domain/entities/software.entity';
 import { TypeDocument } from '../document/domain/entities/type-document.entity';
 import { CompanyService } from './application/services/company.service';
 import { CompanyController } from './infrastructure/controllers/company.controller';
@@ -37,6 +38,7 @@ import { ResolutionController } from './infrastructure/controllers/resolution.co
       TypeCurrency,
       Event,
       Resolution,
+      Software,
       TypeDocument,
     ]),
     HttpModule,

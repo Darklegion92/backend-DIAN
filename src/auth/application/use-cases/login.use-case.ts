@@ -4,7 +4,7 @@ import { JwtService } from '@nestjs/jwt';
 import { USER_REPOSITORY } from '../../domain/repositories/user.repository.interface';
 import { UserRepository } from '../../infrastructure/repositories/user.repository';
 import { LoginDto } from '../dtos/login.dto';
-import { LoginResponseDto } from '../dtos/login-response.dto';
+import { InternalLoginDataDto } from '../dtos/login-data.dto';
 import * as bcrypt from 'bcrypt';
 
 @Injectable()
@@ -15,7 +15,7 @@ export class LoginUseCase {
     private readonly jwtService: JwtService,
   ) {}
 
-  async execute(loginDto: LoginDto): Promise<LoginResponseDto> {
+  async execute(loginDto: LoginDto): Promise<InternalLoginDataDto> {
     const user = await this.userRepository.findByUsername(loginDto.username);
     if (!user) {
       throw new UnauthorizedException('Credenciales inválidas');

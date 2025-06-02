@@ -38,14 +38,6 @@ export class CreateResolutionDto {
   resolution_date: string;
 
   @ApiProperty({
-    description: 'Clave técnica de la resolución',
-    example: 'fc8eac422eba16e22ffd8c6f94b3f40a6e38162c',
-  })
-  @IsString({ message: 'La clave técnica debe ser una cadena de texto' })
-  @IsNotEmpty({ message: 'La clave técnica es requerida' })
-  technical_key: string;
-
-  @ApiProperty({
     description: 'Número inicial del rango autorizado',
     example: 990000000,
     minimum: 0,
@@ -99,4 +91,13 @@ export class CreateResolutionDto {
   @IsString({ message: 'El bearer token debe ser una cadena de texto' })
   @IsNotEmpty({ message: 'El bearer token es requerido' })
   bearerToken: string;
+
+  @ApiProperty({
+    description: 'ID de la empresa',
+    example: 1,
+  })
+  @IsNumber({}, { message: 'El ID de la empresa debe ser un número' })
+  @IsNotEmpty({ message: 'El ID de la empresa es requerido' })
+  @Min(1, { message: 'El ID de la empresa debe ser mayor a 0' })
+  company_id: number;
 } 

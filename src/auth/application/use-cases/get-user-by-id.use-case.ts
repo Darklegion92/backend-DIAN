@@ -1,13 +1,13 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { UserRepository } from '../../infrastructure/repositories/user.repository';
-import { UserResponseDto } from '../dtos/user-response.dto';
+import { InternalUserResponseDto } from '../dtos/user-response.dto';
 import { User } from '../../domain/entities/user.entity';
 
 @Injectable()
 export class GetUserByIdUseCase {
   constructor(private readonly userRepository: UserRepository) {}
 
-  async execute(id: string): Promise<UserResponseDto> {
+  async execute(id: string): Promise<InternalUserResponseDto> {
     const user = await this.userRepository.findById(id);
     
     if (!user) {

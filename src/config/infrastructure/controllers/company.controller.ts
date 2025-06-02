@@ -28,7 +28,7 @@ import { PaginatedResponseDto } from '../../../common/dtos/paginated-response.dt
 import { CurrentUser } from '../../../auth/infrastructure/decorators/current-user.decorator';
 import { User } from '../../../auth/domain/entities/user.entity';
 
-@ApiTags('companies')
+@ApiTags('Empresas')
 @Controller('companies')
 @UseGuards(JwtAuthGuard)
 @ApiBearerAuth()
@@ -37,67 +37,172 @@ export class CompanyController {
 
   @Get()
   @ApiOperation({
-    summary: 'Obtener lista paginada de compañías por usuario',
+    summary: 'Obtener lista paginada de compañías con agrupación por rol',
     description: `
-      Consulta las compañías según el rol del usuario con paginación:
-      - ADMIN: Obtiene todas las compañías del sistema
-      - DEALER/USER: Solo obtiene las compañías asignadas a su usuario
+      **📋 Consulta compañías con filtrado automático según el rol del usuario:**
       
-      La respuesta incluye todos los campos de la compañía y la información del certificado asociado.
+      ## 🔐 Agrupación por Roles:
+      
+      ### 👑 **ADMIN** (Administrador del Sistema)
+      - ✅ **Acceso Total**: Ve todas las compañías del sistema
+      - 📊 **Sin Filtros**: No se aplican restricciones de usuario
+      - 🌍 **Vista Global**: Puede gestionar cualquier empresa registrada
+      - 📈 **Reportes Completos**: Estadísticas de todo el sistema
+      
+      ### 👥 **DEALER/USER** (Usuario Estándar)
+      - 🔒 **Acceso Restringido**: Solo ve compañías asignadas a su usuario
+      - 👤 **Filtro por Usuario**: Filtra por \`company.soltec_user_id = usuario_actual\`
+      - 🏢 **Vista Personal**: Solo empresas bajo su gestión
+      - 📊 **Reportes Limitados**: Estadísticas de sus empresas únicamente
+      
+      ## 📊 Estructura de la Respuesta:
+      
+      **Campos incluidos por compañía:**
+      - 🏢 **Información Empresarial**: NIT, razón social, dirección, contacto
+      - 📜 **Datos Tributarios**: Régimen, responsabilidades, municipio
+      - 🔐 **Configuración**: Ambiente DIAN, configuración SMTP
+      - 📄 **Certificado Digital**: ID, nombre, fecha de vencimiento
+      - 🔑 **Token DIAN**: Token API para integración con servicios DIAN
+      - 👤 **Asignación**: Usuario Soltec responsable de la empresa
+      
+      ## ⚙️ Ordenamiento y Filtros Disponibles:
+      - **Por defecto**: Ordenado por fecha de creación (más recientes primero)
+      - **Campos ordenables**: createdAt, updatedAt, identificationNumber, businessName
+      - **Paginación**: Configurable con page/limit
     `,
   })
   @ApiQuery({
     name: 'page',
     required: false,
-    description: 'Número de página',
+    description: 'Número de página (por defecto: 1)',
     example: 1,
+    schema: { type: 'integer', minimum: 1 },
   })
   @ApiQuery({
     name: 'limit',
     required: false,
-    description: 'Elementos por página',
+    description: 'Elementos por página (por defecto: 10, máximo: 100)',
     example: 10,
+    schema: { type: 'integer', minimum: 1, maximum: 100 },
   })
   @ApiQuery({
     name: 'sortBy',
     required: false,
-    description: 'Campo para ordenar',
+    description: 'Campo para ordenar los resultados',
     example: 'createdAt',
+    enum: ['createdAt', 'updatedAt', 'identificationNumber', 'businessName'],
   })
   @ApiQuery({
     name: 'sortOrder',
     required: false,
     description: 'Dirección del ordenamiento',
     example: 'DESC',
+    enum: ['ASC', 'DESC'],
   })
   @ApiResponse({
     status: 200,
-    description: 'Lista paginada de compañías obtenida exitosamente',
+    description: 'Lista paginada de compañías obtenida exitosamente con agrupación por rol',
     schema: {
       type: 'object',
       properties: {
         data: {
           type: 'array',
           items: { $ref: '#/components/schemas/CompanyWithCertificateDto' },
+          description: 'Array de compañías filtradas según el rol del usuario',
         },
         meta: {
           type: 'object',
           properties: {
-            currentPage: { type: 'number', example: 1 },
-            itemsPerPage: { type: 'number', example: 10 },
-            totalItems: { type: 'number', example: 25 },
-            totalPages: { type: 'number', example: 3 },
-            hasPreviousPage: { type: 'boolean', example: false },
-            hasNextPage: { type: 'boolean', example: true },
+            currentPage: { 
+              type: 'number', 
+              example: 1,
+              description: 'Página actual en la paginación',
+            },
+            itemsPerPage: { 
+              type: 'number', 
+              example: 10,
+              description: 'Número de elementos por página',
+            },
+            totalItems: { 
+              type: 'number', 
+              example: 25,
+              description: 'Total de compañías disponibles para este usuario',
+            },
+            totalPages: { 
+              type: 'number', 
+              example: 3,
+              description: 'Total de páginas disponibles',
+            },
+            hasPreviousPage: { 
+              type: 'boolean', 
+              example: false,
+              description: 'Indica si existe una página anterior',
+            },
+            hasNextPage: { 
+              type: 'boolean', 
+              example: true,
+              description: 'Indica si existe una página siguiente',
+            },
           },
+        },
+      },
+      example: {
+        data: [
+          {
+            id: 1,
+            identificationNumber: '900123456',
+            dv: '7',
+            businessName: 'TECNOLOGÍA Y DESARROLLO S.A.S.',
+            soltecUserId: 'user-uuid-123',
+            certificateId: 8,
+            certificateName: 'certificado_900123456.p12',
+            tokenDian: 'dian-api-token-xyz',
+            createdAt: '2025-01-21T10:30:00Z',
+          },
+        ],
+        meta: {
+          currentPage: 1,
+          itemsPerPage: 10,
+          totalItems: 5,
+          totalPages: 1,
+          hasPreviousPage: false,
+          hasNextPage: false,
         },
       },
     },
   })
-  @ApiResponse({ status: 401, description: 'No autorizado' })
+  @ApiResponse({ 
+    status: 401, 
+    description: 'No autorizado - Token JWT requerido',
+    schema: {
+      example: {
+        statusCode: 401,
+        message: 'Token JWT requerido para acceder a las compañías',
+        error: 'Unauthorized',
+      },
+    },
+  })
   @ApiResponse({
     status: 403,
-    description: 'Sin permisos para acceder a las compañías',
+    description: 'Sin permisos para acceder a las compañías del sistema',
+    schema: {
+      example: {
+        statusCode: 403,
+        message: 'No tiene permisos suficientes para consultar compañías',
+        error: 'Forbidden',
+      },
+    },
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Parámetros de consulta inválidos',
+    schema: {
+      example: {
+        statusCode: 400,
+        message: ['page debe ser un número positivo', 'limit no puede ser mayor a 100'],
+        error: 'Bad Request',
+      },
+    },
   })
   async getCompanies(
     @Query() paginationQuery: PaginationQueryDto,
@@ -111,36 +216,127 @@ export class CompanyController {
 
   @Get(':id')
   @ApiOperation({
-    summary: 'Obtener una compañía específica por ID',
+    summary: 'Obtener compañía específica con validación de permisos por rol',
     description: `
-      Consulta una compañía específica según el rol del usuario:
-      - ADMIN: Puede acceder a cualquier compañía
-      - DEALER/USER: Solo puede acceder a compañías asignadas a su usuario
+      **🔍 Consulta una compañía específica aplicando filtros de seguridad según el rol:**
       
-      La respuesta incluye todos los campos de la compañía y la información del certificado asociado.
+      ## 🔐 Control de Acceso por Roles:
+      
+      ### 👑 **ADMIN** (Administrador del Sistema)
+      - ✅ **Acceso Universal**: Puede consultar cualquier compañía del sistema
+      - 🔓 **Sin Restricciones**: No se valida la asignación de usuario
+      - 🌍 **Vista Completa**: Acceso a toda la información empresarial
+      
+      ### 👥 **DEALER/USER** (Usuario Estándar)  
+      - 🔒 **Acceso Limitado**: Solo compañías asignadas a su usuario
+      - ✋ **Validación Estricta**: Se verifica \`company.soltec_user_id = usuario_actual\`
+      - 🚫 **Error 404**: Si intenta acceder a compañía no asignada
+      
+      ## 📊 Información Incluida en la Respuesta:
+      
+      **🏢 Datos Empresariales Completos:**
+      - **Identificación**: NIT, dígito verificación, razón social
+      - **Ubicación**: Dirección, municipio, teléfono, email
+      - **Registro**: Matrícula mercantil, fecha de creación
+      
+      **📜 Configuración Tributaria:**
+      - **Régimen**: Tipo de régimen tributario
+      - **Responsabilidades**: Responsabilidades fiscales
+      - **Ambiente DIAN**: Configuración para facturación electrónica
+      
+      **🔐 Integración y Seguridad:**
+      - **Certificado Digital**: Información del certificado P12
+      - **Token DIAN**: Token API para servicios de la DIAN
+      - **Configuración SMTP**: Parámetros de correo (si está configurado)
+      
+      **👤 Gestión:**
+      - **Usuario Asignado**: ID del usuario Soltec responsable
+      - **Estado**: Activo/Inactivo de la empresa
+      - **Permisos**: Configuración de acceso para vendedores
     `,
   })
   @ApiParam({
     name: 'id',
-    description: 'ID único de la compañía',
+    description: 'ID único de la compañía a consultar',
     example: 1,
+    schema: { type: 'integer', minimum: 1 },
   })
   @ApiResponse({
     status: 200,
-    description: 'Compañía encontrada con información del certificado',
+    description: 'Compañía encontrada con información completa del certificado y configuración',
     type: CompanyWithCertificateDto,
+    schema: {
+      example: {
+        id: 1,
+        identificationNumber: '900123456',
+        dv: '7',
+        typeDocumentIdentificationId: 6,
+        typeOrganizationId: 2,
+        languageId: 79,
+        taxId: 1,
+        typeOperationId: 2,
+        typeRegimeId: 2,
+        typeLiabilityId: 14,
+        municipalityId: 149,
+        typeEnvironmentId: 1,
+        address: 'Carrera 15 #93-47, Oficina 501',
+        phone: '+57 1 123 4567',
+        merchantRegistration: '12345678',
+        state: true,
+        allowSellerLogin: false,
+        soltecUserId: 'user-uuid-123',
+        createdAt: '2025-01-21T10:30:00Z',
+        updatedAt: '2025-01-21T10:30:00Z',
+        certificateExpirationDate: '2026-01-21T23:59:59Z',
+        certificateId: 8,
+        certificateName: 'certificado_900123456.p12',
+        tokenDian: 'dian-api-token-xyz',
+      },
+    },
   })
   @ApiResponse({
     status: 404,
     description: 'Compañía no encontrada o sin permisos para acceder',
+    schema: {
+      example: {
+        statusCode: 404,
+        message: 'Compañía no encontrada o sin permisos para acceder',
+        error: 'Not Found',
+      },
+    },
   })
   @ApiResponse({
     status: 401,
     description: 'No autorizado - Token JWT requerido',
+    schema: {
+      example: {
+        statusCode: 401,
+        message: 'Token JWT requerido para acceder a la compañía',
+        error: 'Unauthorized',
+      },
+    },
   })
   @ApiResponse({
     status: 403,
-    description: 'Sin permisos para acceder a esta compañía',
+    description: 'Sin permisos para acceder a esta compañía específica',
+    schema: {
+      example: {
+        statusCode: 403,
+        message: 'No tiene permisos para acceder a esta compañía',
+        error: 'Forbidden',
+      },
+    },
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'ID de compañía inválido',
+    schema: {
+      example: {
+        statusCode: 400,
+        message: 'El ID debe ser un número entero positivo',
+        error: 'Bad Request',
+      },
+    },
   })
   async getCompanyById(
     @Param('id', ParseIntPipe) companyId: number,
@@ -160,7 +356,7 @@ export class CompanyController {
     return company;
   }
 
-  @Post('external')
+  @Post('')
   @ApiOperation({
     summary: 'Crear nueva compañía en servicio externo de la DIAN',
     description: `

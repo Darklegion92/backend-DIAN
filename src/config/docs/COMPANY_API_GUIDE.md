@@ -8,6 +8,53 @@ Esta guía proporciona información detallada sobre cómo usar el endpoint para 
 **Autenticación:** Bearer Token (JWT) requerido  
 **Content-Type:** `application/json`
 
+## 🔐 Agrupaciones y Control de Acceso
+
+### 📊 **Sistema de Agrupación por Roles**
+
+El API implementa un sistema de agrupación automática de compañías basado en el rol del usuario autenticado:
+
+#### 👑 **Administrador (ADMIN)**
+```javascript
+// Acceso completo sin restricciones
+GET /companies              // Todas las compañías del sistema
+GET /companies/123          // Cualquier compañía por ID
+POST /companies/external    // Crear compañías para cualquier usuario
+```
+
+**Características:**
+- ✅ **Vista Global**: Acceso a todas las empresas registradas
+- 📊 **Reportes Completos**: Estadísticas de todo el sistema
+- 🔧 **Gestión Total**: Puede crear y modificar cualquier empresa
+- 🌍 **Sin Filtros**: No se aplican restricciones por usuario
+
+#### 👥 **Usuario Estándar (DEALER/USER)**
+```javascript
+// Acceso restringido a empresas asignadas
+GET /companies              // Solo compañías con soltec_user_id = usuario_actual
+GET /companies/123          // Solo si company.soltec_user_id = usuario_actual
+POST /companies/external    // Se asigna automáticamente al usuario actual
+```
+
+**Características:**
+- 🔒 **Vista Personal**: Solo empresas bajo su gestión
+- 📊 **Reportes Limitados**: Estadísticas de sus empresas únicamente
+- 🏢 **Gestión Asignada**: Solo puede gestionar empresas asignadas
+- 🔍 **Filtro Automático**: Sistema aplica filtros de seguridad automáticamente
+
+### 🛡️ **Seguridad y Validaciones**
+
+```mermaid
+graph TD
+    A[Usuario hace petición] --> B{Validar JWT}
+    B -->|Válido| C{Verificar Rol}
+    B -->|Inválido| D[Error 401]
+    C -->|ADMIN| E[Acceso Total]
+    C -->|USER/DEALER| F{Verificar Asignación}
+    F -->|Asignado| G[Acceso Permitido]
+    F -->|No Asignado| H[Error 404/403]
+```
+
 ## 🔐 Autenticación
 
 ```bash
@@ -39,7 +86,33 @@ Authorization: Bearer <jwt-token>
 | `phone` | string | ✅ | Teléfono con formato internacional | `"+57 1 123 4567"` |
 | `email` | string | ✅ | Email corporativo único | `"contacto@empresa.com"` |
 
-## 🎯 Ejemplos de Uso
+## 🎯 Ejemplos de Uso Según Rol
+
+### 👑 **Ejemplo para Administrador**
+
+```bash
+# Listar todas las compañías del sistema
+curl -X GET "http://localhost:3000/companies?page=1&limit=20" \
+  -H "Authorization: Bearer ADMIN_JWT_TOKEN"
+
+# Acceder a cualquier compañía
+curl -X GET "http://localhost:3000/companies/123" \
+  -H "Authorization: Bearer ADMIN_JWT_TOKEN"
+```
+
+### 👥 **Ejemplo para Usuario Estándar**
+
+```bash
+# Listar solo sus compañías asignadas
+curl -X GET "http://localhost:3000/companies?page=1&limit=10" \
+  -H "Authorization: Bearer USER_JWT_TOKEN"
+
+# Solo puede acceder a compañías asignadas (error 404 si no está asignada)
+curl -X GET "http://localhost:3000/companies/123" \
+  -H "Authorization: Bearer USER_JWT_TOKEN"
+```
+
+## 🎯 Ejemplos de Creación de Compañías
 
 ### Ejemplo 1: Empresa Tecnológica S.A.S.
 
@@ -107,7 +180,8 @@ Authorization: Bearer <jwt-token>
   "updatedAt": "2025-01-21T15:30:00Z",
   "certificateExpirationDate": "2026-01-21T23:59:59Z",
   "certificateId": 8,
-  "certificateName": "certificado_900123456.p12"
+  "certificateName": "certificado_900123456.p12",
+  "tokenDian": "dian-api-token-xyz"
 }
 ```
 
@@ -134,6 +208,26 @@ Authorization: Bearer <jwt-token>
   "statusCode": 401,
   "message": "Token JWT requerido",
   "error": "Unauthorized"
+}
+```
+
+### 403 - Forbidden
+**Sin permisos para acceder a recurso específico**
+```json
+{
+  "statusCode": 403,
+  "message": "No tiene permisos para acceder a esta compañía",
+  "error": "Forbidden"
+}
+```
+
+### 404 - Not Found
+**Compañía no encontrada o no asignada**
+```json
+{
+  "statusCode": 404,
+  "message": "Compañía no encontrada o sin permisos para acceder",
+  "error": "Not Found"
 }
 ```
 

@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { UserRepository } from '../../infrastructure/repositories/user.repository';
-import { UserResponseDto } from '../dtos/user-response.dto';
+import { InternalUserResponseDto } from '../dtos/user-response.dto';
 import { PaginationQueryDto } from '../../../common/dtos/pagination-query.dto';
 import { PaginatedResponseDto } from '../../../common/dtos/paginated-response.dto';
 import { User } from '../../domain/entities/user.entity';
@@ -9,10 +9,10 @@ import { User } from '../../domain/entities/user.entity';
 export class GetUsersPaginatedUseCase {
   constructor(private readonly userRepository: UserRepository) {}
 
-  async execute(paginationQuery: PaginationQueryDto): Promise<PaginatedResponseDto<UserResponseDto>> {
+  async execute(paginationQuery: PaginationQueryDto): Promise<PaginatedResponseDto<InternalUserResponseDto>> {
     const { users, total } = await this.userRepository.findAllPaginated(paginationQuery);
     
-    const userResponseDtos: UserResponseDto[] = users.map((user: User) => ({
+    const userResponseDtos: InternalUserResponseDto[] = users.map((user: User) => ({
       id: user.id,
       username: user.username,
       email: user.email,
