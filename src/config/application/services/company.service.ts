@@ -14,6 +14,7 @@ import { ExternalValidationException } from '../exceptions/external-validation.e
 import { PaginationQueryDto } from '../../../common/dtos/pagination-query.dto';
 import { PaginatedResponseDto } from '../../../common/dtos/paginated-response.dto';
 import { firstValueFrom } from 'rxjs';
+import { CompanyFilterQueryDto } from '../dto/company-filter-query.dto';
 
 @Injectable()
 export class CompanyService {
@@ -113,14 +114,15 @@ export class CompanyService {
 
   async getCompaniesByUserPaginated(
     currentUser: User,
-    paginationQuery: PaginationQueryDto,
+    filterQuery: CompanyFilterQueryDto,
   ): Promise<PaginatedResponseDto<CompanyWithCertificateDto>> {
     const {
       page = 1,
       limit = 10,
       sortBy = 'createdAt',
       sortOrder = 'DESC',
-    } = paginationQuery;
+      dato,
+    } = filterQuery;
 
     const offset = (page - 1) * limit;
 
@@ -128,10 +130,28 @@ export class CompanyService {
       .createQueryBuilder('company')
       .leftJoinAndSelect('company.soltecUser', 'soltecUser');
 
+    // Filtro por rol de usuario
     if (currentUser.role !== UserRole.ADMIN) {
       queryBuilder = queryBuilder.where('company.soltec_user_id = :userId', {
         userId: currentUser.id,
       });
+    }
+
+    // Aplicar filtros de búsqueda
+    if (dato) {
+      const searchCondition = '(company.identification_number LIKE :searchTerm OR company.business_name LIKE :searchTerm)';
+      
+      if (currentUser.role !== UserRole.ADMIN) {
+        // Ya hay una condición WHERE para el usuario, agregar AND
+        queryBuilder = queryBuilder.andWhere(searchCondition, {
+          searchTerm: `%${dato}%`,
+        });
+      } else {
+        // No hay condición WHERE previa, usar WHERE
+        queryBuilder = queryBuilder.where(searchCondition, {
+          searchTerm: `%${dato}%`,
+        });
+      }
     }
 
     queryBuilder = queryBuilder

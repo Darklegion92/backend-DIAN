@@ -6,6 +6,24 @@ import { AppModule } from './app.module';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
+  // Configurar CORS para permitir peticiones desde el frontend
+  app.enableCors({
+    origin: [
+      'http://localhost:8000', // Frontend en desarrollo
+      'http://localhost:3000', // Por si hay otros servicios
+      'https://soltec.com',     // Producción
+    ],
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: [
+      'Content-Type',
+      'Authorization',
+      'Accept',
+      'Origin',
+      'X-Requested-With',
+    ],
+    credentials: true, // Permitir cookies y headers de autorización
+  });
+
   // Configurar ValidationPipe globalmente con transformación automática
   app.useGlobalPipes(
     new ValidationPipe({

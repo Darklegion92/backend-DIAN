@@ -5,6 +5,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthController } from './infrastructure/controllers/auth.controller';
 import { UserController } from './infrastructure/controllers/user.controller';
 import { LoginUseCase } from './application/use-cases/login.use-case';
+import { LogoutUseCase } from './application/use-cases/logout.use-case';
 import { CreateUserUseCase } from './application/use-cases/create-user.use-case';
 import { UpdateUserUseCase } from './application/use-cases/update-user.use-case';
 import { GetUserByIdUseCase } from './application/use-cases/get-user-by-id.use-case';
@@ -41,6 +42,7 @@ import { JwtStrategy } from './infrastructure/strategies/jwt.strategy';
   controllers: [AuthController, UserController],
   providers: [
     LoginUseCase,
+    LogoutUseCase,
     CreateUserUseCase,
     UpdateUserUseCase,
     GetUserByIdUseCase,

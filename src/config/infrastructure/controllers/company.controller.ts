@@ -27,6 +27,7 @@ import { PaginationQueryDto } from '../../../common/dtos/pagination-query.dto';
 import { PaginatedResponseDto } from '../../../common/dtos/paginated-response.dto';
 import { CurrentUser } from '../../../auth/infrastructure/decorators/current-user.decorator';
 import { User } from '../../../auth/domain/entities/user.entity';
+import { CompanyFilterQueryDto } from '../../application/dto/company-filter-query.dto';
 
 @ApiTags('Empresas')
 @Controller('companies')
@@ -37,115 +38,52 @@ export class CompanyController {
 
   @Get()
   @ApiOperation({
-    summary: 'Obtener lista paginada de compañías con agrupación por rol',
+    summary: 'Listar compañías con filtro de búsqueda general',
     description: `
-      **📋 Consulta compañías con filtrado automático según el rol del usuario:**
+      **📋 Obtiene una lista paginada de compañías con filtro de búsqueda general.**
       
-      ## 🔐 Agrupación por Roles:
+      ## 🔐 Control de Acceso por Roles:
       
       ### 👑 **ADMIN** (Administrador del Sistema)
-      - ✅ **Acceso Total**: Ve todas las compañías del sistema
-      - 📊 **Sin Filtros**: No se aplican restricciones de usuario
-      - 🌍 **Vista Global**: Puede gestionar cualquier empresa registrada
-      - 📈 **Reportes Completos**: Estadísticas de todo el sistema
+      - ✅ **Acceso Universal**: Puede consultar todas las compañías del sistema
+      - 🔓 **Sin Restricciones**: No se limita por usuario asignado
       
       ### 👥 **DEALER/USER** (Usuario Estándar)
-      - 🔒 **Acceso Restringido**: Solo ve compañías asignadas a su usuario
-      - 👤 **Filtro por Usuario**: Filtra por \`company.soltec_user_id = usuario_actual\`
-      - 🏢 **Vista Personal**: Solo empresas bajo su gestión
-      - 📊 **Reportes Limitados**: Estadísticas de sus empresas únicamente
+      - 🔒 **Acceso Limitado**: Solo compañías asignadas a su usuario (\`company.soltec_user_id = usuario_actual\`)
       
-      ## 📊 Estructura de la Respuesta:
+      ## 🔍 Filtro Disponible:
       
-      **Campos incluidos por compañía:**
-      - 🏢 **Información Empresarial**: NIT, razón social, dirección, contacto
-      - 📜 **Datos Tributarios**: Régimen, responsabilidades, municipio
-      - 🔐 **Configuración**: Ambiente DIAN, configuración SMTP
-      - 📄 **Certificado Digital**: ID, nombre, fecha de vencimiento
-      - 🔑 **Token DIAN**: Token API para integración con servicios DIAN
-      - 👤 **Asignación**: Usuario Soltec responsable de la empresa
+      ### 📄 **Búsqueda General:**
+      - **\`dato\`**: Busca en NIT o razón social (búsqueda parcial en ambos campos)
       
-      ## ⚙️ Ordenamiento y Filtros Disponibles:
-      - **Por defecto**: Ordenado por fecha de creación (más recientes primero)
-      - **Campos ordenables**: createdAt, updatedAt, identificationNumber, businessName
-      - **Paginación**: Configurable con page/limit
+      ## 📄 Paginación y Ordenamiento:
+      - **\`page\`**: Número de página (default: 1)
+      - **\`limit\`**: Elementos por página (default: 10, máx: 100)
+      - **\`sortBy\`**: Campo de ordenamiento (default: 'createdAt')
+      - **\`sortOrder\`**: Dirección (\`ASC\`/\`DESC\`, default: 'DESC')
+      
+      ## 🎯 Ejemplos de Uso:
+      
+      **Buscar por NIT:**
+      \`GET /companies?dato=900123456\`
+      
+      **Buscar por razón social:**
+      \`GET /companies?dato=tecnología\`
+      
+      **Con paginación:**
+      \`GET /companies?dato=desarrollo&page=1&limit=5\`
     `,
   })
   @ApiQuery({
-    name: 'page',
+    name: 'dato',
     required: false,
-    description: 'Número de página (por defecto: 1)',
-    example: 1,
-    schema: { type: 'integer', minimum: 1 },
-  })
-  @ApiQuery({
-    name: 'limit',
-    required: false,
-    description: 'Elementos por página (por defecto: 10, máximo: 100)',
-    example: 10,
-    schema: { type: 'integer', minimum: 1, maximum: 100 },
-  })
-  @ApiQuery({
-    name: 'sortBy',
-    required: false,
-    description: 'Campo para ordenar los resultados',
-    example: 'createdAt',
-    enum: ['createdAt', 'updatedAt', 'identificationNumber', 'businessName'],
-  })
-  @ApiQuery({
-    name: 'sortOrder',
-    required: false,
-    description: 'Dirección del ordenamiento',
-    example: 'DESC',
-    enum: ['ASC', 'DESC'],
+    description: 'Filtrar por documento o nombre de la empresa',
+    example: '900123456',
   })
   @ApiResponse({
     status: 200,
-    description: 'Lista paginada de compañías obtenida exitosamente con agrupación por rol',
+    description: 'Lista paginada de compañías con filtros aplicados exitosamente',
     schema: {
-      type: 'object',
-      properties: {
-        data: {
-          type: 'array',
-          items: { $ref: '#/components/schemas/CompanyWithCertificateDto' },
-          description: 'Array de compañías filtradas según el rol del usuario',
-        },
-        meta: {
-          type: 'object',
-          properties: {
-            currentPage: { 
-              type: 'number', 
-              example: 1,
-              description: 'Página actual en la paginación',
-            },
-            itemsPerPage: { 
-              type: 'number', 
-              example: 10,
-              description: 'Número de elementos por página',
-            },
-            totalItems: { 
-              type: 'number', 
-              example: 25,
-              description: 'Total de compañías disponibles para este usuario',
-            },
-            totalPages: { 
-              type: 'number', 
-              example: 3,
-              description: 'Total de páginas disponibles',
-            },
-            hasPreviousPage: { 
-              type: 'boolean', 
-              example: false,
-              description: 'Indica si existe una página anterior',
-            },
-            hasNextPage: { 
-              type: 'boolean', 
-              example: true,
-              description: 'Indica si existe una página siguiente',
-            },
-          },
-        },
-      },
       example: {
         data: [
           {
@@ -153,49 +91,23 @@ export class CompanyController {
             identificationNumber: '900123456',
             dv: '7',
             businessName: 'TECNOLOGÍA Y DESARROLLO S.A.S.',
-            soltecUserId: 'user-uuid-123',
-            certificateId: 8,
-            certificateName: 'certificado_900123456.p12',
-            tokenDian: 'dian-api-token-xyz',
-            createdAt: '2025-01-21T10:30:00Z',
+            tradeName: 'TecnoDev',
+            email: 'contacto@tecnodev.com',
+            state: true,
+            certificateExpirationDate: '2025-12-31T23:59:59Z',
+            createdAt: '2024-01-15T10:30:00Z',
           },
         ],
-        meta: {
-          currentPage: 1,
-          itemsPerPage: 10,
-          totalItems: 5,
-          totalPages: 1,
-          hasPreviousPage: false,
-          hasNextPage: false,
-        },
-      },
-    },
-  })
-  @ApiResponse({ 
-    status: 401, 
-    description: 'No autorizado - Token JWT requerido',
-    schema: {
-      example: {
-        statusCode: 401,
-        message: 'Token JWT requerido para acceder a las compañías',
-        error: 'Unauthorized',
-      },
-    },
-  })
-  @ApiResponse({
-    status: 403,
-    description: 'Sin permisos para acceder a las compañías del sistema',
-    schema: {
-      example: {
-        statusCode: 403,
-        message: 'No tiene permisos suficientes para consultar compañías',
-        error: 'Forbidden',
+        total: 1,
+        page: 1,
+        limit: 10,
+        totalPages: 1,
       },
     },
   })
   @ApiResponse({
     status: 400,
-    description: 'Parámetros de consulta inválidos',
+    description: 'Parámetros de filtro inválidos',
     schema: {
       example: {
         statusCode: 400,
@@ -205,12 +117,12 @@ export class CompanyController {
     },
   })
   async getCompanies(
-    @Query() paginationQuery: PaginationQueryDto,
+    @Query() filterQuery: CompanyFilterQueryDto,
     @CurrentUser() currentUser: User,
   ): Promise<PaginatedResponseDto<CompanyWithCertificateDto>> {
     return this.companyService.getCompaniesByUserPaginated(
       currentUser,
-      paginationQuery,
+      filterQuery,
     );
   }
 
