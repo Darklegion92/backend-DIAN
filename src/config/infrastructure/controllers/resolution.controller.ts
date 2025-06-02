@@ -1,9 +1,10 @@
-import { Controller, Put, Body, UseGuards, HttpStatus } from '@nestjs/common';
+import { Controller, Put, Body, UseGuards, HttpStatus, Get, Query, ParseIntPipe } from '@nestjs/common';
 import {
   ApiTags,
   ApiBearerAuth,
   ApiOperation,
   ApiResponse,
+  ApiQuery,
 } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../../../auth/infrastructure/guards/jwt-auth.guard';
 import { ResolutionService } from '../../application/services/resolution.service';
@@ -111,5 +112,91 @@ export class ResolutionController {
     @Body() createResolutionDto: CreateResolutionDto,
   ): Promise<any> {
     return this.resolutionService.createResolution(createResolutionDto);
+  }
+
+  @Get('company')
+  @ApiOperation({
+    summary: 'Obtener resoluciones por empresa',
+    description: 'Retorna la lista de resoluciones de una empresa específica con información de tipos de documento relacionados'
+  })
+  @ApiQuery({
+    name: 'companyId',
+    required: true,
+    description: 'ID de la empresa',
+    example: 1
+  })
+  @ApiQuery({
+    name: 'page',
+    required: false,
+    description: 'Número de página para paginación',
+    example: 1
+  })
+  @ApiQuery({
+    name: 'limit',
+    required: false,
+    description: 'Número de elementos por página',
+    example: 10
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Lista de resoluciones obtenida exitosamente',
+    schema: {
+      example: {
+        success: true,
+        statusCode: 200,
+        data: {
+          data: [
+            {
+              id: 1,
+              companyId: 1,
+              typeDocumentId: 1,
+              prefix: 'PREF',
+              resolution: '18760000001',
+              resolutionDate: '2024-01-15',
+              technicalKey: 'abc123def456',
+              from: 1,
+              to: 5000,
+              dateFrom: '2024-01-01',
+              dateTo: '2024-12-31',
+              createdAt: '2024-01-15T10:30:00Z',
+              updatedAt: '2024-01-15T10:30:00Z',
+              typeDocument: {
+                id: 1,
+                name: 'Factura Electrónica',
+                code: 'FE'
+              }
+            }
+          ],
+          meta: {
+            currentPage: 1,
+            itemsPerPage: 10,
+            totalItems: 1,
+            totalPages: 1,
+            hasPreviousPage: false,
+            hasNextPage: false
+          }
+        }
+      }
+    }
+  })
+  async getResolutionsByCompany(
+    @Query('companyId', ParseIntPipe) companyId: number,
+    @Query('page') page?: number,
+    @Query('limit') limit?: number
+  ) {
+    try {
+      const data = await this.resolutionService.getResolutionsByCompany(
+        companyId,
+        page || 1,
+        limit || 10
+      );
+      return {
+        success: true,
+        statusCode: 200,
+        data
+      };
+    } catch (error) {
+      throw error;
+    }
   }
 } 

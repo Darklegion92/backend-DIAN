@@ -6,6 +6,7 @@ import { Repository } from 'typeorm';
 import { firstValueFrom } from 'rxjs';
 import { CreateResolutionDto } from '../dto/create-resolution.dto';
 import { Software } from '../../domain/entities/software.entity';
+import { Resolution } from '../../domain/entities/resolution.entity';
 
 interface NumberRangeResponse {
   ResolutionNumber: string;
@@ -45,6 +46,8 @@ export class ResolutionService {
     private readonly configService: ConfigService,
     @InjectRepository(Software)
     private readonly softwareRepository: Repository<Software>,
+    @InjectRepository(Resolution)
+    private readonly resolutionRepository: Repository<Resolution>,
   ) {}
 
   private async getTechnicalKey(
@@ -202,6 +205,70 @@ export class ResolutionService {
 
       throw new HttpException(
         'Error interno del servidor',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  /**
+   * Obtener resoluciones por empresa con paginación
+   */
+  async getResolutionsByCompany(companyId: number, page: number = 1, limit: number = 10) {
+    try {
+      // Validar parámetros
+      const pageNumber = Math.max(1, page);
+      const limitNumber = Math.max(1, Math.min(100, limit)); // máximo 100 elementos
+      const offset = (pageNumber - 1) * limitNumber;
+
+      // Consultar resoluciones con relaciones, especificando los campos explícitamente
+      const queryBuilder = this.resolutionRepository
+        .createQueryBuilder('resolution')
+        .leftJoinAndSelect('resolution.typeDocument', 'typeDocument')
+        .select([
+          'resolution.id',
+          'resolution.companyId',
+          'resolution.typeDocumentId', 
+          'resolution.prefix',
+          'resolution.resolution',
+          'resolution.resolutionDate',
+          'resolution.technicalKey',
+          'resolution.from',
+          'resolution.to',
+          'resolution.dateFrom',
+          'resolution.dateTo',
+          'resolution.createdAt',
+          'resolution.updatedAt',
+          'typeDocument.id',
+          'typeDocument.name'
+        ])
+        .where('resolution.companyId = :companyId', { companyId })
+        .orderBy('resolution.createdAt', 'DESC')
+        .skip(offset)
+        .take(limitNumber);
+
+      // Obtener datos y total
+      const [resolutions, totalItems] = await queryBuilder.getManyAndCount();
+
+      // Calcular metadatos de paginación
+      const totalPages = Math.ceil(totalItems / limitNumber);
+      const hasPreviousPage = pageNumber > 1;
+      const hasNextPage = pageNumber < totalPages;
+
+      return {
+        data: resolutions,
+        meta: {
+          currentPage: pageNumber,
+          itemsPerPage: limitNumber,
+          totalItems,
+          totalPages,
+          hasPreviousPage,
+          hasNextPage
+        }
+      };
+    } catch (error) {
+      console.error('Error en getResolutionsByCompany:', error);
+      throw new HttpException(
+        'Error al obtener las resoluciones',
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
