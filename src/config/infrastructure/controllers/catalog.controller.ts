@@ -1,4 +1,4 @@
-import { Controller, Get, Query, UseGuards } from '@nestjs/common';
+import { Controller, Get, Query, UseGuards, Param, ParseIntPipe } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiQuery, ApiBearerAuth } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../../../auth/infrastructure/guards/jwt-auth.guard';
 import { CatalogService } from '../../application/services/catalog.service';
@@ -184,6 +184,49 @@ export class CatalogController {
   ) {
     try {
       const data = await this.catalogService.searchMunicipalities(search, limit);
+      return {
+        success: true,
+        statusCode: 200,
+        data
+      };
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  @Get('municipalities/:id')
+  @ApiOperation({
+    summary: 'Obtener municipio por ID',
+    description: 'Obtiene un municipio específico por su ID, incluyendo información del departamento'
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Municipio obtenido exitosamente',
+    schema: {
+      example: {
+        success: true,
+        statusCode: 200,
+        data: { 
+          id: 149, 
+          name: 'Bogotá D.C.', 
+          code: '11001',
+          displayName: 'Bogotá D.C., Bogotá D.C.',
+          department: {
+            id: 1,
+            name: 'Bogotá D.C.',
+            code: '11'
+          }
+        }
+      }
+    }
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Municipio no encontrado'
+  })
+  async getMunicipalityById(@Param('id', ParseIntPipe) id: number) {
+    try {
+      const data = await this.catalogService.getMunicipalityById(id);
       return {
         success: true,
         statusCode: 200,

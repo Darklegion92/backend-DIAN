@@ -102,4 +102,40 @@ export class CatalogService {
       } : null
     }));
   }
+
+  /**
+   * Obtener un municipio específico por ID
+   */
+  async getMunicipalityById(id: number) {
+    const municipality = await this.municipalityRepository
+      .createQueryBuilder('municipality')
+      .leftJoinAndSelect('municipality.department', 'department')
+      .select([
+        'municipality.id',
+        'municipality.name', 
+        'municipality.code',
+        'department.id',
+        'department.name',
+        'department.code'
+      ])
+      .where('municipality.id = :id', { id })
+      .getOne();
+
+    if (!municipality) {
+      throw new Error(`Municipio con ID ${id} no encontrado`);
+    }
+
+    // Formatear resultado con displayName concatenado
+    return {
+      id: municipality.id,
+      name: municipality.name,
+      code: municipality.code,
+      displayName: `${municipality.name}, ${municipality.department?.name || 'N/A'}`,
+      department: municipality.department ? {
+        id: municipality.department.id,
+        name: municipality.department.name,
+        code: municipality.department.code
+      } : null
+    };
+  }
 } 

@@ -44,6 +44,8 @@ export class CompanyService {
         );
       }
 
+
+
       // Extraer nit y digito del body
       const { nit, digito, ...dataToSend } = companyData;
       const url = `${externalServerUrl}/config/${nit}/${digito}`;
