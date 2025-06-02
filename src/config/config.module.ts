@@ -7,7 +7,12 @@ import { Certificate } from './domain/entities/certificate.entity';
 import { User } from '../auth/domain/entities/user.entity';
 import { UserDian } from './domain/entities/userDian.entity';
 import { Country } from './domain/entities/country.entity';
+import { Department } from './domain/entities/department.entity';
+import { Municipality } from './domain/entities/municipality.entity';
 import { TypeDocumentIdentification } from './domain/entities/type-document-identification.entity';
+import { TypeOrganization } from './domain/entities/type-organization.entity';
+import { TypeRegime } from './domain/entities/type-regime.entity';
+import { TypeLiability } from './domain/entities/type-liability.entity';
 import { PaymentForm } from './domain/entities/payment-form.entity';
 import { UnitMeasure } from './domain/entities/unit-measure.entity';
 import { TypeCurrency } from './domain/entities/type-currency.entity';
@@ -17,6 +22,8 @@ import { Software } from './domain/entities/software.entity';
 import { TypeDocument } from '../document/domain/entities/type-document.entity';
 import { CompanyService } from './application/services/company.service';
 import { CompanyController } from './infrastructure/controllers/company.controller';
+import { CatalogService } from './application/services/catalog.service';
+import { CatalogController } from './infrastructure/controllers/catalog.controller';
 import { SoftwareService } from './application/services/software.service';
 import { SoftwareController } from './infrastructure/controllers/software.controller';
 import { CertificateService } from './application/services/certificate.service';
@@ -32,7 +39,12 @@ import { ResolutionController } from './infrastructure/controllers/resolution.co
       User,
       UserDian,
       Country,
+      Department,
+      Municipality,
       TypeDocumentIdentification,
+      TypeOrganization,
+      TypeRegime,
+      TypeLiability,
       PaymentForm,
       UnitMeasure,
       TypeCurrency,
@@ -46,18 +58,21 @@ import { ResolutionController } from './infrastructure/controllers/resolution.co
   ],
   controllers: [
     CompanyController,
+    CatalogController,
     SoftwareController,
     CertificateController,
     ResolutionController,
   ],
   providers: [
     CompanyService,
+    CatalogService,
     SoftwareService,
     CertificateService,
     ResolutionService,
   ],
   exports: [
     CompanyService,
+    CatalogService,
     SoftwareService,
     CertificateService,
     ResolutionService,
