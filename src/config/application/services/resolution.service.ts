@@ -273,4 +273,72 @@ export class ResolutionService {
       );
     }
   }
+
+  /**
+   * Obtener resoluciones por NIT de empresa con paginación
+   */
+  async getResolutionsByCompanyNit(nit: string, page: number = 1, limit: number = 10) {
+    try {
+      // Validar parámetros
+      const pageNumber = Math.max(1, page);
+      const limitNumber = Math.max(1, Math.min(100, limit)); // máximo 100 elementos
+      const offset = (pageNumber - 1) * limitNumber;
+
+      // Consultar resoluciones con relaciones a través del NIT
+      const queryBuilder = this.resolutionRepository
+        .createQueryBuilder('resolution')
+        .leftJoinAndSelect('resolution.typeDocument', 'typeDocument')
+        .leftJoinAndSelect('resolution.company', 'company')
+        .select([
+          'resolution.id',
+          'resolution.companyId',
+          'resolution.typeDocumentId', 
+          'resolution.prefix',
+          'resolution.resolution',
+          'resolution.resolutionDate',
+          'resolution.technicalKey',
+          'resolution.from',
+          'resolution.to',
+          'resolution.dateFrom',
+          'resolution.dateTo',
+          'resolution.createdAt',
+          'resolution.updatedAt',
+          'typeDocument.id',
+          'typeDocument.name',
+          'company.id',
+          'company.identificationNumber'
+        ])
+        .where('company.identificationNumber = :nit', { nit })
+        .orderBy('resolution.typeDocumentId', 'ASC')
+        .addOrderBy('resolution.prefix', 'ASC')
+        .skip(offset)
+        .take(limitNumber);
+
+      // Obtener datos y total
+      const [resolutions, totalItems] = await queryBuilder.getManyAndCount();
+
+      // Calcular metadatos de paginación
+      const totalPages = Math.ceil(totalItems / limitNumber);
+      const hasPreviousPage = pageNumber > 1;
+      const hasNextPage = pageNumber < totalPages;
+
+      return {
+        data: resolutions,
+        meta: {
+          currentPage: pageNumber,
+          itemsPerPage: limitNumber,
+          totalItems,
+          totalPages,
+          hasPreviousPage,
+          hasNextPage
+        }
+      };
+    } catch (error) {
+      console.error('Error en getResolutionsByCompanyNit:', error);
+      throw new HttpException(
+        'Error al obtener las resoluciones por NIT',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
 } 

@@ -1,4 +1,4 @@
-import { Controller, Put, Body, UseGuards, HttpStatus, Get, Query, ParseIntPipe } from '@nestjs/common';
+import { Controller, Put, Body, UseGuards, HttpStatus, Get, Query, ParseIntPipe, HttpException } from '@nestjs/common';
 import {
   ApiTags,
   ApiBearerAuth,
@@ -193,6 +193,133 @@ export class ResolutionController {
       return {
         success: true,
         statusCode: 200,
+        data
+      };
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  @Get('company-by-nit')
+  @ApiOperation({
+    summary: 'Obtener resoluciones por NIT de empresa',
+    description: 'Retorna la lista de resoluciones de una empresa específica filtrada por NIT (identification_number) con información de tipos de documento relacionados'
+  })
+  @ApiQuery({
+    name: 'nit',
+    required: true,
+    description: 'NIT de la empresa (identification_number)',
+    example: '900123456'
+  })
+  @ApiQuery({
+    name: 'page',
+    required: false,
+    description: 'Número de página para paginación',
+    example: 1
+  })
+  @ApiQuery({
+    name: 'limit',
+    required: false,
+    description: 'Número de elementos por página',
+    example: 10
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Lista de resoluciones obtenida exitosamente',
+    schema: {
+      example: {
+        success: true,
+        statusCode: 200,
+        message: 'Resoluciones obtenidas exitosamente',
+        data: {
+          data: [
+            {
+              id: 1,
+              companyId: 123,
+              typeDocumentId: 1,
+              prefix: 'FES',
+              resolution: '18760000001',
+              resolutionDate: '2024-01-01',
+              technicalKey: 'fc8eac422eba16e22ffd8c6f94b3f40a6e38162c',
+              from: 1,
+              to: 10000,
+              dateFrom: '2024-01-01',
+              dateTo: '2025-01-01',
+              createdAt: '2024-01-15T10:30:00Z',
+              updatedAt: '2024-01-15T10:30:00Z',
+              typeDocument: {
+                id: 1,
+                name: 'Factura de Venta'
+              },
+              company: {
+                id: 123,
+                identificationNumber: '900123456'
+              }
+            }
+          ],
+          meta: {
+            currentPage: 1,
+            itemsPerPage: 10,
+            totalItems: 1,
+            totalPages: 1,
+            hasPreviousPage: false,
+            hasNextPage: false
+          }
+        }
+      }
+    }
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'NIT requerido',
+    schema: {
+      example: {
+        success: false,
+        statusCode: 400,
+        message: 'NIT es requerido'
+      }
+    }
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'No se encontraron resoluciones para el NIT especificado',
+    schema: {
+      example: {
+        success: false,
+        statusCode: 404,
+        message: 'No se encontraron resoluciones para el NIT especificado'
+      }
+    }
+  })
+  async getResolutionsByCompanyNit(
+    @Query('nit') nit: string,
+    @Query('page') page?: number,
+    @Query('limit') limit?: number
+  ) {
+    try {
+      // Validar que se proporcione el NIT
+      if (!nit || nit.trim() === '') {
+        throw new HttpException('NIT es requerido', HttpStatus.BAD_REQUEST);
+      }
+
+      const data = await this.resolutionService.getResolutionsByCompanyNit(
+        nit.trim(),
+        page || 1,
+        limit || 10
+      );
+
+      // Verificar si se encontraron resoluciones
+      if (data.data.length === 0) {
+        throw new HttpException(
+          'No se encontraron resoluciones para el NIT especificado',
+          HttpStatus.NOT_FOUND
+        );
+      }
+
+      return {
+        success: true,
+        statusCode: 200,
+        message: 'Resoluciones obtenidas exitosamente',
         data
       };
     } catch (error) {
