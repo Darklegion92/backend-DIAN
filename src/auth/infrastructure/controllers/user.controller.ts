@@ -6,8 +6,10 @@ import { UpdateUserUseCase } from '../../application/use-cases/update-user.use-c
 import { GetUserByIdUseCase } from '../../application/use-cases/get-user-by-id.use-case';
 import { GetUsersPaginatedUseCase } from '../../application/use-cases/get-users-paginated.use-case';
 import { GetCurrentUserUseCase } from '../../application/use-cases/get-current-user.use-case';
+import { ChangePasswordUseCase } from '../../application/use-cases/change-password.use-case';
 import { CreateUserDto } from '../../application/dtos/create-user.dto';
 import { UpdateUserDto } from '../../application/dtos/update-user.dto';
+import { ChangePasswordDto } from '../../application/dtos/change-password.dto';
 import { UserResponseDto, InternalUserResponseDto } from '../../application/dtos/user-response.dto';
 import { PaginationQueryDto } from '../../../common/dtos/pagination-query.dto';
 import { PaginatedResponseDto } from '../../../common/dtos/paginated-response.dto';
@@ -25,6 +27,7 @@ export class UserController {
     private readonly getUserByIdUseCase: GetUserByIdUseCase,
     private readonly getUsersPaginatedUseCase: GetUsersPaginatedUseCase,
     private readonly getCurrentUserUseCase: GetCurrentUserUseCase,
+    private readonly changePasswordUseCase: ChangePasswordUseCase,
   ) {}
 
   @Get('currentUser')
@@ -75,6 +78,72 @@ export class UserController {
   })
   async getCurrentUser(@CurrentUser() currentUser: User): Promise<InternalUserResponseDto> {
     return this.getCurrentUserUseCase.execute(currentUser);
+  }
+
+  @Put('change-password')
+  @ApiOperation({ 
+    summary: 'Cambiar contraseña del usuario actual',
+    description: 'Permite al usuario autenticado cambiar su contraseña proporcionando la contraseña actual y la nueva.',
+  })
+  @ApiResponse({ 
+    status: 200, 
+    description: 'Contraseña cambiada exitosamente',
+    schema: {
+      type: 'object',
+      properties: {
+        success: { type: 'boolean', example: true },
+        statusCode: { type: 'number', example: 200 },
+        timestamp: { type: 'string', example: '2024-01-15T10:30:00.000Z' },
+        path: { type: 'string', example: '/users/change-password' },
+        method: { type: 'string', example: 'PUT' },
+        message: { type: 'string', example: 'Contraseña cambiada exitosamente' }
+      }
+    }
+  })
+  @ApiResponse({ 
+    status: 401, 
+    description: 'Contraseña actual incorrecta',
+    schema: {
+      type: 'object',
+      properties: {
+        success: { type: 'boolean', example: false },
+        statusCode: { type: 'number', example: 401 },
+        timestamp: { type: 'string', example: '2024-01-15T10:30:00.000Z' },
+        path: { type: 'string', example: '/users/change-password' },
+        method: { type: 'string', example: 'PUT' },
+        message: { type: 'string', example: 'La contraseña actual es incorrecta' }
+      }
+    }
+  })
+  @ApiResponse({ 
+    status: 400, 
+    description: 'Datos de entrada inválidos',
+    schema: {
+      type: 'object',
+      properties: {
+        success: { type: 'boolean', example: false },
+        statusCode: { type: 'number', example: 400 },
+        timestamp: { type: 'string', example: '2024-01-15T10:30:00.000Z' },
+        path: { type: 'string', example: '/users/change-password' },
+        method: { type: 'string', example: 'PUT' },
+        message: { 
+          type: 'array', 
+          items: { type: 'string' },
+          example: ['La nueva contraseña debe tener al menos 8 caracteres']
+        },
+        error: { type: 'string', example: 'Bad Request' }
+      }
+    }
+  })
+  async changePassword(
+    @CurrentUser() currentUser: User,
+    @Body() changePasswordDto: ChangePasswordDto,
+  ): Promise<{ success: boolean; message: string }> {
+    await this.changePasswordUseCase.execute(currentUser, changePasswordDto);
+    return {
+      success: true,
+      message: 'Contraseña cambiada exitosamente'
+    };
   }
 
   @Get()

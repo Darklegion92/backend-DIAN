@@ -11,6 +11,7 @@ import { UpdateUserUseCase } from './application/use-cases/update-user.use-case'
 import { GetUserByIdUseCase } from './application/use-cases/get-user-by-id.use-case';
 import { GetUsersPaginatedUseCase } from './application/use-cases/get-users-paginated.use-case';
 import { GetCurrentUserUseCase } from './application/use-cases/get-current-user.use-case';
+import { ChangePasswordUseCase } from './application/use-cases/change-password.use-case';
 import { UserRepository } from './infrastructure/repositories/user.repository';
 import { USER_REPOSITORY } from './domain/repositories/user.repository.interface';
 import { User } from './domain/entities/user.entity';
@@ -48,6 +49,7 @@ import { JwtStrategy } from './infrastructure/strategies/jwt.strategy';
     GetUserByIdUseCase,
     GetUsersPaginatedUseCase,
     GetCurrentUserUseCase,
+    ChangePasswordUseCase,
     InitService,
     JwtStrategy,
     UserRepository,

@@ -46,6 +46,13 @@ export class UserRepository implements IUserRepository {
     });
   }
 
+  async findByIdWithPassword(id: string): Promise<User | null> {
+    return this.userRepository.findOne({
+      where: { id },
+      select: ['id', 'username', 'email', 'role', 'name', 'password', 'createdAt', 'updatedAt'],
+    });
+  }
+
   async findByEmail(email: string): Promise<User | null> {
     return this.userRepository.findOne({
       where: { email },
@@ -74,5 +81,9 @@ export class UserRepository implements IUserRepository {
 
   async save(user: User): Promise<User> {
     return this.userRepository.save(user);
+  }
+
+  async updatePassword(userId: string, hashedPassword: string): Promise<void> {
+    await this.userRepository.update(userId, { password: hashedPassword });
   }
 } 
