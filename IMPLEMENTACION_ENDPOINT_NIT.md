@@ -8,7 +8,7 @@ GET /api/resolution/company-by-nit?nit={identification_number}
 ```
 
 ### Descripción
-Nuevo endpoint que permite consultar resoluciones de facturación filtradas por el **NIT (identification_number)** de la empresa, en lugar del ID interno.
+Endpoint que permite consultar **todas las resoluciones** de facturación filtradas por el **NIT (identification_number)** de la empresa, sin paginación.
 
 ## 🔧 Implementación Técnica
 
@@ -17,13 +17,13 @@ Nuevo endpoint que permite consultar resoluciones de facturación filtradas por 
 
 **Método agregado**:
 ```typescript
-async getResolutionsByCompanyNit(nit: string, page: number = 1, limit: number = 10)
+async getResolutionsByCompanyNit(nit: string)
 ```
 
 **Características**:
 - ✅ Consulta por `company.identificationNumber = nit`
 - ✅ Incluye relaciones con `typeDocument` y `company`
-- ✅ Paginación automática
+- ✅ **Sin paginación** - retorna todas las resoluciones
 - ✅ Ordenamiento por `typeDocumentId` y `prefix`
 - ✅ Manejo de errores robusto
 
@@ -33,7 +33,7 @@ async getResolutionsByCompanyNit(nit: string, page: number = 1, limit: number = 
 **Endpoint agregado**:
 ```typescript
 @Get('company-by-nit')
-async getResolutionsByCompanyNit(@Query('nit') nit, @Query('page') page?, @Query('limit') limit?)
+async getResolutionsByCompanyNit(@Query('nit') nit)
 ```
 
 **Características**:
@@ -41,14 +41,13 @@ async getResolutionsByCompanyNit(@Query('nit') nit, @Query('page') page?, @Query
 - ✅ Documentación Swagger completa
 - ✅ Respuestas de error personalizadas
 - ✅ Autenticación JWT requerida
+- ✅ **Sin parámetros de paginación**
 
 ## 📋 Query Parameters
 
 | Parámetro | Tipo | Requerido | Descripción | Ejemplo |
 |-----------|------|-----------|-------------|---------|
 | `nit` | string | Sí | NIT de la empresa | `900123456` |
-| `page` | number | No | Página (default: 1) | `1` |
-| `limit` | number | No | Elementos por página (default: 10, max: 100) | `10` |
 
 ## 📊 Estructura de Respuesta
 
@@ -83,15 +82,7 @@ async getResolutionsByCompanyNit(@Query('nit') nit, @Query('page') page?, @Query
           "identificationNumber": "900123456"
         }
       }
-    ],
-    "meta": {
-      "currentPage": 1,
-      "itemsPerPage": 10,
-      "totalItems": 1,
-      "totalPages": 1,
-      "hasPreviousPage": false,
-      "hasNextPage": false
-    }
+    ]
   }
 }
 ```
@@ -140,7 +131,6 @@ LEFT JOIN type_documents typeDocument ON typeDocument.id = resolution.typeDocume
 LEFT JOIN companies company ON company.id = resolution.companyId
 WHERE company.identificationNumber = ?
 ORDER BY resolution.typeDocumentId ASC, resolution.prefix ASC
-LIMIT ? OFFSET ?
 ```
 
 ## 🔒 Seguridad
@@ -148,13 +138,12 @@ LIMIT ? OFFSET ?
 - ✅ **Autenticación JWT**: Requiere `@UseGuards(JwtAuthGuard)`
 - ✅ **Validación de entrada**: NIT es requerido y se trimea
 - ✅ **Sanitización**: Previene inyección SQL con QueryBuilder
-- ✅ **Rate limiting**: Máximo 100 elementos por página
 
 ## 📈 Performance
 
 - ✅ **Índices**: Utiliza índice en `companies.identification_number`
 - ✅ **Select específico**: Solo campos necesarios
-- ✅ **Paginación**: Eficiente con LIMIT/OFFSET
+- ✅ **Sin paginación**: Retorna todas las resoluciones de una vez
 - ✅ **LEFT JOIN**: Optimizado para relaciones
 
 ## 🧪 Ejemplos de Uso
@@ -165,12 +154,6 @@ GET /api/resolution/company-by-nit?nit=900123456
 Authorization: Bearer {jwt_token}
 ```
 
-### Con paginación
-```bash
-GET /api/resolution/company-by-nit?nit=900123456&page=2&limit=20
-Authorization: Bearer {jwt_token}
-```
-
 ## 🔄 Comparación con Endpoint Anterior
 
 | Aspecto | Endpoint Anterior | Nuevo Endpoint |
@@ -178,7 +161,8 @@ Authorization: Bearer {jwt_token}
 | **Parámetro** | `companyId` (número) | `nit` (string) |
 | **Búsqueda** | Directa por FK | JOIN con companies |
 | **Relaciones** | Solo typeDocument | typeDocument + company |
-| **Performance** | Más rápido | Ligeramente más lento |
+| **Paginación** | Sí (con meta) | **No - todas las resoluciones** |
+| **Performance** | Más rápido | Optimizado sin paginación |
 | **Usabilidad** | Requiere ID interno | Usa identificador natural |
 
 ## ✅ Estado de Implementación
@@ -189,7 +173,7 @@ Authorization: Bearer {jwt_token}
 - ✅ Documentación Swagger
 - ✅ Manejo de errores
 - ✅ Autenticación JWT
-- ✅ Paginación funcional
+- ✅ **Paginación eliminada**
 - ✅ Respuestas estandarizadas
 
-El endpoint está **completamente funcional** y listo para ser usado por la aplicación Java cliente. 
+El endpoint está **completamente funcional** y retorna **todas las resoluciones** de la empresa sin límites de paginación. 

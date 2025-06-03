@@ -203,25 +203,13 @@ export class ResolutionController {
   @Get('company-by-nit')
   @ApiOperation({
     summary: 'Obtener resoluciones por NIT de empresa',
-    description: 'Retorna la lista de resoluciones de una empresa específica filtrada por NIT (identification_number) con información de tipos de documento relacionados'
+    description: 'Retorna todas las resoluciones de una empresa específica filtrada por NIT (identification_number) con información de tipos de documento relacionados'
   })
   @ApiQuery({
     name: 'nit',
     required: true,
     description: 'NIT de la empresa (identification_number)',
     example: '900123456'
-  })
-  @ApiQuery({
-    name: 'page',
-    required: false,
-    description: 'Número de página para paginación',
-    example: 1
-  })
-  @ApiQuery({
-    name: 'limit',
-    required: false,
-    description: 'Número de elementos por página',
-    example: 10
   })
   @ApiResponse({
     status: 200,
@@ -256,15 +244,7 @@ export class ResolutionController {
                 identificationNumber: '900123456'
               }
             }
-          ],
-          meta: {
-            currentPage: 1,
-            itemsPerPage: 10,
-            totalItems: 1,
-            totalPages: 1,
-            hasPreviousPage: false,
-            hasNextPage: false
-          }
+          ]
         }
       }
     }
@@ -292,9 +272,7 @@ export class ResolutionController {
     }
   })
   async getResolutionsByCompanyNit(
-    @Query('nit') nit: string,
-    @Query('page') page?: number,
-    @Query('limit') limit?: number
+    @Query('nit') nit: string
   ) {
     try {
       // Validar que se proporcione el NIT
@@ -303,9 +281,7 @@ export class ResolutionController {
       }
 
       const data = await this.resolutionService.getResolutionsByCompanyNit(
-        nit.trim(),
-        page || 1,
-        limit || 10
+        nit.trim()
       );
 
       // Verificar si se encontraron resoluciones
