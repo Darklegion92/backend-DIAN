@@ -113,12 +113,9 @@ async function bootstrap() {
       description: 'Ingrese su token JWT obtenido del endpoint de login',
       in: 'header',
     })
-    .addTag('companies', '🏢 Gestión de Compañías - Crear y administrar empresas')
-    .addTag('invoice', '📄 Facturación Electrónica - Generar facturas DIAN')
-    .addTag('auth', '🔐 Autenticación - Login y gestión de tokens')
-    .addServer('http://localhost:3000/api', 'Servidor de Desarrollo Local')
-    .addServer('https://facturador.tecnologiaydesarrollo.net/api', 'Servidor de Producción (HTTPS)')
-    .addServer('http://facturador.tecnologiaydesarrollo.net/api', 'Servidor de Producción (HTTP - Redirige a HTTPS)')
+    .addServer('http://localhost:3000', 'Servidor de Desarrollo Local')
+    .addServer('https://facturador.tecnologiaydesarrollo.net', 'Servidor de Producción (HTTPS)')
+    .addServer('http://facturador.tecnologiaydesarrollo.net', 'Servidor de Producción (HTTP - Redirige a HTTPS)')
     .build();
 
   const document = SwaggerModule.createDocument(app, config);
