@@ -10,8 +10,9 @@ async function bootstrap() {
   app.enableCors({
     origin: [
       'http://localhost:8000', // Frontend en desarrollo
-      'http://localhost:3000', // Por si hay otros servicios
-      'https://soltec.com',     // Producción
+      'http://31.97.134.241', // Por si hay otros servicios
+      'https://facturador.tecnologiaydesarrollo.net',
+      'http://facturador.tecnologiaydesarrollo.net'
     ],
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: [
