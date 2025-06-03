@@ -6,13 +6,25 @@ import { AppModule } from './app.module';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
+  // Configurar prefijo global para la API (compatible con Apache)
+  app.setGlobalPrefix('api');
+
   // Configurar CORS para permitir peticiones desde el frontend
   app.enableCors({
     origin: [
+      // URLs de desarrollo
       'http://localhost:8000', // Frontend en desarrollo
-      'http://31.97.134.241', // Por si hay otros servicios
-      'https://facturador.tecnologiaydesarrollo.net',
-      'http://facturador.tecnologiaydesarrollo.net'
+      'http://localhost:3000', // Swagger local
+      'http://localhost:3001', // Posible frontend alternativo
+      
+      // URLs de producción
+      'https://facturador.tecnologiaydesarrollo.net', // HTTPS Principal
+      'http://facturador.tecnologiaydesarrollo.net',  // HTTP (será redirigido)
+      'http://31.97.134.241', // IP del servidor
+      'https://31.97.134.241', // IP del servidor con HTTPS
+      
+      // Permitir cualquier subdominio de tecnologiaydesarrollo.net
+      /^https?:\/\/.*\.tecnologiaydesarrollo\.net$/,
     ],
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: [
@@ -21,8 +33,22 @@ async function bootstrap() {
       'Accept',
       'Origin',
       'X-Requested-With',
+      'X-API-KEY',
+      'Access-Control-Allow-Origin',
+      'Access-Control-Allow-Headers',
+      'Access-Control-Allow-Methods',
+      'Cache-Control',
+      'Pragma',
+    ],
+    exposedHeaders: [
+      'X-Total-Count',
+      'X-Page-Count',
+      'Content-Range',
     ],
     credentials: true, // Permitir cookies y headers de autorización
+    preflightContinue: false,
+    optionsSuccessStatus: 204,
+    maxAge: 86400, // Cache preflight por 24 horas
   });
 
   // Configurar ValidationPipe globalmente con transformación automática
@@ -52,14 +78,19 @@ async function bootstrap() {
       Todos los endpoints requieren autenticación JWT. Use el botón "Authorize" para configurar su token.
       
       ## 📋 Endpoints Principales
-      - **POST /companies/external**: Crear nueva compañía en servicio DIAN
-      - **GET /companies**: Listar compañías con paginación
-      - **POST /invoice**: Crear facturas electrónicas
-      - **GET /invoice/{number}/status**: Consultar estado de facturas
+      - **POST /api/companies/external**: Crear nueva compañía en servicio DIAN
+      - **GET /api/companies**: Listar compañías con paginación
+      - **POST /api/invoice**: Crear facturas electrónicas
+      - **GET /api/invoice/{number}/status**: Consultar estado de facturas
       
       ## 🌐 Ambientes
       - **Desarrollo**: API de pruebas de la DIAN
       - **Producción**: API oficial de la DIAN
+      
+      ## 🔒 Seguridad
+      - Todas las comunicaciones usan HTTPS en producción
+      - Autenticación JWT con tokens seguros
+      - Headers de seguridad implementados
       
       ## 📞 Soporte
       Para soporte técnico: soporte@soltec.com
@@ -85,11 +116,14 @@ async function bootstrap() {
     .addTag('companies', '🏢 Gestión de Compañías - Crear y administrar empresas')
     .addTag('invoice', '📄 Facturación Electrónica - Generar facturas DIAN')
     .addTag('auth', '🔐 Autenticación - Login y gestión de tokens')
-    .addServer('http://localhost:3000', 'Servidor de Desarrollo')
-    .addServer('http://http://facturador.tecnologiaydesarrollo.net:3000/api', 'Servidor de Producción')
+    .addServer('http://localhost:3000/api', 'Servidor de Desarrollo Local')
+    .addServer('https://facturador.tecnologiaydesarrollo.net/api', 'Servidor de Producción (HTTPS)')
+    .addServer('http://facturador.tecnologiaydesarrollo.net/api', 'Servidor de Producción (HTTP - Redirige a HTTPS)')
     .build();
 
   const document = SwaggerModule.createDocument(app, config);
+  
+  // Swagger en /docs (fuera del prefijo /api)
   SwaggerModule.setup('docs', app, document, {
     customSiteTitle: 'API DIAN - Documentación',
     customfavIcon: '/favicon.ico',
@@ -97,6 +131,7 @@ async function bootstrap() {
       .swagger-ui .topbar { display: none }
       .swagger-ui .info .title { color: #1976d2; }
       .swagger-ui .scheme-container { background: #fafafa; padding: 15px; border-radius: 4px; }
+      .swagger-ui .info .description { max-width: 100%; }
     `,
     swaggerOptions: {
       persistAuthorization: true,
@@ -104,16 +139,15 @@ async function bootstrap() {
       filter: true,
       showExtensions: true,
       showCommonExtensions: true,
+      tryItOutEnabled: true,
     },
   });
-
-  // También mantener el endpoint /api para compatibilidad
-  SwaggerModule.setup('api', app, document);
 
   await app.listen(process.env.PORT ?? 3000);
   
   console.log(`🚀 Aplicación corriendo en: http://localhost:${process.env.PORT ?? 3000}`);
   console.log(`📚 Documentación Swagger: http://localhost:${process.env.PORT ?? 3000}/docs`);
-  console.log(`📋 API alternativa: http://localhost:${process.env.PORT ?? 3000}/api`);
+  console.log(`🔗 API Base URL: http://localhost:${process.env.PORT ?? 3000}/api`);
+  console.log(`🔒 Producción HTTPS: https://facturador.tecnologiaydesarrollo.net/api`);
 }
 bootstrap();
