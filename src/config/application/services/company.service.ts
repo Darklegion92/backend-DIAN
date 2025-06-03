@@ -141,7 +141,7 @@ export class CompanyService {
 
     // Aplicar filtros de búsqueda
     if (dato) {
-      const searchCondition = '(company.identification_number LIKE :searchTerm OR company.business_name LIKE :searchTerm)';
+      const searchCondition = '(company.identification_number LIKE :searchTerm OR company.merchant_registration LIKE :searchTerm)';
       
       if (currentUser.role !== UserRole.ADMIN) {
         // Ya hay una condición WHERE para el usuario, agregar AND
