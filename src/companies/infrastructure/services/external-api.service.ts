@@ -11,7 +11,7 @@ export class ExternalApiService implements IExternalApiService {
   private readonly baseUrl: string;
 
   constructor(private readonly configService: ConfigService) {
-    this.baseUrl = this.configService.get<string>('EXTERNAL_API_BASE_URL', 'https://api.external-service.com');
+    this.baseUrl = this.configService.get<string>('EXTERNAL_SERVER_URL', 'https://api.external-service.com');
     
     this.httpClient = axios.create({
       baseURL: this.baseUrl,
