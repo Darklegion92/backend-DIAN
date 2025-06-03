@@ -6,6 +6,7 @@ import { ConfigModule } from './config/config.module';
 import { CommonModule } from './common/common.module';
 import { InvoiceModule } from './invoice/invoice.module';
 import { DocumentModule } from './document/document.module';
+import { CompaniesModule } from './companies/companies.module';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { DocumentModule } from './document/document.module';
     ConfigModule,
     InvoiceModule,
     DocumentModule,
+    CompaniesModule,
   ],
   controllers: [],
   providers: [],
