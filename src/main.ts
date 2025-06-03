@@ -86,7 +86,7 @@ async function bootstrap() {
     .addTag('invoice', '📄 Facturación Electrónica - Generar facturas DIAN')
     .addTag('auth', '🔐 Autenticación - Login y gestión de tokens')
     .addServer('http://localhost:3000', 'Servidor de Desarrollo')
-    .addServer('https://api.soltec.com', 'Servidor de Producción')
+    .addServer('http://http://facturador.tecnologiaydesarrollo.net:3000/api', 'Servidor de Producción')
     .build();
 
   const document = SwaggerModule.createDocument(app, config);
