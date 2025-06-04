@@ -22,8 +22,6 @@ export class ResolutionController {
   constructor(private readonly resolutionService: ResolutionService) {}
 
   @Put('')
-  @UseGuards(RolesGuard)
-  @Roles(UserRole.ADMIN, UserRole.DEALER)
   @ApiOperation({
     summary: 'Crear resolución',
     description: `
@@ -122,8 +120,6 @@ export class ResolutionController {
   }
 
   @Get('company')
-  @UseGuards(DealerAccessGuard)
-  @Roles(UserRole.ADMIN, UserRole.DEALER)
   @ApiOperation({
     summary: 'Obtener resoluciones por empresa',
     description: 'Retorna la lista de resoluciones de una empresa específica con información de tipos de documento relacionados. ADMIN puede ver todas, DEALER solo las que le pertenecen.'

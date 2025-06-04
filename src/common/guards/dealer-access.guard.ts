@@ -14,10 +14,12 @@ export class DealerAccessGuard implements CanActivate {
     if (!token) {
       throw new ForbiddenException('Token no encontrado');
     }
-
+    
     try {
       const payload = this.jwtService.verify(token);
+      console.log(payload);
       const userRole = payload.role;
+
       
       // Si es ADMIN, puede acceder a todo
       if (userRole === UserRole.ADMIN) {
