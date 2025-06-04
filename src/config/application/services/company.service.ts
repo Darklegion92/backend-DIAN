@@ -200,8 +200,8 @@ export class CompanyService {
       company = await this.companyRepository
         .createQueryBuilder('company')
         .leftJoinAndSelect('company.soltecUser', 'soltecUser')
-        .where('company.id = :companyId', { companyId })
-        .andWhere('company.soltec_user_id = :userId', {
+        .where('company.id = :companyId AND company.soltec_user_id = :userId', {
+          companyId,
           userId: currentUser.id,
         })
         .getOne();
@@ -211,7 +211,56 @@ export class CompanyService {
       return null;
     }
 
-    // Obtener certificado
+    // Buscar el certificado asociado
+    const certificate = await this.certificateRepository
+      .createQueryBuilder('certificate')
+      .where('certificate.company_id = :companyId', { companyId: company.id })
+      .getOne();
+
+    return this.mapToCompanyWithCertificateDto(company, certificate);
+  }
+
+  /**
+   * Busca una compañía por su NIT con control de acceso por roles
+   */
+  async getCompanyByNit(
+    nit: string,
+    currentUser: User,
+  ): Promise<CompanyWithCertificateDto | null> {
+    if (!nit || nit.trim() === '') {
+      throw new Error('El NIT es requerido');
+    }
+
+    // Verificar permisos según el rol del usuario
+    let company: Company;
+
+    if (currentUser.role === UserRole.ADMIN) {
+      // Admin puede consultar cualquier empresa por NIT
+      company = await this.companyRepository
+        .createQueryBuilder('company')
+        .leftJoinAndSelect('company.soltecUser', 'soltecUser')
+        .where('company.identification_number = :nit', { nit: nit.trim() })
+        .getOne();
+    } else {
+      // DEALER/USER solo puede consultar empresas asignadas a él
+      company = await this.companyRepository
+        .createQueryBuilder('company')
+        .leftJoinAndSelect('company.soltecUser', 'soltecUser')
+        .where(
+          'company.identification_number = :nit AND company.soltec_user_id = :userId',
+          {
+            nit: nit.trim(),
+            userId: currentUser.id,
+          },
+        )
+        .getOne();
+    }
+
+    if (!company) {
+      return null;
+    }
+
+    // Buscar el certificado asociado
     const certificate = await this.certificateRepository
       .createQueryBuilder('certificate')
       .where('certificate.company_id = :companyId', { companyId: company.id })

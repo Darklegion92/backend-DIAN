@@ -198,21 +198,35 @@ export class CompanyController {
         allowSellerLogin: false,
         soltecUserId: 'user-uuid-123',
         createdAt: '2025-01-21T10:30:00Z',
-        updatedAt: '2025-01-21T10:30:00Z',
-        certificateExpirationDate: '2026-01-21T23:59:59Z',
-        certificateId: 8,
-        certificateName: 'certificado_900123456.p12',
-        tokenDian: 'dian-api-token-xyz',
+        updatedAt: '2025-01-21T15:45:00Z',
+        businessName: 'TECNOLOGÍA Y DESARROLLO S.A.S.',
+        tradeName: 'TecnoDev',
+        email: 'contacto@tecnodev.com',
+        seze: 'SEZE123456',
+        headNote: 'Gracias por su compra',
+        footNote: 'Política de devoluciones disponible',
+        typeDocumentIdentification: 'NIT',
+        typeOrganization: 'Persona Jurídica',
+        typeLiability: 'Responsable de IVA',
+        typeRegime: 'Régimen Común',
+        municipality: 'Bogotá D.C., Bogotá D.C.',
+        typeEnvironment: 'Producción',
+        certificatePassword: '***',
+        certificateExpirationDate: '2025-12-31T23:59:59Z',
+        soltecUser: {
+          name: 'Juan Pérez',
+          email: 'juan.perez@soltec.com'
+        }
       },
     },
   })
   @ApiResponse({
     status: 404,
-    description: 'Compañía no encontrada o sin permisos para acceder',
+    description: 'Compañía no encontrada o sin permisos de acceso',
     schema: {
       example: {
         statusCode: 404,
-        message: 'Compañía no encontrada o sin permisos para acceder',
+        message: 'Compañía no encontrada',
         error: 'Not Found',
       },
     },
@@ -260,12 +274,149 @@ export class CompanyController {
     );
 
     if (!company) {
-      throw new NotFoundException(
-        'Compañía no encontrada o sin permisos para acceder',
-      );
+      throw new NotFoundException('Compañía no encontrada');
     }
 
     return company;
+  }
+
+  @Get('by-nit/:nit')
+  @ApiOperation({
+    summary: 'Buscar compañía por NIT con control de acceso por roles',
+    description: `
+      **🔍 Busca una compañía específica por su NIT aplicando filtros de seguridad según el rol:**
+      
+      ## 🔐 Control de Acceso por Roles:
+      
+      ### 👑 **ADMIN** (Administrador del Sistema)
+      - ✅ **Acceso Universal**: Puede buscar cualquier compañía por NIT en todo el sistema
+      - 🔓 **Sin Restricciones**: No se valida la asignación de usuario
+      - 🌍 **Vista Completa**: Acceso a toda la información empresarial
+      
+      ### 👥 **DEALER/USER** (Usuario Estándar)  
+      - 🔒 **Acceso Limitado**: Solo puede buscar compañías asignadas a su usuario
+      - ✋ **Validación Estricta**: Se verifica \`company.soltec_user_id = usuario_actual\`
+      - 🚫 **Error 404**: Si el NIT no corresponde a una compañía asignada al usuario
+      
+      ## 🎯 Casos de Uso:
+      
+      **📋 Validación de NIT:**
+      - Verificar si una compañía existe en el sistema antes de crear documentos
+      - Obtener información completa de una empresa para integración con ERPs
+      
+      **🔄 Integración con Sistemas Externos:**
+      - APIs de terceros que necesitan consultar compañías por NIT
+      - Servicios de validación de datos empresariales
+      
+      **📊 Reportes y Consultas:**
+      - Generar reportes específicos por empresa
+      - Consultas rápidas para soporte técnico
+      
+      ## 📋 Formato del NIT:
+      - **Sin dígito verificador**: Solo números del NIT
+      - **Ejemplo válido**: \`900123456\`
+      - **Se elimina automáticamente**: Espacios en blanco al inicio y final
+    `,
+  })
+  @ApiParam({
+    name: 'nit',
+    description: 'NIT de la compañía a buscar (sin dígito verificador)',
+    example: '900123456',
+    schema: { type: 'string', pattern: '^[0-9]+$' },
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Compañía encontrada exitosamente con información completa',
+    type: CompanyWithCertificateDto,
+    schema: {
+      example: {
+        id: 1,
+        identificationNumber: '900123456',
+        dv: '7',
+        businessName: 'TECNOLOGÍA Y DESARROLLO S.A.S.',
+        tradeName: 'TecnoDev',
+        email: 'contacto@tecnodev.com',
+        phone: '+57 1 123 4567',
+        address: 'Carrera 15 #93-47, Oficina 501',
+        merchantRegistration: '12345678',
+        state: true,
+        allowSellerLogin: false,
+        soltecUserId: 'user-uuid-123',
+        typeDocumentIdentificationId: 6,
+        typeOrganizationId: 2,
+        typeLiabilityId: 14,
+        typeRegimeId: 2,
+        municipalityId: 149,
+        typeEnvironmentId: 1,
+        createdAt: '2025-01-21T10:30:00Z',
+        updatedAt: '2025-01-21T15:45:00Z',
+        typeDocumentIdentification: 'NIT',
+        typeOrganization: 'Persona Jurídica',
+        typeLiability: 'Responsable de IVA',
+        typeRegime: 'Régimen Común',
+        municipality: 'Bogotá D.C., Bogotá D.C.',
+        typeEnvironment: 'Producción',
+        certificatePassword: '***',
+        certificateExpirationDate: '2025-12-31T23:59:59Z',
+        soltecUser: {
+          name: 'Juan Pérez',
+          email: 'juan.perez@soltec.com'
+        }
+      },
+    },
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Compañía no encontrada con el NIT proporcionado o sin permisos de acceso',
+    schema: {
+      example: {
+        statusCode: 404,
+        message: 'No se encontró una compañía con el NIT: 900123456',
+        error: 'Not Found',
+      },
+    },
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'NIT inválido o vacío',
+    schema: {
+      example: {
+        statusCode: 400,
+        message: 'El NIT es requerido y debe contener solo números',
+        error: 'Bad Request',
+      },
+    },
+  })
+  async getCompanyByNit(
+    @Param('nit') nit: string,
+    @CurrentUser() currentUser: User,
+  ): Promise<CompanyWithCertificateDto> {
+    // Validación del formato del NIT
+    if (!nit || !nit.trim()) {
+      throw new NotFoundException('El NIT es requerido');
+    }
+
+    // Validar que el NIT contenga solo números
+    const nitPattern = /^[0-9]+$/;
+    if (!nitPattern.test(nit.trim())) {
+      throw new NotFoundException('El NIT debe contener solo números');
+    }
+
+    try {
+      const company = await this.companyService.getCompanyByNit(nit, currentUser);
+
+      if (!company) {
+        throw new NotFoundException(`No se encontró una compañía con el NIT: ${nit}`);
+      }
+
+      return company;
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      
+      throw new NotFoundException(`Error al buscar compañía con NIT ${nit}: ${error.message}`);
+    }
   }
 
   @Post('')
