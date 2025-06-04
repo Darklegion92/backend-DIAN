@@ -14,7 +14,13 @@ export class CatalogController {
   @Get('document-types')
   @ApiOperation({
     summary: 'Obtener tipos de documento de identificación',
-    description: 'Retorna la lista de tipos de documento de identificación activos disponibles en el sistema. Accesible para todos los usuarios autenticados.'
+    description: 'Retorna la lista de tipos de documento de identificación activos disponibles en el sistema, o un tipo específico si se proporciona el código. Accesible para todos los usuarios autenticados.'
+  })
+  @ApiQuery({
+    name: 'code',
+    required: false,
+    description: 'Código específico del tipo de documento a buscar',
+    example: '13'
   })
   @ApiResponse({
     status: 200,
@@ -30,9 +36,33 @@ export class CatalogController {
       }
     }
   })
-  async getDocumentTypes() {
+  @ApiResponse({
+    status: 200,
+    description: 'Tipo de documento específico obtenido exitosamente (cuando se proporciona código)',
+    schema: {
+      example: {
+        success: true,
+        statusCode: 200,
+        data: { id: 13, name: 'Cédula de Ciudadanía', code: '13' }
+      }
+    }
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Tipo de documento no encontrado (cuando se proporciona código)'
+  })
+  async getDocumentTypes(@Query('code') code?: string) {
     try {
-      const data = await this.catalogService.getDocumentTypes();
+      let data;
+      
+      if (code && code.trim()) {
+        // Buscar por código específico
+        data = await this.catalogService.getDocumentTypeByCode(code.trim());
+      } else {
+        // Obtener todos los tipos de documento
+        data = await this.catalogService.getDocumentTypes();
+      }
+      
       return {
         success: true,
         statusCode: 200,
@@ -46,7 +76,13 @@ export class CatalogController {
   @Get('organization-types')
   @ApiOperation({
     summary: 'Obtener tipos de organización',
-    description: 'Retorna la lista de tipos de organización activos disponibles en el sistema'
+    description: 'Retorna la lista de tipos de organización activos disponibles en el sistema, o un tipo específico si se proporciona el código'
+  })
+  @ApiQuery({
+    name: 'code',
+    required: false,
+    description: 'Código específico del tipo de organización a buscar',
+    example: '1'
   })
   @ApiResponse({
     status: 200,
@@ -62,9 +98,33 @@ export class CatalogController {
       }
     }
   })
-  async getOrganizationTypes() {
+  @ApiResponse({
+    status: 200,
+    description: 'Tipo de organización específico obtenido exitosamente (cuando se proporciona código)',
+    schema: {
+      example: {
+        success: true,
+        statusCode: 200,
+        data: { id: 1, name: 'Persona Jurídica', code: '1' }
+      }
+    }
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Tipo de organización no encontrado (cuando se proporciona código)'
+  })
+  async getOrganizationTypes(@Query('code') code?: string) {
     try {
-      const data = await this.catalogService.getOrganizationTypes();
+      let data;
+      
+      if (code && code.trim()) {
+        // Buscar por código específico
+        data = await this.catalogService.getOrganizationTypeByCode(code.trim());
+      } else {
+        // Obtener todos los tipos de organización
+        data = await this.catalogService.getOrganizationTypes();
+      }
+      
       return {
         success: true,
         statusCode: 200,
@@ -78,7 +138,13 @@ export class CatalogController {
   @Get('regime-types')
   @ApiOperation({
     summary: 'Obtener tipos de régimen tributario',
-    description: 'Retorna la lista de tipos de régimen tributario activos disponibles en el sistema'
+    description: 'Retorna la lista de tipos de régimen tributario activos disponibles en el sistema, o un tipo específico si se proporciona el código'
+  })
+  @ApiQuery({
+    name: 'code',
+    required: false,
+    description: 'Código específico del tipo de régimen a buscar',
+    example: '1'
   })
   @ApiResponse({
     status: 200,
@@ -94,9 +160,33 @@ export class CatalogController {
       }
     }
   })
-  async getRegimeTypes() {
+  @ApiResponse({
+    status: 200,
+    description: 'Tipo de régimen específico obtenido exitosamente (cuando se proporciona código)',
+    schema: {
+      example: {
+        success: true,
+        statusCode: 200,
+        data: { id: 1, name: 'Régimen Simplificado', code: '1' }
+      }
+    }
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Tipo de régimen no encontrado (cuando se proporciona código)'
+  })
+  async getRegimeTypes(@Query('code') code?: string) {
     try {
-      const data = await this.catalogService.getRegimeTypes();
+      let data;
+      
+      if (code && code.trim()) {
+        // Buscar por código específico
+        data = await this.catalogService.getRegimeTypeByCode(code.trim());
+      } else {
+        // Obtener todos los tipos de régimen
+        data = await this.catalogService.getRegimeTypes();
+      }
+      
       return {
         success: true,
         statusCode: 200,
@@ -110,7 +200,13 @@ export class CatalogController {
   @Get('liability-types')
   @ApiOperation({
     summary: 'Obtener tipos de responsabilidad tributaria',
-    description: 'Retorna la lista de tipos de responsabilidad tributaria activos disponibles en el sistema'
+    description: 'Retorna la lista de tipos de responsabilidad tributaria activos disponibles en el sistema, o un tipo específico si se proporciona el código'
+  })
+  @ApiQuery({
+    name: 'code',
+    required: false,
+    description: 'Código específico del tipo de responsabilidad a buscar',
+    example: '01'
   })
   @ApiResponse({
     status: 200,
@@ -126,9 +222,33 @@ export class CatalogController {
       }
     }
   })
-  async getLiabilityTypes() {
+  @ApiResponse({
+    status: 200,
+    description: 'Tipo de responsabilidad específico obtenido exitosamente (cuando se proporciona código)',
+    schema: {
+      example: {
+        success: true,
+        statusCode: 200,
+        data: { id: 14, name: 'Responsable de IVA', code: '01' }
+      }
+    }
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Tipo de responsabilidad no encontrado (cuando se proporciona código)'
+  })
+  async getLiabilityTypes(@Query('code') code?: string) {
     try {
-      const data = await this.catalogService.getLiabilityTypes();
+      let data;
+      
+      if (code && code.trim()) {
+        // Buscar por código específico
+        data = await this.catalogService.getLiabilityTypeByCode(code.trim());
+      } else {
+        // Obtener todos los tipos de responsabilidad
+        data = await this.catalogService.getLiabilityTypes();
+      }
+      
       return {
         success: true,
         statusCode: 200,
@@ -241,7 +361,13 @@ export class CatalogController {
   @Get('unit-measures')
   @ApiOperation({
     summary: 'Obtener unidades de medida',
-    description: 'Retorna la lista de unidades de medida activas disponibles en el sistema'
+    description: 'Retorna la lista de unidades de medida activas disponibles en el sistema, o una unidad específica si se proporciona el código'
+  })
+  @ApiQuery({
+    name: 'code',
+    required: false,
+    description: 'Código específico de la unidad de medida a buscar',
+    example: '94'
   })
   @ApiResponse({
     status: 200,
@@ -257,46 +383,33 @@ export class CatalogController {
       }
     }
   })
-  async getUnitMeasures() {
-    try {
-      const data = await this.catalogService.getUnitMeasures();
-      return {
-        success: true,
-        statusCode: 200,
-        data
-      };
-    } catch (error) {
-      throw error;
-    }
-  }
-
-  @Get('unit-measures/by-code/:code')
-  @ApiOperation({
-    summary: 'Obtener unidad de medida por código',
-    description: 'Obtiene una unidad de medida específica por su código'
-  })
   @ApiResponse({
     status: 200,
-    description: 'Unidad de medida obtenida exitosamente',
+    description: 'Unidad de medida específica obtenida exitosamente (cuando se proporciona código)',
     schema: {
       example: {
         success: true,
         statusCode: 200,
-        data: { 
-          id: 1, 
-          name: 'Unidad', 
-          code: '94'
-        }
+        data: { id: 1, name: 'Unidad', code: '94' }
       }
     }
   })
   @ApiResponse({
     status: 404,
-    description: 'Unidad de medida no encontrada'
+    description: 'Unidad de medida no encontrada (cuando se proporciona código)'
   })
-  async getUnitMeasureByCode(@Param('code') code: string) {
+  async getUnitMeasures(@Query('code') code?: string) {
     try {
-      const data = await this.catalogService.getUnitMeasureByCode(code);
+      let data;
+      
+      if (code && code.trim()) {
+        // Buscar por código específico
+        data = await this.catalogService.getUnitMeasureByCode(code.trim());
+      } else {
+        // Obtener todas las unidades de medida
+        data = await this.catalogService.getUnitMeasures();
+      }
+      
       return {
         success: true,
         statusCode: 200,
@@ -310,7 +423,13 @@ export class CatalogController {
   @Get('taxes')
   @ApiOperation({
     summary: 'Obtener impuestos',
-    description: 'Retorna la lista de impuestos activos disponibles en el sistema'
+    description: 'Retorna la lista de impuestos activos disponibles en el sistema, o un impuesto específico si se proporciona el código'
+  })
+  @ApiQuery({
+    name: 'code',
+    required: false,
+    description: 'Código específico del impuesto a buscar',
+    example: '01'
   })
   @ApiResponse({
     status: 200,
@@ -326,47 +445,33 @@ export class CatalogController {
       }
     }
   })
-  async getTaxes() {
-    try {
-      const data = await this.catalogService.getTaxes();
-      return {
-        success: true,
-        statusCode: 200,
-        data
-      };
-    } catch (error) {
-      throw error;
-    }
-  }
-
-  @Get('taxes/by-code/:code')
-  @ApiOperation({
-    summary: 'Obtener impuesto por código',
-    description: 'Obtiene un impuesto específico por su código'
-  })
   @ApiResponse({
     status: 200,
-    description: 'Impuesto obtenido exitosamente',
+    description: 'Impuesto específico obtenido exitosamente (cuando se proporciona código)',
     schema: {
       example: {
         success: true,
         statusCode: 200,
-        data: { 
-          id: 1, 
-          name: 'IVA', 
-          code: '01',
-          description: 'Impuesto al Valor Agregado'
-        }
+        data: { id: 1, name: 'IVA', code: '01', description: 'Impuesto al Valor Agregado' }
       }
     }
   })
   @ApiResponse({
     status: 404,
-    description: 'Impuesto no encontrado'
+    description: 'Impuesto no encontrado (cuando se proporciona código)'
   })
-  async getTaxByCode(@Param('code') code: string) {
+  async getTaxes(@Query('code') code?: string) {
     try {
-      const data = await this.catalogService.getTaxByCode(code);
+      let data;
+      
+      if (code && code.trim()) {
+        // Buscar por código específico
+        data = await this.catalogService.getTaxByCode(code.trim());
+      } else {
+        // Obtener todos los impuestos
+        data = await this.catalogService.getTaxes();
+      }
+      
       return {
         success: true,
         statusCode: 200,
@@ -380,7 +485,13 @@ export class CatalogController {
   @Get('type-item-identifications')
   @ApiOperation({
     summary: 'Obtener tipos de identificación de items',
-    description: 'Retorna la lista de tipos de identificación de items activos disponibles en el sistema'
+    description: 'Retorna la lista de tipos de identificación de items activos disponibles en el sistema, o un tipo específico si se proporciona el código'
+  })
+  @ApiQuery({
+    name: 'code',
+    required: false,
+    description: 'Código específico del tipo de identificación de item a buscar',
+    example: '999'
   })
   @ApiResponse({
     status: 200,
@@ -396,47 +507,33 @@ export class CatalogController {
       }
     }
   })
-  async getTypeItemIdentifications() {
-    try {
-      const data = await this.catalogService.getTypeItemIdentifications();
-      return {
-        success: true,
-        statusCode: 200,
-        data
-      };
-    } catch (error) {
-      throw error;
-    }
-  }
-
-  @Get('type-item-identifications/by-code/:code')
-  @ApiOperation({
-    summary: 'Obtener tipo de identificación de item por código',
-    description: 'Obtiene un tipo de identificación de item específico por su código'
-  })
   @ApiResponse({
     status: 200,
-    description: 'Tipo de identificación de item obtenido exitosamente',
+    description: 'Tipo de identificación de item específico obtenido exitosamente (cuando se proporciona código)',
     schema: {
       example: {
         success: true,
         statusCode: 200,
-        data: { 
-          id: 1, 
-          name: 'Estándar', 
-          code: '999',
-          codeAgency: 'DIAN'
-        }
+        data: { id: 1, name: 'Estándar', code: '999', codeAgency: 'DIAN' }
       }
     }
   })
   @ApiResponse({
     status: 404,
-    description: 'Tipo de identificación de item no encontrado'
+    description: 'Tipo de identificación de item no encontrado (cuando se proporciona código)'
   })
-  async getTypeItemIdentificationByCode(@Param('code') code: string) {
+  async getTypeItemIdentifications(@Query('code') code?: string) {
     try {
-      const data = await this.catalogService.getTypeItemIdentificationByCode(code);
+      let data;
+      
+      if (code && code.trim()) {
+        // Buscar por código específico
+        data = await this.catalogService.getTypeItemIdentificationByCode(code.trim());
+      } else {
+        // Obtener todos los tipos de identificación de items
+        data = await this.catalogService.getTypeItemIdentifications();
+      }
+      
       return {
         success: true,
         statusCode: 200,

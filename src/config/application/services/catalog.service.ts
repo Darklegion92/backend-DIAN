@@ -45,6 +45,34 @@ export class CatalogService {
   }
 
   /**
+   * Obtener tipo de documento de identificación por código
+   */
+  async getDocumentTypeByCode(code: string) {
+    if (!code || code.trim() === '') {
+      throw new Error('Código de tipo de documento es requerido');
+    }
+
+    const documentType = await this.documentTypeRepository.findOne({
+      where: { code: code.trim() },
+      select: ['id', 'name', 'code']
+    });
+
+    if (!documentType) {
+      throw new Error(`Tipo de documento con código '${code}' no encontrado`);
+    }
+
+    return documentType;
+  }
+
+  /**
+   * Obtener ID de tipo de documento de identificación por código
+   */
+  async getDocumentTypeIdByCode(code: string): Promise<number> {
+    const documentType = await this.getDocumentTypeByCode(code);
+    return documentType.id;
+  }
+
+  /**
    * Obtener tipos de organización activos
    */
   async getOrganizationTypes() {
@@ -52,6 +80,34 @@ export class CatalogService {
       select: ['id', 'name', 'code'],
       order: { name: 'ASC' }
     });
+  }
+
+  /**
+   * Obtener tipo de organización por código
+   */
+  async getOrganizationTypeByCode(code: string) {
+    if (!code || code.trim() === '') {
+      throw new Error('Código de tipo de organización es requerido');
+    }
+
+    const organizationType = await this.organizationTypeRepository.findOne({
+      where: { code: code.trim() },
+      select: ['id', 'name', 'code']
+    });
+
+    if (!organizationType) {
+      throw new Error(`Tipo de organización con código '${code}' no encontrado`);
+    }
+
+    return organizationType;
+  }
+
+  /**
+   * Obtener ID de tipo de organización por código
+   */
+  async getOrganizationTypeIdByCode(code: string): Promise<number> {
+    const organizationType = await this.getOrganizationTypeByCode(code);
+    return organizationType.id;
   }
 
   /**
@@ -65,6 +121,34 @@ export class CatalogService {
   }
 
   /**
+   * Obtener tipo de régimen tributario por código
+   */
+  async getRegimeTypeByCode(code: string) {
+    if (!code || code.trim() === '') {
+      throw new Error('Código de tipo de régimen es requerido');
+    }
+
+    const regimeType = await this.regimeTypeRepository.findOne({
+      where: { code: code.trim() },
+      select: ['id', 'name', 'code']
+    });
+
+    if (!regimeType) {
+      throw new Error(`Tipo de régimen con código '${code}' no encontrado`);
+    }
+
+    return regimeType;
+  }
+
+  /**
+   * Obtener ID de tipo de régimen tributario por código
+   */
+  async getRegimeTypeIdByCode(code: string): Promise<number> {
+    const regimeType = await this.getRegimeTypeByCode(code);
+    return regimeType.id;
+  }
+
+  /**
    * Obtener tipos de responsabilidad tributaria activos
    */
   async getLiabilityTypes() {
@@ -72,6 +156,34 @@ export class CatalogService {
       select: ['id', 'name', 'code'],
       order: { name: 'ASC' }
     });
+  }
+
+  /**
+   * Obtener tipo de responsabilidad tributaria por código
+   */
+  async getLiabilityTypeByCode(code: string) {
+    if (!code || code.trim() === '') {
+      throw new Error('Código de tipo de responsabilidad es requerido');
+    }
+
+    const liabilityType = await this.liabilityTypeRepository.findOne({
+      where: { code: code.trim() },
+      select: ['id', 'name', 'code']
+    });
+
+    if (!liabilityType) {
+      throw new Error(`Tipo de responsabilidad con código '${code}' no encontrado`);
+    }
+
+    return liabilityType;
+  }
+
+  /**
+   * Obtener ID de tipo de responsabilidad tributaria por código
+   */
+  async getLiabilityTypeIdByCode(code: string): Promise<number> {
+    const liabilityType = await this.getLiabilityTypeByCode(code);
+    return liabilityType.id;
   }
 
   /**
