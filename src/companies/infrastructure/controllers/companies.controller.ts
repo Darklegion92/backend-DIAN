@@ -27,8 +27,6 @@ export class CompaniesController {
   ) {}
 
   @Get()
-  @UseGuards(DealerAccessGuard)
-  @Roles(UserRole.ADMIN, UserRole.DEALER)
   @ApiOperation({
     summary: 'Listar compañías con filtro de búsqueda general',
     description: `
@@ -94,8 +92,6 @@ export class CompaniesController {
   }
 
   @Get(':id')
-  @UseGuards(DealerAccessGuard)
-  @Roles(UserRole.ADMIN, UserRole.DEALER)
   @ApiOperation({
     summary: 'Obtener empresa específica',
     description: 'Obtiene una empresa específica. ADMIN puede ver cualquiera, DEALER solo si le pertenece.',
@@ -117,8 +113,6 @@ export class CompaniesController {
   }
 
   @Post()
-  @UseGuards(RolesGuard)
-  @Roles(UserRole.ADMIN, UserRole.DEALER)
   @ApiOperation({
     summary: 'Crear nueva empresa',
     description: 'Registra una nueva empresa en el servicio externo de la DIAN y la guarda localmente.',
