@@ -225,7 +225,6 @@ export class CompanyService {
    */
   async getCompanyByNit(
     nit: string,
-    currentUser: User,
   ): Promise<CompanyWithCertificateDto | null> {
     if (!nit || nit.trim() === '') {
       throw new Error('El NIT es requerido');
@@ -234,27 +233,12 @@ export class CompanyService {
     // Verificar permisos según el rol del usuario
     let company: Company;
 
-    if (currentUser.role === UserRole.ADMIN) {
-      // Admin puede consultar cualquier empresa por NIT
       company = await this.companyRepository
         .createQueryBuilder('company')
         .leftJoinAndSelect('company.soltecUser', 'soltecUser')
         .where('company.identification_number = :nit', { nit: nit.trim() })
         .getOne();
-    } else {
-      // DEALER/USER solo puede consultar empresas asignadas a él
-      company = await this.companyRepository
-        .createQueryBuilder('company')
-        .leftJoinAndSelect('company.soltecUser', 'soltecUser')
-        .where(
-          'company.identification_number = :nit AND company.soltec_user_id = :userId',
-          {
-            nit: nit.trim(),
-            userId: currentUser.id,
-          },
-        )
-        .getOne();
-    }
+   
 
     if (!company) {
       return null;

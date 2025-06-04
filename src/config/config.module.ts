@@ -25,7 +25,6 @@ import { TypeDocument } from '../document/domain/entities/type-document.entity';
 import { Tax } from './domain/entities/tax.entity';
 import { TypeItemIdentification } from './domain/entities/type-item-identification.entity';
 import { CompanyService } from './application/services/company.service';
-import { CompanyController } from './infrastructure/controllers/company.controller';
 import { CatalogService } from './application/services/catalog.service';
 import { CatalogController } from './infrastructure/controllers/catalog.controller';
 import { SoftwareService } from './application/services/software.service';
@@ -65,7 +64,6 @@ import { ResolutionController } from './infrastructure/controllers/resolution.co
     JwtModule,
   ],
   controllers: [
-    CompanyController,
     CatalogController,
     SoftwareController,
     CertificateController,
