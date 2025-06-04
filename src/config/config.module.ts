@@ -15,6 +15,7 @@ import { TypeOrganization } from './domain/entities/type-organization.entity';
 import { TypeRegime } from './domain/entities/type-regime.entity';
 import { TypeLiability } from './domain/entities/type-liability.entity';
 import { PaymentForm } from './domain/entities/payment-form.entity';
+import { PaymentMethod } from './domain/entities/payment-method.entity';
 import { UnitMeasure } from './domain/entities/unit-measure.entity';
 import { TypeCurrency } from './domain/entities/type-currency.entity';
 import { Event } from './domain/entities/event.entity';
@@ -49,6 +50,7 @@ import { ResolutionController } from './infrastructure/controllers/resolution.co
       TypeRegime,
       TypeLiability,
       PaymentForm,
+      PaymentMethod,
       UnitMeasure,
       TypeCurrency,
       Event,

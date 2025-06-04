@@ -544,6 +544,132 @@ export class CatalogController {
     }
   }
 
+  @Get('payment-forms')
+  @ApiOperation({
+    summary: 'Obtener formas de pago',
+    description: 'Retorna la lista de formas de pago activas disponibles en el sistema, o una forma específica si se proporciona el código'
+  })
+  @ApiQuery({
+    name: 'code',
+    required: false,
+    description: 'Código específico de la forma de pago a buscar',
+    example: '10'
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Lista de formas de pago obtenida exitosamente',
+    schema: {
+      example: {
+        success: true,
+        statusCode: 200,
+        data: [
+          { id: 1, name: 'Efectivo', code: '10' },
+          { id: 2, name: 'Transferencia', code: '42' },
+          { id: 3, name: 'Tarjeta de Crédito', code: '48' }
+        ]
+      }
+    }
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Forma de pago específica obtenida exitosamente (cuando se proporciona código)',
+    schema: {
+      example: {
+        success: true,
+        statusCode: 200,
+        data: { id: 1, name: 'Efectivo', code: '10' }
+      }
+    }
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Forma de pago no encontrada (cuando se proporciona código)'
+  })
+  async getPaymentForms(@Query('code') code?: string) {
+    try {
+      let data;
+      
+      if (code && code.trim()) {
+        // Buscar por código específico
+        data = await this.catalogService.getPaymentFormByCode(code.trim());
+      } else {
+        // Obtener todas las formas de pago
+        data = await this.catalogService.getPaymentForms();
+      }
+      
+      return {
+        success: true,
+        statusCode: 200,
+        data
+      };
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  @Get('payment-methods')
+  @ApiOperation({
+    summary: 'Obtener métodos de pago',
+    description: 'Retorna la lista de métodos de pago activos disponibles en el sistema, o un método específico si se proporciona el código'
+  })
+  @ApiQuery({
+    name: 'code',
+    required: false,
+    description: 'Código específico del método de pago a buscar',
+    example: '1'
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Lista de métodos de pago obtenida exitosamente',
+    schema: {
+      example: {
+        success: true,
+        statusCode: 200,
+        data: [
+          { id: 1, name: 'Contado', code: '1' },
+          { id: 2, name: 'Crédito', code: '2' },
+          { id: 3, name: 'Otro', code: '3' }
+        ]
+      }
+    }
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Método de pago específico obtenido exitosamente (cuando se proporciona código)',
+    schema: {
+      example: {
+        success: true,
+        statusCode: 200,
+        data: { id: 1, name: 'Contado', code: '1' }
+      }
+    }
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Método de pago no encontrado (cuando se proporciona código)'
+  })
+  async getPaymentMethods(@Query('code') code?: string) {
+    try {
+      let data;
+      
+      if (code && code.trim()) {
+        // Buscar por código específico
+        data = await this.catalogService.getPaymentMethodByCode(code.trim());
+      } else {
+        // Obtener todos los métodos de pago
+        data = await this.catalogService.getPaymentMethods();
+      }
+      
+      return {
+        success: true,
+        statusCode: 200,
+        data
+      };
+    } catch (error) {
+      throw error;
+    }
+  }
+
   @Get('type-documents')
   @ApiOperation({
     summary: 'Obtener tipos de documentos',

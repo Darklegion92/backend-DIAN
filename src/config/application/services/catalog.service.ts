@@ -10,6 +10,8 @@ import { UnitMeasure } from '../../domain/entities/unit-measure.entity';
 import { Tax } from '../../domain/entities/tax.entity';
 import { TypeItemIdentification } from '../../domain/entities/type-item-identification.entity';
 import { TypeDocument } from '../../../document/domain/entities/type-document.entity';
+import { PaymentForm } from '../../domain/entities/payment-form.entity';
+import { PaymentMethod } from '../../domain/entities/payment-method.entity';
 
 @Injectable()
 export class CatalogService {
@@ -32,6 +34,10 @@ export class CatalogService {
     private readonly typeItemIdentificationRepository: Repository<TypeItemIdentification>,
     @InjectRepository(TypeDocument)
     private readonly typeDocumentRepository: Repository<TypeDocument>,
+    @InjectRepository(PaymentForm)
+    private readonly paymentFormRepository: Repository<PaymentForm>,
+    @InjectRepository(PaymentMethod)
+    private readonly paymentMethodRepository: Repository<PaymentMethod>,
   ) {}
 
   /**
@@ -389,5 +395,85 @@ export class CatalogService {
   async getTypeItemIdentificationIdByCode(code: string): Promise<number> {
     const typeItemIdentification = await this.getTypeItemIdentificationByCode(code);
     return typeItemIdentification.id;
+  }
+
+  /**
+   * Obtener formas de pago activas
+   */
+  async getPaymentForms() {
+    return this.paymentFormRepository.find({
+      where: { state: true },
+      select: ['id', 'name', 'code'],
+      order: { name: 'ASC' }
+    });
+  }
+
+  /**
+   * Obtener forma de pago por código
+   */
+  async getPaymentFormByCode(code: string) {
+    if (!code || code.trim() === '') {
+      throw new Error('Código de forma de pago es requerido');
+    }
+
+    const paymentForm = await this.paymentFormRepository.findOne({
+      where: { 
+        code: code.trim(),
+        state: true 
+      },
+      select: ['id', 'name', 'code']
+    });
+
+    if (!paymentForm) {
+      throw new Error(`Forma de pago con código '${code}' no encontrada`);
+    }
+
+    return paymentForm;
+  }
+
+  /**
+   * Obtener ID de forma de pago por código
+   */
+  async getPaymentFormIdByCode(code: string): Promise<number> {
+    const paymentForm = await this.getPaymentFormByCode(code);
+    return paymentForm.id;
+  }
+
+  /**
+   * Obtener métodos de pago activos
+   */
+  async getPaymentMethods() {
+    return this.paymentMethodRepository.find({
+      select: ['id', 'name', 'code'],
+      order: { name: 'ASC' }
+    });
+  }
+
+  /**
+   * Obtener método de pago por código
+   */
+  async getPaymentMethodByCode(code: string) {
+    if (!code || code.trim() === '') {
+      throw new Error('Código de método de pago es requerido');
+    }
+
+    const paymentMethod = await this.paymentMethodRepository.findOne({
+      where: { code: code.trim() },
+      select: ['id', 'name', 'code']
+    });
+
+    if (!paymentMethod) {
+      throw new Error(`Método de pago con código '${code}' no encontrado`);
+    }
+
+    return paymentMethod;
+  }
+
+  /**
+   * Obtener ID de método de pago por código
+   */
+  async getPaymentMethodIdByCode(code: string): Promise<number> {
+    const paymentMethod = await this.getPaymentMethodByCode(code);
+    return paymentMethod.id;
   }
 } 
