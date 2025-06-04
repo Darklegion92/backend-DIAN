@@ -400,7 +400,6 @@ export class CatalogService {
    */
   async getPaymentForms() {
     return this.paymentFormRepository.find({
-      where: { state: true },
       select: ['id', 'name', 'code'],
       order: { name: 'ASC' }
     });
@@ -417,7 +416,6 @@ export class CatalogService {
     const paymentForm = await this.paymentFormRepository.findOne({
       where: { 
         code: code.trim(),
-        state: true 
       },
       select: ['id', 'name', 'code']
     });
