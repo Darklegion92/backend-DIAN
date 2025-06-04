@@ -266,7 +266,6 @@ export class CatalogService {
    */
   async getTypeDocuments() {
     return this.typeDocumentRepository.find({
-      where: { state: true },
       select: ['id', 'name'],
       order: { name: 'ASC' }
     });
