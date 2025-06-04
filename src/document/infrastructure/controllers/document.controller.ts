@@ -1,9 +1,12 @@
-import { Controller, Get, Query, HttpStatus, Logger, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Query, Body, HttpStatus, Logger, UseGuards } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiQuery, ApiBearerAuth } from '@nestjs/swagger';
 import { DocumentService } from '../../domain/services/document.service';
 import { DocumentListQueryDto } from '../dto/document.dto';
 import { DocumentListResponse } from '../../domain/entities/document.interface';
 import { JwtAuthGuard } from '../../../auth/infrastructure/guards/jwt-auth.guard';
+import { DealerAccessGuard } from '../../../common/guards/dealer-access.guard';
+import { Roles } from '../../../common/decorators/roles.decorator';
+import { UserRole } from '../../../auth/domain/entities/user.entity';
 import { CurrentUser } from '../../../auth/infrastructure/decorators/current-user.decorator';
 import { User } from '../../../auth/domain/entities/user.entity';
 
@@ -15,6 +18,36 @@ export class DocumentController {
   private readonly logger = new Logger(DocumentController.name);
 
   constructor(private readonly documentService: DocumentService) {}
+
+  // /api/documents POST ADMIN DEALER solo debe poder consultar los documentos de las empresas que pertenezcan a ese dealer
+  @Post()
+  @UseGuards(DealerAccessGuard)
+  @Roles(UserRole.ADMIN, UserRole.DEALER)
+  @ApiOperation({
+    summary: 'Crear o consultar documentos por compañía',
+    description: `
+    **Crear o Consultar Documentos Electrónicos por Compañía**
+    
+    Este endpoint permite crear o consultar documentos electrónicos (facturas, notas crédito, notas débito).
+    ADMIN puede acceder a todos los documentos, DEALER solo a los de las empresas que le pertenecen.
+    
+    **Seguridad:**
+    - Requiere autenticación JWT Bearer token
+    - ADMIN: Acceso completo a todos los documentos
+    - DEALER: Solo documentos de empresas asignadas
+    `,
+  })
+  @ApiResponse({
+    status: HttpStatus.CREATED,
+    description: 'Documento creado o consultado exitosamente',
+  })
+  async createOrQueryDocuments(
+    @Body() createDocumentDto: any,
+    @CurrentUser() currentUser: User,
+  ): Promise<any> {
+    // TODO: Implementar lógica para crear/consultar documentos con validación de permisos
+    throw new Error('Método no implementado');
+  }
 
   @Get()
   @ApiOperation({
@@ -200,24 +233,26 @@ export class DocumentController {
     @Query() queryParams: DocumentListQueryDto,
     @CurrentUser() currentUser: User,
   ): Promise<DocumentListResponse> {
-    this.logger.log('Iniciando consulta de documentos');
-    this.logger.debug('Query params:', JSON.stringify(queryParams, null, 2));
+    this.logger.log('Obteniendo lista de documentos');
+    this.logger.debug('Parámetros de consulta:', JSON.stringify(queryParams, null, 2));
     this.logger.debug('Usuario autenticado:', currentUser.id);
 
-    // TODO: Obtener company_id del usuario autenticado
-    // Por ahora usamos un ID fijo para pruebas
-    const companyId = 1;
-
-    // Construir request con state_document_id fijo
+    // Construir request con state_document_id fijo = 1 (documentos autorizados)
     const documentListRequest = {
       ...queryParams,
-      state_document_id: 1, // Solo documentos autorizados
+      state_document_id: 1, // Solo documentos autorizados por la DIAN
     };
 
-    this.logger.log('Consultando documentos en la base de datos local');
+    // TODO: Obtener company_id del usuario autenticado según su rol
+    // Por ahora usamos un ID fijo para pruebas
+    // ADMIN debería poder ver todas las empresas
+    // DEALER solo sus empresas asignadas
+    // USER solo su empresa
+    const companyId = 1;
+
     const result = await this.documentService.getDocuments(documentListRequest, companyId);
     
-    this.logger.log(`Documentos obtenidos exitosamente. Total: ${result.data?.total || 0}`);
+    this.logger.log('Documentos obtenidos exitosamente');
     return result;
   }
 } 

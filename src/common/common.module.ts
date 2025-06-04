@@ -1,11 +1,17 @@
 import { Module, Global } from '@nestjs/common';
 import { APP_FILTER, APP_INTERCEPTOR } from '@nestjs/core';
+import { JwtModule } from '@nestjs/jwt';
 import { HttpExceptionFilter } from './filters/http-exception.filter';
 import { ResponseInterceptor } from './interceptors/response.interceptor';
 import { LoggingInterceptor } from './interceptors/logging.interceptor';
+import { RolesGuard } from './guards/roles.guard';
+import { DealerAccessGuard } from './guards/dealer-access.guard';
 
 @Global()
 @Module({
+  imports: [
+    JwtModule,
+  ],
   providers: [
     {
       provide: APP_FILTER,
@@ -19,7 +25,9 @@ import { LoggingInterceptor } from './interceptors/logging.interceptor';
       provide: APP_INTERCEPTOR,
       useClass: LoggingInterceptor,
     },
+    RolesGuard,
+    DealerAccessGuard,
   ],
-  exports: [],
+  exports: [RolesGuard, DealerAccessGuard],
 })
 export class CommonModule {} 

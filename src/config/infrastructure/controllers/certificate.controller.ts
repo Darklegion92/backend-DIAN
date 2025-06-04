@@ -12,6 +12,9 @@ import {
   ApiResponse,
 } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../../../auth/infrastructure/guards/jwt-auth.guard';
+import { RolesGuard } from '../../../common/guards/roles.guard';
+import { Roles } from '../../../common/decorators/roles.decorator';
+import { UserRole } from '../../../auth/domain/entities/user.entity';
 import { CertificateService } from '../../application/services/certificate.service';
 import { CreateCertificateDto } from '../../application/dto/create-certificate.dto';
 import { CertificateResponseDto } from '../../application/dto/certificate-response.dto';
@@ -24,10 +27,13 @@ export class CertificateController {
   constructor(private readonly certificateService: CertificateService) {}
 
   @Put('')
+  @UseGuards(RolesGuard)
+  @Roles(UserRole.ADMIN, UserRole.DEALER)
   @ApiOperation({
     summary: 'Crear certificado',
     description: `
       Crea un nuevo certificado enviando los datos al servicio externo configurado.
+      Solo accesible para ADMIN y DEALER.
       
       El endpoint requiere:
       - Autenticación con Bearer Token (JWT) en el header

@@ -9,6 +9,9 @@ import { SoftwareResponseDto } from '../../application/dto/software-response.dto
 import { SoftwareService } from '../../application/services/software.service';
 import { ApiBearerAuth, ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { JwtAuthGuard } from 'src/auth/infrastructure/guards/jwt-auth.guard';
+import { RolesGuard } from '../../../common/guards/roles.guard';
+import { Roles } from '../../../common/decorators/roles.decorator';
+import { UserRole } from '../../../auth/domain/entities/user.entity';
 
 @ApiTags('Software')
 @Controller('software')
@@ -18,9 +21,11 @@ export class SoftwareController {
   constructor(private readonly softwareService: SoftwareService) {}
 
   @Post('')
+  @UseGuards(RolesGuard)
+  @Roles(UserRole.ADMIN, UserRole.DEALER)
   @ApiOperation({
     summary: 'Crear software en servicio externo',
-    description: 'Crea o actualiza un software en el servicio externo de la DIAN',
+    description: 'Crea o actualiza un software en el servicio externo de la DIAN. Solo accesible para ADMIN y DEALER.',
   })
   @ApiResponse({
     status: 201,

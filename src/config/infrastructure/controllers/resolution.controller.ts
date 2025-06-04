@@ -7,6 +7,10 @@ import {
   ApiQuery,
 } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../../../auth/infrastructure/guards/jwt-auth.guard';
+import { RolesGuard } from '../../../common/guards/roles.guard';
+import { DealerAccessGuard } from '../../../common/guards/dealer-access.guard';
+import { Roles } from '../../../common/decorators/roles.decorator';
+import { UserRole } from '../../../auth/domain/entities/user.entity';
 import { ResolutionService } from '../../application/services/resolution.service';
 import { CreateResolutionDto } from '../../application/dto/create-resolution.dto';
 
@@ -18,10 +22,13 @@ export class ResolutionController {
   constructor(private readonly resolutionService: ResolutionService) {}
 
   @Put('')
+  @UseGuards(RolesGuard)
+  @Roles(UserRole.ADMIN, UserRole.DEALER)
   @ApiOperation({
     summary: 'Crear resolución',
     description: `
       Crea una nueva resolución enviando los datos al servicio externo configurado.
+      Solo accesible para ADMIN y DEALER.
       
       El endpoint requiere:
       - Autenticación con Bearer Token (JWT) en el header
@@ -115,9 +122,11 @@ export class ResolutionController {
   }
 
   @Get('company')
+  @UseGuards(DealerAccessGuard)
+  @Roles(UserRole.ADMIN, UserRole.DEALER)
   @ApiOperation({
     summary: 'Obtener resoluciones por empresa',
-    description: 'Retorna la lista de resoluciones de una empresa específica con información de tipos de documento relacionados'
+    description: 'Retorna la lista de resoluciones de una empresa específica con información de tipos de documento relacionados. ADMIN puede ver todas, DEALER solo las que le pertenecen.'
   })
   @ApiQuery({
     name: 'companyId',
@@ -203,7 +212,7 @@ export class ResolutionController {
   @Get('company-by-nit')
   @ApiOperation({
     summary: 'Obtener resoluciones por NIT de empresa',
-    description: 'Retorna todas las resoluciones de una empresa específica filtrada por NIT (identification_number) con información de tipos de documento relacionados'
+    description: 'Retorna todas las resoluciones de una empresa específica filtrada por NIT (identification_number) con información de tipos de documento relacionados. Accesible para todos los usuarios autenticados.'
   })
   @ApiQuery({
     name: 'nit',

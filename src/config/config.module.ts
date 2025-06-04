@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { HttpModule } from '@nestjs/axios';
 import { ConfigModule as NestConfigModule } from '@nestjs/config';
+import { JwtModule } from '@nestjs/jwt';
 import { Company } from './domain/entities/company.entity';
 import { Certificate } from './domain/entities/certificate.entity';
 import { User } from '../auth/domain/entities/user.entity';
@@ -59,6 +60,7 @@ import { ResolutionController } from './infrastructure/controllers/resolution.co
     ]),
     HttpModule,
     NestConfigModule,
+    JwtModule,
   ],
   controllers: [
     CompanyController,

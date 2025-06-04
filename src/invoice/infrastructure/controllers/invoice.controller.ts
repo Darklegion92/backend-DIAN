@@ -29,6 +29,7 @@ export class InvoiceController {
 
   constructor(private readonly externalInvoiceService: ExternalInvoiceService) {}
 
+  // /api/invoice POST TODOS - Accesible para todos los usuarios autenticados
   @Post()
   @ApiOperation({
     summary: 'Crear factura en DIAN',
@@ -36,6 +37,7 @@ export class InvoiceController {
     **Proceso de Facturación Electrónica DIAN Colombia**
     
     Este endpoint crea una factura electrónica que será procesada por la DIAN (Dirección de Impuestos y Aduanas Nacionales) de Colombia.
+    Accesible para todos los usuarios autenticados.
     
     **Flujo del proceso:**
     1. Valida los datos de la factura según normativas DIAN

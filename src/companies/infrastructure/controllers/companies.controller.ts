@@ -1,6 +1,10 @@
-import { Controller, Put, Body, Param, UseGuards } from '@nestjs/common';
+import { Controller, Put, Get, Post, Body, Param, Query, UseGuards } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiParam } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../../../auth/infrastructure/guards/jwt-auth.guard';
+import { RolesGuard } from '../../../common/guards/roles.guard';
+import { DealerAccessGuard } from '../../../common/guards/dealer-access.guard';
+import { Roles } from '../../../common/decorators/roles.decorator';
+import { UserRole } from '../../../auth/domain/entities/user.entity';
 import { UpdateEnvironmentUseCase } from '../../application/use-cases/update-environment.use-case';
 import { UpdateEnvironmentDto } from '../../application/dtos/update-environment.dto';
 import { UpdateEnvironmentResponseDto } from '../../application/dtos/update-environment-response.dto';
@@ -14,10 +18,84 @@ export class CompaniesController {
     private readonly updateEnvironmentUseCase: UpdateEnvironmentUseCase,
   ) {}
 
+  @Get()
+  @UseGuards(DealerAccessGuard)
+  @Roles(UserRole.ADMIN, UserRole.DEALER)
+  @ApiOperation({
+    summary: 'Obtener lista de empresas',
+    description: 'Obtiene la lista de empresas. ADMIN puede ver todas, DEALER solo las que le pertenecen.',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Lista de empresas obtenida exitosamente',
+    schema: {
+      type: 'object',
+      properties: {
+        success: { type: 'boolean', example: true },
+        statusCode: { type: 'number', example: 200 },
+        data: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              id: { type: 'number', example: 1 },
+              identification_number: { type: 'string', example: '901357329' },
+              name: { type: 'string', example: 'Empresa Ejemplo' },
+              // Más propiedades de la empresa
+            }
+          }
+        }
+      }
+    }
+  })
+  async findAll(@Query() query: any): Promise<any> {
+    // TODO: Implementar lógica para obtener empresas según el rol
+    throw new Error('Método no implementado');
+  }
+
+  @Post()
+  @UseGuards(RolesGuard)
+  @Roles(UserRole.ADMIN, UserRole.DEALER)
+  @ApiOperation({
+    summary: 'Crear una nueva empresa',
+    description: 'Crea una nueva empresa. Accesible para ADMIN y DEALER.',
+  })
+  @ApiResponse({
+    status: 201,
+    description: 'Empresa creada exitosamente',
+  })
+  async create(@Body() createCompanyDto: any): Promise<any> {
+    // TODO: Implementar lógica para crear empresa
+    throw new Error('Método no implementado');
+  }
+
+  @Get(':id')
+  @UseGuards(DealerAccessGuard)
+  @Roles(UserRole.ADMIN, UserRole.DEALER)
+  @ApiOperation({
+    summary: 'Obtener empresa por ID',
+    description: 'Obtiene una empresa específica. ADMIN puede ver cualquiera, DEALER solo si le pertenece.',
+  })
+  @ApiParam({ name: 'id', description: 'ID de la empresa' })
+  @ApiResponse({
+    status: 200,
+    description: 'Empresa encontrada exitosamente',
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Empresa no encontrada',
+  })
+  async findOne(@Param('id') id: string): Promise<any> {
+    // TODO: Implementar lógica para obtener empresa por ID con validación de permisos
+    throw new Error('Método no implementado');
+  }
+
   @Put('environment')
+  @UseGuards(DealerAccessGuard)
+  @Roles(UserRole.ADMIN, UserRole.DEALER)
   @ApiOperation({
     summary: 'Actualizar ambiente de empresa a producción',
-    description: 'Actualiza la configuración del ambiente de una empresa específica consumiendo el servicio externo.',
+    description: 'Actualiza la configuración del ambiente de una empresa específica. ADMIN puede actualizar cualquiera, DEALER solo si le pertenece.',
   })
   @ApiResponse({
     status: 200,

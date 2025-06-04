@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { JwtModule } from '@nestjs/jwt';
 import { DocumentController } from './infrastructure/controllers/document.controller';
-import { TypeDocumentController } from './infrastructure/controllers/type-document.controller';
 import { DocumentService } from './domain/services/document.service';
 import { Document } from './domain/entities/document.entity';
 import { TypeDocument } from './domain/entities/type-document.entity';
@@ -11,9 +11,10 @@ import { TypeDocument } from './domain/entities/type-document.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Document, TypeDocument])
+    TypeOrmModule.forFeature([Document, TypeDocument]),
+    JwtModule, // Necesario para que funcionen los guards que dependen de JwtService
   ],
-  controllers: [DocumentController, TypeDocumentController],
+  controllers: [DocumentController],
   providers: [DocumentService],
   exports: [DocumentService],
 })

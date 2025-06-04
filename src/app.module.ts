@@ -13,8 +13,8 @@ import { CompaniesModule } from './companies/companies.module';
     ServeStaticModule.forRoot({
       rootPath: join(__dirname, '..', 'public'),
     }),
-    CommonModule,
     AuthModule,
+    CommonModule,
     ConfigModule,
     InvoiceModule,
     DocumentModule,

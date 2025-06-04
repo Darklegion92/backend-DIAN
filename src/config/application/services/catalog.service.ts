@@ -9,6 +9,7 @@ import { Municipality } from '../../domain/entities/municipality.entity';
 import { UnitMeasure } from '../../domain/entities/unit-measure.entity';
 import { Tax } from '../../domain/entities/tax.entity';
 import { TypeItemIdentification } from '../../domain/entities/type-item-identification.entity';
+import { TypeDocument } from '../../../document/domain/entities/type-document.entity';
 
 @Injectable()
 export class CatalogService {
@@ -29,6 +30,8 @@ export class CatalogService {
     private readonly taxRepository: Repository<Tax>,
     @InjectRepository(TypeItemIdentification)
     private readonly typeItemIdentificationRepository: Repository<TypeItemIdentification>,
+    @InjectRepository(TypeDocument)
+    private readonly typeDocumentRepository: Repository<TypeDocument>,
   ) {}
 
   /**
@@ -259,7 +262,18 @@ export class CatalogService {
   }
 
   /**
-   * Obtener ID de tipo de identificación de item por código
+   * Obtener tipos de documento activos
+   */
+  async getTypeDocuments() {
+    return this.typeDocumentRepository.find({
+      where: { state: true },
+      select: ['id', 'name'],
+      order: { name: 'ASC' }
+    });
+  }
+
+  /**
+   * Obtener ID de tipo de item de identificación por código
    */
   async getTypeItemIdentificationIdByCode(code: string): Promise<number> {
     const typeItemIdentification = await this.getTypeItemIdentificationByCode(code);

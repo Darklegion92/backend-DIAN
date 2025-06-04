@@ -3,6 +3,7 @@ import { ApiTags, ApiOperation, ApiResponse, ApiQuery, ApiBearerAuth } from '@ne
 import { JwtAuthGuard } from '../../../auth/infrastructure/guards/jwt-auth.guard';
 import { CatalogService } from '../../application/services/catalog.service';
 
+// /api/catalogs/* TODOS - Todos los endpoints de catálogos son accesibles para todos los usuarios autenticados
 @ApiTags('Catálogos')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
@@ -13,7 +14,7 @@ export class CatalogController {
   @Get('document-types')
   @ApiOperation({
     summary: 'Obtener tipos de documento de identificación',
-    description: 'Retorna la lista de tipos de documento de identificación activos disponibles en el sistema'
+    description: 'Retorna la lista de tipos de documento de identificación activos disponibles en el sistema. Accesible para todos los usuarios autenticados.'
   })
   @ApiResponse({
     status: 200,
@@ -436,6 +437,39 @@ export class CatalogController {
   async getTypeItemIdentificationByCode(@Param('code') code: string) {
     try {
       const data = await this.catalogService.getTypeItemIdentificationByCode(code);
+      return {
+        success: true,
+        statusCode: 200,
+        data
+      };
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  @Get('type-documents')
+  @ApiOperation({
+    summary: 'Obtener tipos de documentos',
+    description: 'Retorna la lista de tipos de documentos activos disponibles en el sistema. Accesible para todos los usuarios autenticados.'
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Lista de tipos de documentos obtenida exitosamente',
+    schema: {
+      example: {
+        success: true,
+        statusCode: 200,
+        data: [
+          { id: 1, name: 'Factura Electrónica' },
+          { id: 2, name: 'Nota Crédito' },
+          { id: 3, name: 'Nota Débito' }
+        ]
+      }
+    }
+  })
+  async getTypeDocuments() {
+    try {
+      const data = await this.catalogService.getTypeDocuments();
       return {
         success: true,
         statusCode: 200,
