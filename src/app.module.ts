@@ -7,6 +7,9 @@ import { CommonModule } from './common/common.module';
 import { InvoiceModule } from './invoice/invoice.module';
 import { DocumentModule } from './document/document.module';
 import { CompaniesModule } from './companies/companies.module';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { getTypeOrmConfig } from './config/typeorm.config';
+import { ConfigModule as NestConfigModule, ConfigService } from '@nestjs/config';
 
 @Module({
   imports: [
@@ -19,6 +22,14 @@ import { CompaniesModule } from './companies/companies.module';
     InvoiceModule,
     DocumentModule,
     CompaniesModule,
+    NestConfigModule.forRoot({
+      isGlobal: true,
+    }),
+    TypeOrmModule.forRootAsync({
+      imports: [NestConfigModule],
+      useFactory: (configService) => getTypeOrmConfig(configService),
+      inject: [ConfigService],
+    }),
   ],
   controllers: [],
   providers: [],

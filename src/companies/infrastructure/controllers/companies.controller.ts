@@ -69,7 +69,6 @@ export class CompaniesController {
   })
   async getCompanyByNit(
     @Param('nit') nit: string,
-    @CurrentUser() currentUser: User,
   ): Promise<CompanyWithCertificateDto> {
     if (!nit || !nit.trim()) {
       throw new NotFoundException('El NIT es requerido');
@@ -81,7 +80,7 @@ export class CompaniesController {
     }
 
     try {
-      const company = await this.companyService.getCompanyByNit(nit, currentUser);
+      const company = await this.companyService.getCompanyByNit(nit);
 
       if (!company) {
         throw new NotFoundException(`No se encontró una empresa con el NIT: ${nit}`);
