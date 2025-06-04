@@ -270,6 +270,47 @@ export class CatalogService {
   }
 
   /**
+   * Obtener municipio por código
+   * @param code Código del municipio (incluye código del departamento)
+   */
+  async getMunicipalityByCode(code: string) {
+    if (!code || code.trim() === '') {
+      throw new Error('Código de municipio es requerido');
+    }
+
+    const municipality = await this.municipalityRepository
+      .createQueryBuilder('municipality')
+      .leftJoinAndSelect('municipality.department', 'department')
+      .select([
+        'municipality.id',
+        'municipality.name', 
+        'municipality.code',
+        'department.id',
+        'department.name',
+        'department.code'
+      ])
+      .where('municipality.code = :code', { code: code.trim() })
+      .getOne();
+
+    if (!municipality) {
+      throw new Error(`Municipio con código '${code}' no encontrado`);
+    }
+
+    // Formatear resultado con displayName concatenado
+    return {
+      id: municipality.id,
+      name: municipality.name,
+      code: municipality.code,
+      displayName: `${municipality.name}, ${municipality.department?.name || 'N/A'}`,
+      department: municipality.department ? {
+        id: municipality.department.id,
+        name: municipality.department.name,
+        code: municipality.department.code
+      } : null
+    };
+  }
+
+  /**
    * Obtener unidades de medida activas
    */
   async getUnitMeasures() {

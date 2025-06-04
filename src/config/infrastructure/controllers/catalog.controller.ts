@@ -358,6 +358,49 @@ export class CatalogController {
     }
   }
 
+  @Get('municipalities/code/:code')
+  @ApiOperation({
+    summary: 'Obtener municipio por código',
+    description: 'Retorna un municipio específico basado en su código. El código debe incluir el código del departamento.'
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Municipio encontrado exitosamente',
+    schema: {
+      example: {
+        success: true,
+        statusCode: 200,
+        data: {
+          id: 1,
+          name: 'MEDELLÍN',
+          code: '05001',
+          departmentId: 5,
+          department: {
+            id: 5,
+            name: 'ANTIOQUIA',
+            code: '05'
+          }
+        }
+      }
+    }
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Municipio no encontrado'
+  })
+  async getMunicipalityByCode(@Param('code') code: string) {
+    try {
+      const data = await this.catalogService.getMunicipalityByCode(code);
+      return {
+        success: true,
+        statusCode: 200,
+        data
+      };
+    } catch (error) {
+      throw error;
+    }
+  }
+
   @Get('unit-measures')
   @ApiOperation({
     summary: 'Obtener unidades de medida',
