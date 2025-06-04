@@ -31,13 +31,6 @@ export class UnitMeasure {
   code: string;
 
   @ApiProperty({
-    description: 'Estado activo/inactivo de la unidad de medida',
-    example: true,
-  })
-  @Column({ name: 'state', type: 'boolean', default: true })
-  state: boolean;
-
-  @ApiProperty({
     description: 'Fecha de creación del registro',
     example: '2024-01-15T10:30:00Z',
   })

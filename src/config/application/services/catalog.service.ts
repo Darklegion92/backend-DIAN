@@ -274,7 +274,6 @@ export class CatalogService {
    */
   async getUnitMeasures() {
     return this.unitMeasureRepository.find({
-      where: { state: true },
       select: ['id', 'name', 'code'],
       order: { name: 'ASC' }
     });
@@ -291,7 +290,6 @@ export class CatalogService {
     const unitMeasure = await this.unitMeasureRepository.findOne({
       where: { 
         code: code.trim(),
-        state: true 
       },
       select: ['id', 'name', 'code']
     });
