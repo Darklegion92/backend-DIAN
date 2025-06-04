@@ -13,9 +13,6 @@ export interface InvoiceEntity {
   status: InvoiceStatus;
   notes?: string;
   lines: InvoiceLineEntity[];
-  additional_document_reference_type_document?: string;
-  additional_document_reference_id?: string;
-  additional_document_reference_date?: string;
 }
 
 export interface InvoiceLineEntity {

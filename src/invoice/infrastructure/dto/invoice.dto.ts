@@ -849,6 +849,21 @@ export class CreateInvoiceDto {
   @ValidateNested({ each: true })
   @Type(() => InvoiceLineDto)
   invoice_lines: InvoiceLineDto[];
+
+  @ApiProperty({ description: 'Tipo de documento de referencia adicional', required: false })
+  @IsOptional()
+  @IsString()
+  additional_document_reference_type_document?: string;
+
+  @ApiProperty({ description: 'ID de referencia adicional', required: false })
+  @IsOptional()
+  @IsString()
+  additional_document_reference_id?: string;
+
+  @ApiProperty({ description: 'Fecha de referencia adicional', required: false })
+  @IsOptional()
+  @IsDateString()
+  additional_document_reference_date?: string;
 }
 
 export class InvoiceResponseDto {
