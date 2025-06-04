@@ -61,8 +61,6 @@ export class CompaniesController {
   }
 
   @Get('by-nit/:nit')
-  @UseGuards(DealerAccessGuard)
-  @Roles(UserRole.ADMIN, UserRole.DEALER)
   @ApiOperation({
     summary: 'Buscar empresa por NIT',
     description: 'Busca una empresa específica por su NIT aplicando filtros de seguridad según el rol',
