@@ -20,6 +20,8 @@ import { Event } from './domain/entities/event.entity';
 import { Resolution } from './domain/entities/resolution.entity';
 import { Software } from './domain/entities/software.entity';
 import { TypeDocument } from '../document/domain/entities/type-document.entity';
+import { Tax } from './domain/entities/tax.entity';
+import { TypeItemIdentification } from './domain/entities/type-item-identification.entity';
 import { CompanyService } from './application/services/company.service';
 import { CompanyController } from './infrastructure/controllers/company.controller';
 import { CatalogService } from './application/services/catalog.service';
@@ -52,6 +54,8 @@ import { ResolutionController } from './infrastructure/controllers/resolution.co
       Resolution,
       Software,
       TypeDocument,
+      Tax,
+      TypeItemIdentification,
     ]),
     HttpModule,
     NestConfigModule,

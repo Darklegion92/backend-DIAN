@@ -236,4 +236,213 @@ export class CatalogController {
       throw error;
     }
   }
+
+  @Get('unit-measures')
+  @ApiOperation({
+    summary: 'Obtener unidades de medida',
+    description: 'Retorna la lista de unidades de medida activas disponibles en el sistema'
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Lista de unidades de medida obtenida exitosamente',
+    schema: {
+      example: {
+        success: true,
+        statusCode: 200,
+        data: [
+          { id: 1, name: 'Unidad', code: '94' },
+          { id: 2, name: 'Kilogramo', code: 'KGM' }
+        ]
+      }
+    }
+  })
+  async getUnitMeasures() {
+    try {
+      const data = await this.catalogService.getUnitMeasures();
+      return {
+        success: true,
+        statusCode: 200,
+        data
+      };
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  @Get('unit-measures/by-code/:code')
+  @ApiOperation({
+    summary: 'Obtener unidad de medida por código',
+    description: 'Obtiene una unidad de medida específica por su código'
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Unidad de medida obtenida exitosamente',
+    schema: {
+      example: {
+        success: true,
+        statusCode: 200,
+        data: { 
+          id: 1, 
+          name: 'Unidad', 
+          code: '94'
+        }
+      }
+    }
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Unidad de medida no encontrada'
+  })
+  async getUnitMeasureByCode(@Param('code') code: string) {
+    try {
+      const data = await this.catalogService.getUnitMeasureByCode(code);
+      return {
+        success: true,
+        statusCode: 200,
+        data
+      };
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  @Get('taxes')
+  @ApiOperation({
+    summary: 'Obtener impuestos',
+    description: 'Retorna la lista de impuestos activos disponibles en el sistema'
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Lista de impuestos obtenida exitosamente',
+    schema: {
+      example: {
+        success: true,
+        statusCode: 200,
+        data: [
+          { id: 1, name: 'IVA', code: '01', description: 'Impuesto al Valor Agregado' },
+          { id: 2, name: 'ICA', code: '03', description: 'Impuesto de Industria y Comercio' }
+        ]
+      }
+    }
+  })
+  async getTaxes() {
+    try {
+      const data = await this.catalogService.getTaxes();
+      return {
+        success: true,
+        statusCode: 200,
+        data
+      };
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  @Get('taxes/by-code/:code')
+  @ApiOperation({
+    summary: 'Obtener impuesto por código',
+    description: 'Obtiene un impuesto específico por su código'
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Impuesto obtenido exitosamente',
+    schema: {
+      example: {
+        success: true,
+        statusCode: 200,
+        data: { 
+          id: 1, 
+          name: 'IVA', 
+          code: '01',
+          description: 'Impuesto al Valor Agregado'
+        }
+      }
+    }
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Impuesto no encontrado'
+  })
+  async getTaxByCode(@Param('code') code: string) {
+    try {
+      const data = await this.catalogService.getTaxByCode(code);
+      return {
+        success: true,
+        statusCode: 200,
+        data
+      };
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  @Get('type-item-identifications')
+  @ApiOperation({
+    summary: 'Obtener tipos de identificación de items',
+    description: 'Retorna la lista de tipos de identificación de items activos disponibles en el sistema'
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Lista de tipos de identificación de items obtenida exitosamente',
+    schema: {
+      example: {
+        success: true,
+        statusCode: 200,
+        data: [
+          { id: 1, name: 'Estándar', code: '999', codeAgency: 'DIAN' },
+          { id: 2, name: 'GTIN', code: '010', codeAgency: 'GS1' }
+        ]
+      }
+    }
+  })
+  async getTypeItemIdentifications() {
+    try {
+      const data = await this.catalogService.getTypeItemIdentifications();
+      return {
+        success: true,
+        statusCode: 200,
+        data
+      };
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  @Get('type-item-identifications/by-code/:code')
+  @ApiOperation({
+    summary: 'Obtener tipo de identificación de item por código',
+    description: 'Obtiene un tipo de identificación de item específico por su código'
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Tipo de identificación de item obtenido exitosamente',
+    schema: {
+      example: {
+        success: true,
+        statusCode: 200,
+        data: { 
+          id: 1, 
+          name: 'Estándar', 
+          code: '999',
+          codeAgency: 'DIAN'
+        }
+      }
+    }
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Tipo de identificación de item no encontrado'
+  })
+  async getTypeItemIdentificationByCode(@Param('code') code: string) {
+    try {
+      const data = await this.catalogService.getTypeItemIdentificationByCode(code);
+      return {
+        success: true,
+        statusCode: 200,
+        data
+      };
+    } catch (error) {
+      throw error;
+    }
+  }
 } 
