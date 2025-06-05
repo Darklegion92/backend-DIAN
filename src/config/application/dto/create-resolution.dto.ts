@@ -30,60 +30,6 @@ export class CreateResolutionDto {
   resolution: string;
 
   @ApiProperty({
-    description: 'Fecha de la resolución en formato YYYY-MM-DD',
-    example: '2019-01-19',
-  })
-  @IsDateString({}, { message: 'La fecha de resolución debe tener formato YYYY-MM-DD' })
-  @IsNotEmpty({ message: 'La fecha de resolución es requerida' })
-  resolution_date: string;
-
-  @ApiProperty({
-    description: 'Número inicial del rango autorizado',
-    example: 990000000,
-    minimum: 0,
-  })
-  @IsNumber({}, { message: 'El número inicial debe ser un número' })
-  @IsNotEmpty({ message: 'El número inicial es requerido' })
-  @Min(0, { message: 'El número inicial debe ser mayor o igual a 0' })
-  from: number;
-
-  @ApiProperty({
-    description: 'Número final del rango autorizado',
-    example: 995000000,
-    minimum: 0,
-  })
-  @IsNumber({}, { message: 'El número final debe ser un número' })
-  @IsNotEmpty({ message: 'El número final es requerido' })
-  @Min(0, { message: 'El número final debe ser mayor o igual a 0' })
-  to: number;
-
-  @ApiProperty({
-    description: 'Número generado hasta la fecha',
-    example: 0,
-    minimum: 0,
-  })
-  @IsNumber({}, { message: 'El número generado debe ser un número' })
-  @IsNotEmpty({ message: 'El número generado es requerido' })
-  @Min(0, { message: 'El número generado debe ser mayor o igual a 0' })
-  generated_to_date: number;
-
-  @ApiProperty({
-    description: 'Fecha inicial de vigencia en formato YYYY-MM-DD',
-    example: '2019-01-19',
-  })
-  @IsDateString({}, { message: 'La fecha inicial debe tener formato YYYY-MM-DD' })
-  @IsNotEmpty({ message: 'La fecha inicial es requerida' })
-  date_from: string;
-
-  @ApiProperty({
-    description: 'Fecha final de vigencia en formato YYYY-MM-DD',
-    example: '2030-01-19',
-  })
-  @IsDateString({}, { message: 'La fecha final debe tener formato YYYY-MM-DD' })
-  @IsNotEmpty({ message: 'La fecha final es requerida' })
-  date_to: string;
-
-  @ApiProperty({
     description: 'Bearer token para autenticación con el servicio externo',
     example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
     minLength: 1,

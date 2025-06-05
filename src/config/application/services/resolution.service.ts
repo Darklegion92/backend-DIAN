@@ -39,6 +39,19 @@ interface NumberingRangeApiResponse {
   certificate_days_left: number;
 }
 
+interface ExternalInvoiceData {
+  type_document_id: number;
+  prefix: string;
+  resolution: string;
+  resolution_date?: string;
+  technical_key?: string;
+  from: string;
+  to: string;
+  generated_to_date?: number;
+  date_from?: string;
+  date_to?: string;
+}
+
 @Injectable()
 export class ResolutionService {
   constructor(
@@ -50,12 +63,12 @@ export class ResolutionService {
     private readonly resolutionRepository: Repository<Resolution>,
   ) {}
 
-  private async getTechnicalKey(
+  private async getResolutionDian(
     companyId: number,
     resolution: string,
     prefix: string,
     bearerToken: string,
-  ): Promise<string | null> {
+  ): Promise<NumberRangeResponse | null> {
     try {
       // Buscar el software por company_id
       const software = await this.softwareRepository.findOne({
@@ -107,18 +120,8 @@ export class ResolutionService {
           range.ResolutionNumber === resolution && range.Prefix === prefix,
       );
 
-      if (matchingRange && matchingRange.TechnicalKey) {
-        // Verificar si TechnicalKey es un string o un objeto con atributo nil
-        if (typeof matchingRange.TechnicalKey === 'string') {
-          return matchingRange.TechnicalKey;
-        }
-        // Si es un objeto con _attributes.nil, retornar null
-        if (
-          typeof matchingRange.TechnicalKey === 'object' &&
-          matchingRange.TechnicalKey._attributes?.nil === 'true'
-        ) {
-          return null;
-        }
+      if (matchingRange) {
+          return matchingRange;
       }
 
       return null;
@@ -153,31 +156,9 @@ export class ResolutionService {
         );
       }
 
-      let technicalKey = 'fc8eac422eba16e22ffd8c6f94b3f40a6e38162c';
+      const externalData = await this.generateExternalData(createResolutionDto);
 
-      if (createResolutionDto.prefix !== 'SETP') {
-        technicalKey = await this.getTechnicalKey(
-          createResolutionDto.company_id,
-          createResolutionDto.resolution,
-          createResolutionDto.prefix,
-          createResolutionDto.bearerToken,
-        );
-      }
-     
-
-      // Preparar los datos para el servicio externo (excluyendo bearerToken y company_id del body)
-      const externalData = {
-        type_document_id: createResolutionDto.type_document_id,
-        prefix: createResolutionDto.prefix,
-        resolution: createResolutionDto.resolution,
-        resolution_date: createResolutionDto.resolution_date,
-        technical_key: technicalKey,
-        from: createResolutionDto.from,
-        to: createResolutionDto.to,
-        generated_to_date: createResolutionDto.generated_to_date,
-        date_from: createResolutionDto.date_from,
-        date_to: createResolutionDto.date_to,
-      };
+    
 
       // Llamar al servicio externo
       const response = await firstValueFrom(
@@ -207,6 +188,86 @@ export class ResolutionService {
         'Error interno del servidor',
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
+    }
+  }
+
+  private async generateExternalData(createResolutionDto: CreateResolutionDto):Promise<ExternalInvoiceData> {
+
+
+    if(createResolutionDto.prefix === 'SETP' && [1,3].includes(createResolutionDto.type_document_id)) {
+      return {
+        type_document_id: 1,
+        prefix: 'SETP',
+        resolution: '18760000001',
+        resolution_date: '2019-01-19',
+        technical_key: 'fc8eac422eba16e22ffd8c6f94b3f40a6e38162c',
+        from: '990000000',
+        to: '995000000',
+        generated_to_date: 0,
+        date_from: '2019-01-19',
+        date_to: '2030-01-19',
+      };
+    }
+
+    if(createResolutionDto.prefix === 'SEDS' && createResolutionDto.type_document_id === 11) {
+      return {
+        type_document_id: 11,
+        prefix: 'SEDS',
+        resolution: '18760000001',
+        resolution_date: '2022-01-01',
+        from: '984000000',
+        to: '985000000',
+        generated_to_date: 0,
+        date_from: '2022-01-01',
+        date_to: '2022-12-31',
+      }
+    }
+
+    if([4,5,9,10,13].includes(createResolutionDto.type_document_id)) {
+      return {
+        type_document_id: 4,
+        prefix: createResolutionDto.prefix,
+        resolution: '1',
+        from: '1',
+        to: '999999999',
+      }   
+
+    }
+
+
+    const resolutionDian = await this.getResolutionDian(
+      createResolutionDto.company_id,
+      createResolutionDto.resolution,
+      createResolutionDto.prefix,
+      createResolutionDto.bearerToken,
+    );
+
+    if(!resolutionDian) {
+      throw new HttpException(
+        'No se encontró la resolución en la Dian',
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
+    let technical_key: string;
+    if(typeof resolutionDian.TechnicalKey === 'string') {
+      technical_key = resolutionDian.TechnicalKey;
+    } else {
+      technical_key = null;
+    }
+
+    
+    return {
+      type_document_id: createResolutionDto.type_document_id,
+      prefix: createResolutionDto.prefix,
+      resolution: createResolutionDto.resolution,
+      resolution_date: resolutionDian.ResolutionDate,
+      technical_key: technical_key,
+      from: resolutionDian.FromNumber,
+      to: resolutionDian.ToNumber,
+      generated_to_date: 0,
+      date_from: resolutionDian.ValidDateFrom,
+      date_to: resolutionDian.ValidDateTo,
     }
   }
 

@@ -27,8 +27,6 @@ export class CertificateController {
   constructor(private readonly certificateService: CertificateService) {}
 
   @Put('')
-  @UseGuards(RolesGuard)
-  @Roles(UserRole.ADMIN, UserRole.DEALER)
   @ApiOperation({
     summary: 'Crear certificado',
     description: `
