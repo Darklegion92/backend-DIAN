@@ -149,4 +149,13 @@ export class SendDocumentElectronicDto {
   @Min(1)
   @Max(3)
   typeDocumentId: number;
+
+  @ApiProperty({
+    description: 'Número de documento',
+    example: 1,
+    required: true
+  })
+  @IsNumber()
+  @IsNotEmpty()
+  number: number;
 } 

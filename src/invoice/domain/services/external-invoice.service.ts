@@ -483,7 +483,7 @@ export class ExternalInvoiceService {
               }
             } 
           }
-              throw new HttpException("Factura registrada con otro provedor electrónico, agregue el cufe de manera manual", HttpStatus.INTERNAL_SERVER_ERROR);
+              throw new HttpException("Factura registrada con otro provedor electrónico, agregue el cufe de manera manual", HttpStatus.BAD_REQUEST);
 
             
     }
