@@ -141,7 +141,7 @@ export class ExternalInvoiceService {
   }
 
 
-  async prepareInvoice({token_dian,...invoiceData}: PrepareInvoiceData,  nit: string): Promise<SendDocumentElectronicResponse> {
+  async prepareInvoice({tokenDian,...invoiceData}: PrepareInvoiceData,  nit: string): Promise<SendDocumentElectronicResponse> {
     try {
 
         const resolutionNumber:string = invoiceData.resolutionNumber;
@@ -199,9 +199,9 @@ export class ExternalInvoiceService {
           with_holding_tax_total: withHoldingTaxTotal,
         }
 
-        const response: CreateInvoiceResponse = await this.createInvoice(invoice, token_dian);
+        const response: CreateInvoiceResponse = await this.createInvoice(invoice, tokenDian);
 
-        return this.evaluateInvoiceResponse(response, prefix, number, token_dian, nit);
+        return this.evaluateInvoiceResponse(response, prefix, number, tokenDian, nit);
 
 
     }catch(error){

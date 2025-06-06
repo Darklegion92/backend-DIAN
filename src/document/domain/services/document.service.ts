@@ -76,9 +76,9 @@ export class DocumentService {
     }
   }
 
-  async sendDocumentElectronic({type_document_id,nit,...documentData}: SendDocumentElectronicRequest): Promise<SendDocumentElectronicResponse> {
+  async sendDocumentElectronic({typeDocumentId,nit,...documentData}: SendDocumentElectronicRequest): Promise<SendDocumentElectronicResponse> {
     
-    if(type_document_id == 1){
+    if(typeDocumentId == 1){
       return this.externalInvoiceService.prepareInvoice(documentData,  nit);
     }
 

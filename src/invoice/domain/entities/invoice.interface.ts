@@ -377,7 +377,7 @@ export interface CreateInvoiceResponse {
 
 
 export interface PrepareInvoiceData {
-  token_dian: string;
+  tokenDian: string;
   header: string;
   detail: string;
   taxes: string;
