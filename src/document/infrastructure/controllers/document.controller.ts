@@ -1,7 +1,7 @@
 import { Controller, Get, Post, Query, Body, HttpStatus, Logger, UseGuards } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiQuery, ApiBearerAuth, ApiBody } from '@nestjs/swagger';
 import { DocumentService } from '../../domain/services/document.service';
-import { DocumentListQueryDto } from '../dto/document.dto';
+import { DocumentListQueryDto, SendDocumentElectronicDto } from '../dto/document.dto';
 import { DocumentListResponse } from '../../domain/entities/document.interface';
 import { JwtAuthGuard } from '../../../auth/infrastructure/guards/jwt-auth.guard';
 import { CurrentUser } from '../../../auth/infrastructure/decorators/current-user.decorator';
@@ -251,7 +251,7 @@ export class DocumentController {
        - Cadena con información de pago en formato específico para la DIAN
     
     6. **Datos técnicos:**
-       - resolution_number: Número de resolución DIAN
+       - resolutionNumber: Número de resolución DIAN
        - tokenDian: Token de autenticación DIAN
        - typeDocumentId: Tipo de documento (1=Factura, 2=Nota Crédito, 3=Nota Débito)
        - nit: NIT de la empresa
@@ -263,24 +263,7 @@ export class DocumentController {
     4. Retorno de respuesta con CUFE y estado
     `,
   })
-  @ApiBody({
-    description: 'Datos del documento electrónico',
-    schema: {
-      type: 'object',
-      required: ['header', 'customer', 'detail', 'taxes', 'payment', 'resolution_number', 'tokenDian', 'typeDocumentId', 'nit'],
-      properties: {
-        header:{ type: 'string', example: '02J||||2025-02-28|10|1|||0||||||', description: 'Cadena de cabecera' },
-        customer: { type: 'string', example: '02J||||2025-02-28|10|1|||0||||||', description: 'Cadena de cliente' },
-        detail: { type: 'string', example: '02J||||2025-02-28|10|1|||0||||||', description: 'Cadena de detalle' },
-        taxes: { type: 'string', example: '02J||||2025-02-28|10|1|||0||||||', description: 'Cadena de impuestos' },
-        payment: { type: 'string', example: '02J||||2025-02-28|10|1|||0||||||', description: 'Cadena de pago' },
-        resolution_number: { type: 'string', example: '18764000001', description: 'Número de resolución DIAN' },
-        tokenDian: { type: 'string', example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...', description: 'Token de autenticación DIAN' },
-        typeDocumentId: { type: 'number', example: 1, description: 'Tipo de documento (1=Factura, 2=Nota Crédito, 3=Nota Débito)' },
-        nit: { type: 'string', example: '123456789', description: 'NIT de la empresa' }
-      }
-    }
-  })
+  @ApiBody({ type: SendDocumentElectronicDto })
   @ApiResponse({
     status: HttpStatus.OK,
     description: 'Documento enviado exitosamente',
@@ -343,7 +326,7 @@ export class DocumentController {
     }
   })
   async sendDocumentElectronic(
-    @Body() sendDocumentElectronicDto: SendDocumentElectronicRequest
+    @Body() sendDocumentElectronicDto: SendDocumentElectronicDto
   ): Promise<SendDocumentElectronicResponse> {
     return this.documentService.sendDocumentElectronic(sendDocumentElectronicDto);
   }

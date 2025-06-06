@@ -184,7 +184,7 @@ export class ExternalInvoiceService {
           type_document_id: 1,
           date,
           time,
-          resolution_number: resolutionNumber,
+          resolutionNumber: resolutionNumber,
           prefix,
           legal_monetary_totals: {
             line_extension_amount: parseFloat(dataInvoice[9]),

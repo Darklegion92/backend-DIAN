@@ -30,13 +30,6 @@ export class SendDocumentElectronicRequest {
   taxes: string;
 
   @ApiProperty({
-    description: 'Cadena de descuentos',
-    example: '02J||||2025-02-28|10|1|||0||||||',
-    required: true
-  })
-  discount: string;
-
-  @ApiProperty({
     description: 'Cadena de pago',
     example: '02J||||2025-02-28|10|1|||0||||||',
     required: true
