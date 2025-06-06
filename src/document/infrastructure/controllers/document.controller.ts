@@ -1,5 +1,5 @@
 import { Controller, Get, Post, Query, Body, HttpStatus, Logger, UseGuards } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiQuery, ApiBearerAuth } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiResponse, ApiQuery, ApiBearerAuth, ApiBody } from '@nestjs/swagger';
 import { DocumentService } from '../../domain/services/document.service';
 import { DocumentListQueryDto } from '../dto/document.dto';
 import { DocumentListResponse } from '../../domain/entities/document.interface';
@@ -9,6 +9,7 @@ import { Roles } from '../../../common/decorators/roles.decorator';
 import { UserRole } from '../../../auth/domain/entities/user.entity';
 import { CurrentUser } from '../../../auth/infrastructure/decorators/current-user.decorator';
 import { User } from '../../../auth/domain/entities/user.entity';
+import { SendDocumentElectronicRequest, SendDocumentElectronicResponse } from 'src/document/domain/interfaces/document.interface';
 
 @ApiTags('Documentos')
 @Controller('documents')
@@ -18,36 +19,6 @@ export class DocumentController {
   private readonly logger = new Logger(DocumentController.name);
 
   constructor(private readonly documentService: DocumentService) {}
-
-  // /api/documents POST ADMIN DEALER solo debe poder consultar los documentos de las empresas que pertenezcan a ese dealer
-  @Post()
-  @UseGuards(DealerAccessGuard)
-  @Roles(UserRole.ADMIN, UserRole.DEALER)
-  @ApiOperation({
-    summary: 'Crear o consultar documentos por compañía',
-    description: `
-    **Crear o Consultar Documentos Electrónicos por Compañía**
-    
-    Este endpoint permite crear o consultar documentos electrónicos (facturas, notas crédito, notas débito).
-    ADMIN puede acceder a todos los documentos, DEALER solo a los de las empresas que le pertenecen.
-    
-    **Seguridad:**
-    - Requiere autenticación JWT Bearer token
-    - ADMIN: Acceso completo a todos los documentos
-    - DEALER: Solo documentos de empresas asignadas
-    `,
-  })
-  @ApiResponse({
-    status: HttpStatus.CREATED,
-    description: 'Documento creado o consultado exitosamente',
-  })
-  async createOrQueryDocuments(
-    @Body() createDocumentDto: any,
-    @CurrentUser() currentUser: User,
-  ): Promise<any> {
-    // TODO: Implementar lógica para crear/consultar documentos con validación de permisos
-    throw new Error('Método no implementado');
-  }
 
   @Get()
   @ApiOperation({
@@ -254,5 +225,157 @@ export class DocumentController {
     
     this.logger.log('Documentos obtenidos exitosamente');
     return result;
+  }
+
+  @Post('send-document-electronic')
+  @ApiOperation({
+    summary: 'Enviar documento electrónico',
+    description: `
+    **Envío de Documentos Electrónicos a la DIAN**
+    
+    Este endpoint permite enviar documentos electrónicos (facturas, notas crédito, notas débito) 
+    para su procesamiento y autorización ante la DIAN.
+    
+    **Estructura del Request:**
+    
+    1. **header** (Cabecera del documento):
+       - type_document_id: Tipo de documento (1=Factura, 2=Nota Crédito, 3=Nota Débito)
+       - date: Fecha de emisión (YYYY-MM-DD)
+       - time: Hora de emisión (HH:mm:ss)
+       - prefix: Prefijo del documento
+       - number: Número del documento
+       - notes: Notas adicionales
+    
+    2. **customer** (Información del cliente):
+       - identification_type: Tipo de identificación
+       - identification_number: Número de identificación
+       - name: Nombre o razón social
+       - phone: Teléfono
+       - email: Correo electrónico
+       - address: Dirección
+       - city: Ciudad
+       - country_code: Código del país
+    
+    3. **detail** (Detalle de productos/servicios):
+       - Array de items con:
+         - code: Código del producto
+         - description: Descripción del producto
+         - quantity: Cantidad
+         - price: Precio unitario
+         - discount: Descuento
+         - tax_rate: Tasa de impuesto
+    
+    4. **taxes** (Información de impuestos):
+       - subtotal: Subtotal antes de impuestos
+       - total_discount: Total descuentos
+       - total_tax: Total impuestos
+       - total: Total documento
+    
+    5. **payment** (Información de pago):
+       - method: Método de pago
+       - due_date: Fecha de vencimiento
+       - conditions: Condiciones de pago
+    
+    6. **Datos técnicos:**
+       - resolution_number: Número de resolución DIAN
+       - token_dian: Token de autenticación DIAN
+    
+    **Proceso de envío:**
+    1. Validación de datos
+    2. Generación de XML según estándar UBL 2.1
+    3. Firma digital del documento
+    4. Envío a la DIAN
+    5. Generación de representación gráfica (PDF)
+    `,
+  })
+  @ApiBody({
+    description: 'Datos del documento electrónico',
+    schema: {
+      type: 'object',
+      required: ['header', 'customer', 'detail', 'taxes', 'payment', 'resolution_number', 'token_dian'],
+      properties: {
+        header:{ type: 'string', example: '02J||||2025-02-28|10|1|||0||||||', description: 'Cadena de cabecera' },
+        customer: { type: 'string', example: '02J||||2025-02-28|10|1|||0||||||', description: 'Cadena de cliente' },
+        detail: { type: 'string', example: '02J||||2025-02-28|10|1|||0||||||', description: 'Cadena de detalle' },
+        taxes: { type: 'string', example: '02J||||2025-02-28|10|1|||0||||||', description: 'Cadena de impuestos' },
+        payment: { type: 'string', example: '02J||||2025-02-28|10|1|||0||||||', description: 'Cadena de pago' },
+        resolution_number: { type: 'string', example: '18764000001', description: 'Número de resolución DIAN' },
+        token_dian: { type: 'string', example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...', description: 'Token de autenticación DIAN' },
+        type_document_id: { type: 'number', example: 1, description: 'Tipo de documento (1=Factura, 2=Nota Crédito, 3=Nota Débito)' },
+        nit: { type: 'string', example: '123456789', description: 'NIT de la empresa' }
+      }
+    }
+  })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Documento enviado exitosamente',
+    content: {
+      'application/json': {
+        example: {
+          success: true,
+          message: "Documento electrónico procesado correctamente",
+          data: {
+            prefix: "FE",
+            number: "001",
+            date: "2025-01-15T10:30:00.000Z",
+            cufe: "242ce5e27513a17745451897097055f930ca5c5f3f2fe9c0a11e78976ad900e577297ec7e3ca55d8b2c506068195146a",
+            document_url: "https://api.example.com/documents/FE001.pdf",
+            qr_code: "https://api.example.com/documents/FE001/qr",
+            status: "AUTORIZADO",
+            document: "JVBERi0xLjcKCjEgMCBvYmoKPDwKL1R5cGUgL0NhdGFsb2cKL1BhZ2VzIDI..." // PDF en base64
+          }
+        }
+      }
+    }
+  })
+  @ApiResponse({
+    status: HttpStatus.BAD_REQUEST,
+    description: 'Datos de entrada inválidos',
+    content: {
+      'application/json': {
+        example: {
+          success: false,
+          message: "Error en los datos del documento",
+          errors: {
+            header: ["El tipo de documento es requerido"],
+            customer: ["El número de identificación es inválido"],
+            detail: ["Debe incluir al menos un producto"],
+            taxes: ["El total no coincide con el cálculo de items"],
+            token_dian: ["Token DIAN inválido o expirado"]
+          }
+        }
+      }
+    }
+  })
+  @ApiResponse({
+    status: HttpStatus.UNAUTHORIZED,
+    description: 'No autorizado',
+    content: {
+      'application/json': {
+        example: {
+          success: false,
+          message: "No autorizado",
+          error: "Token JWT inválido o expirado"
+        }
+      }
+    }
+  })
+  @ApiResponse({
+    status: HttpStatus.INTERNAL_SERVER_ERROR,
+    description: 'Error del servidor',
+    content: {
+      'application/json': {
+        example: {
+          success: false,
+          message: "Error al procesar el documento",
+          error: "Error en el servicio de la DIAN o error interno del servidor"
+        }
+      }
+    }
+  })
+  async sendDocumentElectronic(
+    @Body() sendDocumentElectronicDto: SendDocumentElectronicRequest
+  ): Promise<SendDocumentElectronicResponse> {
+    return this.documentService.sendDocumentElectronic(sendDocumentElectronicDto);
   }
 } 

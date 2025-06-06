@@ -1,8 +1,10 @@
 import { Injectable, Logger, HttpException, HttpStatus } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { DocumentListRequest, DocumentListResponse, DocumentData } from '../entities/document.interface';
+import { DocumentListRequest } from '../entities/document.interface';
 import { Document } from '../entities/document.entity';
+import { SendDocumentElectronicResponse, SendDocumentElectronicRequest } from '../interfaces/document.interface';
+import { ExternalInvoiceService } from '../../../invoice/domain/services/external-invoice.service';
 
 @Injectable()
 export class DocumentService {
@@ -11,6 +13,7 @@ export class DocumentService {
   constructor(
     @InjectRepository(Document)
     private readonly documentRepository: Repository<Document>,
+    private readonly externalInvoiceService: ExternalInvoiceService,
   ) {}
 
   /**
@@ -72,4 +75,13 @@ export class DocumentService {
       );
     }
   }
+
+  async sendDocumentElectronic({type_document_id,nit,...documentData}: SendDocumentElectronicRequest): Promise<SendDocumentElectronicResponse> {
+    
+    if(type_document_id == 1){
+      return this.externalInvoiceService.prepareInvoice(documentData,  nit);
+    }
+
+  }
+
 } 

@@ -323,7 +323,8 @@ export interface DianeHeader {
 }
 
 export interface DianeErrorMessage {
-  string: string;
+  string?: string;
+  strings?: string[];
 }
 
 export interface DianeSendBillSyncResult {
@@ -368,7 +369,21 @@ export interface InvoiceCreationData {
 }
 
 export interface CreateInvoiceResponse {
+  cufe: string;
   success: boolean;
   message: string;
   data: InvoiceCreationData;
-} 
+}
+
+
+export interface PrepareInvoiceData {
+  token_dian: string;
+  header: string;
+  detail: string;
+  taxes: string;
+  discount: string;
+  payment: string;
+  customer: string;
+  resolutionNumber: string;
+}
+

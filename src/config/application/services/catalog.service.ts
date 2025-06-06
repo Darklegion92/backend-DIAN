@@ -327,7 +327,6 @@ export class CatalogService {
     if (!code || code.trim() === '') {
       throw new Error('Código de unidad de medida es requerido');
     }
-
     const unitMeasure = await this.unitMeasureRepository.findOne({
       where: { 
         code: code.trim(),

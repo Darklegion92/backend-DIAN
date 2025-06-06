@@ -5,6 +5,8 @@ import { DocumentController } from './infrastructure/controllers/document.contro
 import { DocumentService } from './domain/services/document.service';
 import { Document } from './domain/entities/document.entity';
 import { TypeDocument } from './domain/entities/type-document.entity';
+import { InvoiceModule } from '../invoice/invoice.module';
+import { SharedModule } from '../shared/shared.module';
 
 // TODO: Importar la entidad Document cuando esté disponible
 // import { Document } from './domain/entities/document.entity';
@@ -13,9 +15,15 @@ import { TypeDocument } from './domain/entities/type-document.entity';
   imports: [
     TypeOrmModule.forFeature([Document, TypeDocument]),
     JwtModule, // Necesario para que funcionen los guards que dependen de JwtService
+    InvoiceModule,
+    SharedModule
   ],
   controllers: [DocumentController],
-  providers: [DocumentService],
-  exports: [DocumentService],
+  providers: [
+    DocumentService
+  ],
+  exports: [
+    DocumentService
+  ]
 })
 export class DocumentModule {} 

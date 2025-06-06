@@ -10,6 +10,7 @@ import { CompaniesModule } from './companies/companies.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { getTypeOrmConfig } from './config/typeorm.config';
 import { ConfigModule as NestConfigModule, ConfigService } from '@nestjs/config';
+import { SharedModule } from './shared/shared.module';
 
 @Module({
   imports: [
@@ -30,6 +31,7 @@ import { ConfigModule as NestConfigModule, ConfigService } from '@nestjs/config'
       useFactory: (configService) => getTypeOrmConfig(configService),
       inject: [ConfigService],
     }),
+    SharedModule
   ],
   controllers: [],
   providers: [],
