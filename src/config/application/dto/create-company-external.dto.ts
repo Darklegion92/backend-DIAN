@@ -7,7 +7,8 @@ import {
   Matches, 
   IsPositive,
   Min,
-  Max
+  Max,
+  IsOptional
 } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
@@ -156,4 +157,44 @@ export class CreateCompanyExternalDto {
   @IsNotEmpty()
   @Length(5, 100)
   email: string;
+
+  @ApiProperty({
+    description: 'Servidor de correo electrónico para RADIAN',
+    example: 'imap.gmail.com',
+  })
+  @IsOptional()
+  @IsString()
+  imap_server: string;
+
+  @ApiProperty({
+    description: 'Usuario de correo electrónico para RADIAN',
+    example: 'usuario@gmail.com',
+  })
+  @IsOptional()
+  @IsEmail({}, { message: 'Debe ser un correo electrónico válido' })
+  imap_user: string;
+
+  @ApiProperty({
+    description: 'Contraseña SMTP de correo electrónico para RADIAN',
+    example: '1234567890',
+  })
+  @IsOptional()
+  @IsString()
+  imap_password: string;
+
+  @ApiProperty({
+    description: 'Encriptación de correo electrónico para RADIAN',
+    example: 'SSL',
+  })
+  @IsOptional()
+  @IsString()
+  imap_encryption: string;
+
+  @ApiProperty({
+    description: 'Encriptación de correo electrónico para RADIAN',
+    example: 'SSL',
+  })
+  @IsOptional()
+  @IsString()
+  imap_port: string;
 } 
