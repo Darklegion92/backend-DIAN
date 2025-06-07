@@ -9,6 +9,7 @@ import {
 } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
+import { BillingReference } from 'src/credit-note/domain/dto/credit-note-request.interface';
 
 export class DocumentListQueryDto {
   @ApiProperty({ description: 'Fecha de creación inicial (YYYY-MM-DD)', required: false, example: '2025-01-01' })
@@ -120,6 +121,33 @@ export class SendDocumentElectronicDto {
   @IsString()
   @IsNotEmpty()
   customer: string;
+
+  @ApiProperty({
+    description: 'Cadena de referencia de facturación',
+    example: '02J||||2025-02-28|10|1|||0||||||',
+    required: true
+  })
+  @IsString()
+  @IsNotEmpty()
+  billingReference: BillingReference;
+
+  @ApiProperty({
+    description: 'Cadena de trm',
+    example: '02J||||2025-02-28|10|1|||0||||||',
+    required: true
+  })
+  @IsString()
+  @IsNotEmpty()
+  trm: string;
+
+  @ApiProperty({
+    description: 'Cadena de descuento',
+    example: '02J||||2025-02-28|10|1|||0||||||',
+    required: true
+  })
+  @IsString()
+  @IsNotEmpty()
+  discount: string;
 
   @ApiProperty({
     description: 'Número de resolución DIAN',

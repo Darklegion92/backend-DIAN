@@ -354,25 +354,23 @@ export interface DianeResponseData {
 }
 
 export interface InvoiceCreationData {
-  success: boolean;
-  message: string;
-  send_email_success: boolean;
-  send_email_date_time: boolean;
-  urlinvoicexml: string;
-  urlinvoicepdf: string;
-  urlinvoiceattached: string;
-  cufe: string;
-  QRStr: string;
-  certificate_days_left: number;
-  resolution_days_left: number;
-  ResponseDian: DianeResponseData;
+
 }
 
 export interface CreateInvoiceResponse {
-  cufe: string;
-  success: boolean;
-  message: string;
-  data: InvoiceCreationData;
+  cufe?: string;
+  success?: boolean;
+  message?: string;
+  data?: InvoiceCreationData;
+  send_email_success?: boolean;
+  send_email_date_time?: boolean;
+  urlinvoicexml?: string;
+  urlinvoicepdf?: string;
+  urlinvoiceattached?: string;
+  QRStr?: string;
+  certificate_days_left?: number;
+  resolution_days_left?: number;
+  ResponseDian?: DianeResponseData;
 }
 
 

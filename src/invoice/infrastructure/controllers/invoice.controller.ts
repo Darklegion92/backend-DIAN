@@ -13,7 +13,7 @@ import {
   ApiBody,
   ApiBearerAuth,
 } from '@nestjs/swagger';
-import { ExternalInvoiceService } from '../../domain/services/external-invoice.service';
+import { InvoiceService } from '../../domain/services/invoice.service';
 import { CreateInvoiceDto } from '../dto/invoice.dto';
 import { CreateInvoiceResponse } from '../../domain/entities/invoice.interface';
 import { JwtAuthGuard } from '../../../auth/infrastructure/guards/jwt-auth.guard';
@@ -27,7 +27,7 @@ import { User } from '../../../auth/domain/entities/user.entity';
 export class InvoiceController {
   private readonly logger = new Logger(InvoiceController.name);
 
-  constructor(private readonly externalInvoiceService: ExternalInvoiceService) {}
+  constructor(private readonly externalInvoiceService: InvoiceService) {}
 
   // /api/invoice POST TODOS - Accesible para todos los usuarios autenticados
   @Post()

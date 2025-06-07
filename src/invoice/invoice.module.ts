@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { HttpModule } from '@nestjs/axios';
 import { ConfigModule } from '@nestjs/config';
-import { ExternalInvoiceService } from './domain/services/external-invoice.service';
+import { InvoiceService } from './domain/services/invoice.service';
 import { ConfigModule as AppConfigModule } from '../config/config.module';
 import { SharedModule } from '../shared/shared.module';
 
@@ -13,10 +13,10 @@ import { SharedModule } from '../shared/shared.module';
     SharedModule
   ],
   providers: [
-    ExternalInvoiceService
+    InvoiceService
   ],
   exports: [
-    ExternalInvoiceService
+    InvoiceService
   ]
 })
 export class InvoiceModule {} 

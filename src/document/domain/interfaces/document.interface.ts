@@ -1,4 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { BillingReference } from 'src/credit-note/domain/dto/credit-note-request.interface';
 
 export class SendDocumentElectronicRequest {
   @ApiProperty({
@@ -42,6 +43,27 @@ export class SendDocumentElectronicRequest {
     required: true
   })
   customer: string;
+
+  @ApiProperty({
+    description: 'Cadena de referencia de facturación',
+    example: '02J||||2025-02-28|10|1|||0||||||',
+    required: true
+  })
+  billingReference: BillingReference;
+
+  @ApiProperty({
+    description: 'Cadena de trm',
+    example: '02J||||2025-02-28|10|1|||0||||||',
+    required: true
+  })
+  trm: string;
+
+  @ApiProperty({
+    description: 'Cadena de descuento',
+    example: '02J||||2025-02-28|10|1|||0||||||',
+    required: true
+  })
+  discount: string;
 
   @ApiProperty({
     description: 'Número de resolución DIAN',
@@ -112,4 +134,17 @@ export interface SendDocumentElectronicData {
   number: string;
   date: string;
   document: string;
+}
+
+export interface PrepareDocumentData {
+  tokenDian: string;
+  header: string;
+  detail: string;
+  taxes: string;
+  payment: string;
+  customer: string;
+  trm: string;
+  discount: string;
+  billingReference?: BillingReference;
+  resolutionNumber: string;
 }

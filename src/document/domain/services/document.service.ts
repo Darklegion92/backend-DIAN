@@ -4,7 +4,7 @@ import { Repository } from 'typeorm';
 import { DocumentListRequest } from '../entities/document.interface';
 import { Document } from '../entities/document.entity';
 import { SendDocumentElectronicResponse, SendDocumentElectronicRequest } from '../interfaces/document.interface';
-import { ExternalInvoiceService } from '../../../invoice/domain/services/external-invoice.service';
+import { InvoiceService } from '../../../invoice/domain/services/invoice.service';
 
 @Injectable()
 export class DocumentService {
@@ -13,7 +13,7 @@ export class DocumentService {
   constructor(
     @InjectRepository(Document)
     private readonly documentRepository: Repository<Document>,
-    private readonly externalInvoiceService: ExternalInvoiceService,
+    private readonly externalInvoiceService: InvoiceService,
   ) {}
 
   /**

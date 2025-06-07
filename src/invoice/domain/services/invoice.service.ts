@@ -8,8 +8,8 @@ import { CatalogService } from 'src/config/application/services/catalog.service'
 import { DocumentRepository } from 'src/document/infrastructure/repositories/document.repository';
 
 @Injectable()
-export class ExternalInvoiceService {
-  private readonly logger = new Logger(ExternalInvoiceService.name);
+export class InvoiceService {
+  private readonly logger = new Logger(InvoiceService.name);
   private readonly externalApiUrl: string;
 
   private withHoldingTaxTotal: TaxTotalData[] = [];
@@ -230,7 +230,7 @@ export class ExternalInvoiceService {
         invoice.invoice_lines = invoiceLineData;
         invoice.payment_form = payments;
 
-        invoice.sendmail = this.validateSendEmail(customerData.identification_number);
+        invoice.sendmail = this.validateSendEmail(customerData.identification_number, customerData.email) && customerData[9] === "SI";
         
 
         if(this.withHoldingTaxTotal.length > 0){
@@ -534,10 +534,20 @@ export class ExternalInvoiceService {
     return payments;
   }
 
+
+  /**
+   * Evaluar la respuesta de la factura
+   * @param response - Respuesta de la factura
+   * @param prefix - Prefijo de la factura
+   * @param number - Número de la factura
+   * @param token - Token de autenticación
+   * @param nit - NIT de la empresa
+   * @returns Respuesta de la factura
+   */
   private async evaluateInvoiceResponse(response: CreateInvoiceResponse, prefix: string, number: string, token: string, nit: string): Promise<SendDocumentElectronicResponse> {
 
-    if(response.data?.ResponseDian){
-      if(response.data.ResponseDian.Envelope.Body.SendBillSyncResponse.SendBillSyncResult.IsValid === "true"){
+    if(response.ResponseDian){
+      if(response.ResponseDian.Envelope.Body.SendBillSyncResponse.SendBillSyncResult.IsValid === "true"){
 
         const document: string = await this.getDocumentPDF(nit, prefix, number, token);
         return {
@@ -545,13 +555,13 @@ export class ExternalInvoiceService {
           message: "Factura registrada correctamente",
           data: {
             date: new Date().toISOString(),
-            cufe: response.data.cufe,
+            cufe: response.cufe,
             document: document,
           }
         }
       }else{
 
-          const errorMessage = response.data.ResponseDian.Envelope.Body.SendBillSyncResponse.SendBillSyncResult.ErrorMessage;
+          const errorMessage = response.ResponseDian.Envelope.Body.SendBillSyncResponse.SendBillSyncResult.ErrorMessage;
 
          if(errorMessage.strings.length > 0){
           for (const error of errorMessage.strings) {
@@ -578,13 +588,19 @@ export class ExternalInvoiceService {
               }
             } 
           }
-              throw new HttpException("Factura registrada con otro provedor electrónico, agregue el cufe de manera manual", HttpStatus.BAD_REQUEST);
-
-            
+              throw new HttpException("Factura registrada con otro provedor electrónico, agregue el cufe de manera manual", HttpStatus.BAD_REQUEST);     
     }
 
   }
 
+  /**
+   * Obtener el documento PDF de la factura
+   * @param nit - NIT de la empresa
+   * @param prefix - Prefijo de la factura
+   * @param number - Número de la factura
+   * @param token - Token de autenticación
+   * @returns Documento PDF de la factura
+   */
   private async getDocumentPDF(nit: string, prefix: string, number: string, token: string): Promise<string> {
     const url = `${this.externalApiUrl.replace("\/ubl2.1", "")}/invoice/${nit}/FES-${prefix}${number}.pdf`; 
     this.logger.debug('URL del documento:', url);
@@ -598,17 +614,18 @@ export class ExternalInvoiceService {
       }),
     );
 
-    if(response.status === 200){
-      const base64Document = Buffer.from(response.data).toString('base64');
-      this.logger.debug('Documento convertido a base64');
-      return base64Document;
-    }else{
-      throw new HttpException(response.statusText, HttpStatus.INTERNAL_SERVER_ERROR);
-    }
+    return response.data;
   }
 
-  private validateSendEmail(customerIdentification: string): boolean {
-   
+  /**
+   * Validar si el cliente tiene un email válido
+   * @param customerIdentification - Identificación del cliente
+   * @returns true si el cliente tiene un email válido, false en caso contrario
+   */
+  private validateSendEmail(customerIdentification: string, email: string): boolean {
+    if(email === "sinemail@gmail.com"){
+      return false;
+    }
     return !customerIdentification.match(".*22222.*");
   }
 } 
