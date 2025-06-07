@@ -2,8 +2,8 @@ import { Injectable, Logger, HttpException, HttpStatus } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { ConfigService } from '@nestjs/config';
 import { firstValueFrom } from 'rxjs';
-import { CreateInvoiceRequest, CreateInvoiceResponse, InvoiceLineData, PrepareInvoiceData, TaxTotalData, AllowanceChargeData, CustomerData, PaymentFormData } from '../entities/invoice.interface';
-import { SendDocumentElectronicResponse } from 'src/document/domain/interfaces/document.interface';
+import { CreateInvoiceRequest, CreateInvoiceResponse, InvoiceLineData, TaxTotalData, AllowanceChargeData, CustomerData, PaymentFormData, LegalMonetaryTotalData } from '../entities/invoice.interface';
+import { PrepareDocumentData, SendDocumentElectronicResponse } from 'src/document/domain/interfaces/document.interface';
 import { CatalogService } from 'src/config/application/services/catalog.service';
 import { DocumentRepository } from 'src/document/infrastructure/repositories/document.repository';
 
@@ -28,6 +28,9 @@ export class ExternalInvoiceService {
 
   /**
    * Crear una factura en el servicio externo Laravel
+   * @param invoiceData - Datos de la factura
+   * @param token - Token de autenticación
+   * @returns Respuesta del servicio externo
    */
   async createInvoice(invoiceData: CreateInvoiceRequest, token: string): Promise<CreateInvoiceResponse> {
     try {
@@ -140,43 +143,28 @@ export class ExternalInvoiceService {
     }
   }
 
-
-  async prepareInvoice({tokenDian,...invoiceData}: PrepareInvoiceData,  nit: string): Promise<SendDocumentElectronicResponse> {
+  /**
+   * Prepara los datos de la factura
+   * @param invoiceData - Datos de la factura
+   * @param nit - NIT de la empresa
+   * @returns Datos de la factura
+   */
+  async prepareInvoice({tokenDian,customer,trm,discount,detail,taxes,payment,header,resolutionNumber}: PrepareDocumentData,  nit: string): Promise<SendDocumentElectronicResponse> {
     try {
 
-        const resolutionNumber:string = invoiceData.resolutionNumber;
-        const dataInvoice: string[] = invoiceData.header.split("\|");
+        const dataHeader: string[] = header.split("\|");
+        const dataTrm: string[] = trm.split("\|");
+        const dataDiscount: string[] = discount.split("\|");
 
-        const prefix:string = dataInvoice[3].split("\-")[0];
-        let number:string = dataInvoice[2].replace(prefix, "");
+        const prefix:string = dataHeader[3].split("\-")[0];
+        let number:string = dataHeader[2].replace(prefix, "");
 
         if(resolutionNumber === "18760000001"){
             number = "99" + number.padStart(7, '0');
         }
 
-        const time:string = dataInvoice[4].split(" ")[1];
-        const date:string = dataInvoice[4].split(" ")[0];
-
-        const dataDetail:string[] = invoiceData.detail.split("0.00\¬03");
-        const dataCustomer:string[] = invoiceData.customer.split("\|");
-        const dataTaxes:string[] = invoiceData.taxes.split("\%02G");
-        const dataPago:string[] = invoiceData.payment.split("\|");  
-
-
-        const invoiceLineData: InvoiceLineData[] = await this.createInvoiceLineData(dataDetail);
-
-        const customer: CustomerData = await this.createInvoiceCustomer(dataCustomer);
-
-        const taxes: TaxTotalData[] = await this.createInvoiceTaxes(dataTaxes);
-
-        const payments: PaymentFormData[] = await this.createInvoicePayment(dataPago);
-        
-        let withHoldingTaxTotal;
-
-        if(this.withHoldingTaxTotal.length > 0){
-          withHoldingTaxTotal = this.withHoldingTaxTotal;
-          this.withHoldingTaxTotal = [];
-        }
+        const time:string = dataHeader[4].split(" ")[1];
+        const date:string = dataHeader[4].split(" ")[0];
 
 
         const invoice: CreateInvoiceRequest = {
@@ -184,25 +172,75 @@ export class ExternalInvoiceService {
           type_document_id: 1,
           date,
           time,
-          resolutionNumber: resolutionNumber,
+          resolutionNumber,
           prefix,
-          legal_monetary_totals: {
-            line_extension_amount: parseFloat(dataInvoice[9]),
-            tax_exclusive_amount: parseFloat(dataInvoice[9]),
-            tax_inclusive_amount: parseFloat(dataInvoice[10]),
-            payable_amount: parseFloat(dataInvoice[10]),
-          },
-          invoice_lines: invoiceLineData,
-          customer: customer,
-          tax_totals: taxes,
-          payment_form: payments,
-          with_holding_tax_total: withHoldingTaxTotal,
+          customer: undefined,
+          legal_monetary_totals: undefined,
+          invoice_lines: []
         }
+
+
+        if(dataTrm.length >= 3){
+          invoice.notes = dataTrm[3];
+        }
+
+        const legalMonetaryTotal: LegalMonetaryTotalData = {
+          line_extension_amount: parseFloat(dataHeader[18]),
+          tax_exclusive_amount: parseFloat(dataHeader[18]),
+          tax_inclusive_amount: parseFloat(dataHeader[19]),
+          payable_amount: parseFloat(dataHeader[10]),
+        }
+
+
+        const dataCustomer:string[] = customer.split("\|");
+        const customerData: CustomerData = await this.createCustomer(dataCustomer);
+
+        if(customerData.email.match(";")){
+          const emails:string[] = customerData.email.split(";");
+          customerData.email = emails[0];
+          invoice.email_cc_list = emails.slice(1).map(email => ({email}));
+        }
+
+        invoice.customer = customerData;
+
+        const dataTaxes:string[] = taxes.split("\%02G");
+        const taxesData: TaxTotalData[] = await this.createInvoiceTaxes(dataTaxes);
+
+        const dataDetail:string[] = detail.split("0.00\¬03");
+        const invoiceLineData: InvoiceLineData[] = await this.createInvoiceLineData(dataDetail);
+
+        const dataPago:string[] = payment.split("\|");  
+        const payments: PaymentFormData[] = await this.createInvoicePayment(dataPago);
+
+        if(dataDiscount.length > 3){
+          const allowanceCharge: AllowanceChargeData = {
+            charge_indicator: false,
+            allowance_charge_reason: dataDiscount[2],
+            amount: parseFloat(dataDiscount[4]),
+            base_amount: parseFloat(dataDiscount[5]),
+            discount_id: 11,
+          };
+          invoice.allowance_charges = [allowanceCharge];
+          legalMonetaryTotal.allowance_total_amount = parseFloat(dataDiscount[4]);
+        }
+
+        invoice.legal_monetary_totals = legalMonetaryTotal;
+        invoice.customer = customerData;
+        invoice.tax_totals = taxesData;
+        invoice.invoice_lines = invoiceLineData;
+        invoice.payment_form = payments;
+
+        invoice.sendmail = this.validateSendEmail(customerData.identification_number);
+        
+
+        if(this.withHoldingTaxTotal.length > 0){
+          invoice.with_holding_tax_total = this.withHoldingTaxTotal;
+        }
+       
 
         const response: CreateInvoiceResponse = await this.createInvoice(invoice, tokenDian);
 
         return this.evaluateInvoiceResponse(response, prefix, number, tokenDian, nit);
-
 
     }catch(error){
       this.logger.error('Error al preparar la factura', error);
@@ -225,31 +263,53 @@ export class ExternalInvoiceService {
         const unitMeasureId: number  = await this.catalogService.getUnitMeasureIdByCode(dataDetailLine[3]);
 
         const taxTotals: TaxTotalData[] = [];
-        const taxId:number = await this.catalogService.getTaxIdByCode(dataDetailLine[45]);
-        const taxTotal: TaxTotalData = {
-          tax_id: taxId,
-          tax_amount: parseFloat(dataDetailLine[50]),
-          percent: parseFloat(dataDetailLine[47]),
-          taxable_amount: parseFloat(dataDetailLine[44]),
-        };
-        taxTotals.push(taxTotal);
+        const AllowanceCharge: AllowanceChargeData[] = [];
+        if(dataDetailLine[46] === "DESCUENTO ITEM"){
+          const taxId:number = await this.catalogService.getTaxIdByCode(dataDetailLine[45]);
+          const taxTotal: TaxTotalData = {
+            tax_id: taxId,
+            tax_amount: parseFloat(dataDetailLine[50]),
+            percent: parseFloat(dataDetailLine[47]),
+            taxable_amount: parseFloat(dataDetailLine[44]),
+          };
+          taxTotals.push(taxTotal);
+        }else{
+          const taxId:number = await this.catalogService.getTaxIdByCode(dataDetailLine[57]);
+          const taxTotal: TaxTotalData = {
+            tax_id: taxId,
+            tax_amount: parseFloat(dataDetailLine[62]),
+            percent: parseFloat(dataDetailLine[59]),
+            taxable_amount: parseFloat(dataDetailLine[56]),
+          };
+          taxTotals.push(taxTotal);
 
-        const typeItemIdentificationId: number = await this.catalogService.getTypeItemIdentificationIdByCode(dataDetailLine[11]);
+          const discountId:number = await this.catalogService.getDiscountIdByCode(dataDetailLine[44]);
+          const allowanceCharge: AllowanceChargeData = {
+            charge_indicator: false,
+            allowance_charge_reason: dataDetailLine[45],
+            amount: parseFloat(dataDetailLine[47]),
+            base_amount: parseFloat(dataDetailLine[48]),
+            discount_id: discountId,
+          };
+          AllowanceCharge.push(allowanceCharge);
+        }
 
-        
+        const typeItemIdentificationId: number = await this.catalogService.getTypeItemIdentificationIdByCode(dataDetailLine[11]); 
+
         const invoiceLine: InvoiceLineData = {
           unit_measure_id: unitMeasureId,
           invoiced_quantity: parseFloat(dataDetailLine[4]),
-          line_extension_amount: parseFloat(dataDetailLine[27]),
-          tax_totals: taxTotals,
-          description: dataDetailLine[9],
-          code: dataDetailLine[7],
-          type_item_identification_id: typeItemIdentificationId,
-          price_amount: parseFloat(dataDetailLine[26]),
-          base_quantity: parseFloat(dataDetailLine[2]),
-          free_of_charge_indicator: true,
-          reference_price_id: 3,
-        };
+            line_extension_amount: parseFloat(dataDetailLine[27]),
+            tax_totals: taxTotals,
+            description: dataDetailLine[9],
+            code: dataDetailLine[7],
+            type_item_identification_id: typeItemIdentificationId,
+            price_amount: parseFloat(dataDetailLine[26]),
+            base_quantity: parseFloat(dataDetailLine[2]),
+            free_of_charge_indicator: true,
+            reference_price_id: 3,
+            allowance_charges: AllowanceCharge,
+          };
 
         if (dataDetailLine.length > 59) {
           if (dataDetailLine[58] === "02" ) {
@@ -290,27 +350,54 @@ export class ExternalInvoiceService {
               invoiceLine.tax_totals = taxTotals;
               invoiceLine.base_quantity = 1;
           }
-      }
 
+          if(dataDetailLine[55] === "\$\$03C"){
+            const taxtId:number = await this.catalogService.getTaxIdByCode(dataDetailLine[57]);
+            const taxTotal: TaxTotalData = {
+              tax_id: taxtId,
+              tax_amount: parseFloat(dataDetailLine[62]),
+              percent: parseFloat(dataDetailLine[59]),
+              taxable_amount: parseFloat(dataDetailLine[56]),
+            };
+            taxTotals.push(taxTotal);
+          }
+        }
 
+        if(dataDetailLine.length> 70){
+          if(dataDetailLine[70] === "02"){
+            const taxTotal: TaxTotalData = {
+              tax_id: 19,
+              tax_amount: parseFloat(dataDetailLine[75]),
+              percent: parseFloat(dataDetailLine[72]),
+              taxable_amount: parseFloat(dataDetailLine[69]),
+              base_unit_measure: 1,
+              per_unit_amount: parseFloat(dataDetailLine[75]),
+              unit_measure_id: 70,
+            };
+            taxTotals.push(taxTotal);
+          }
+        }
+        
+        invoiceLine.allowance_charges = AllowanceCharge;
+        invoiceLine.tax_totals = taxTotals;
 
-
-        invoiceLineData.push(invoiceLine);
-
+          if(invoiceLine.invoiced_quantity === 0){
+            invoiceLine.invoiced_quantity = 1;
+            invoiceLine.base_quantity = 1;
+          }
+          
+          invoiceLineData.push(invoiceLine);
       
     }
     return invoiceLineData;
   }
 
   /**
-   * Crear los datos del cliente de la factura
-   * @param dataCustomer - Datos del cliente de la factura
-   * @returns Datos del cliente de la factura
+   * Crear los datos del cliente
+   * @param dataCustomer - Datos del cliente 
+   * @returns Datos del cliente 
    */
-  private async createInvoiceCustomer(dataCustomer: string[]): Promise<CustomerData> {
-
-
-
+  private async createCustomer(dataCustomer: string[]): Promise<CustomerData> {
     const typeDocumentIdentificationId:number = await this.catalogService.getDocumentTypeIdByCode(dataCustomer[6]);
     const typeLiabilityId:number = await this.catalogService.getLiabilityTypeIdByCode(dataCustomer[44]);
     const typeRegimeId:number = await this.catalogService.getRegimeTypeIdByCode(dataCustomer[45]);
@@ -381,8 +468,12 @@ export class ExternalInvoiceService {
       };
 
       if (taxId === 2) {
-        taxTotal.tax_id = 15;
-        taxTotal.tax_name = "Impuesto";
+        taxTotal = {
+          tax_id: 19,
+          tax_amount: parseFloat(dataTax[7]),
+          percent: parseFloat(dataTax[4]),
+          taxable_amount: parseFloat(dataTax[1]),
+        };
       }
 
       if (taxId === 10) {
@@ -395,8 +486,8 @@ export class ExternalInvoiceService {
         per_unit_amount: parseFloat(dataTax[6]),
         unit_measure_id: 70,
        }
-      } 
-      if (taxId === 7) {
+       taxes.push(taxTotal);
+      } else if ([7,5,6].includes(taxId)) {
         this.withHoldingTaxTotal.push(taxTotal);
       }else{
         taxes.push(taxTotal);
@@ -427,12 +518,16 @@ export class ExternalInvoiceService {
         payment_due_date: paymentDatePlusEightDaysString,
         duration_measure: 8,
       });
-    }else{
+    }
+
+    if(parseInt(dataPago[9]) < 0){
+      const paymentDate: Date = new Date();
+      const paymentDatePlusEightDaysString: string = paymentDate.toISOString().split("T")[0];
       payments.push({
         payment_form_id: paymentFormId,
         payment_method_id: paymentMethodId,
-        payment_due_date: dataPago[4],
-        duration_measure: parseInt(dataPago[9]),
+        payment_due_date: paymentDatePlusEightDaysString,
+        duration_measure: 1,
       });
     }
 
@@ -510,6 +605,11 @@ export class ExternalInvoiceService {
     }else{
       throw new HttpException(response.statusText, HttpStatus.INTERNAL_SERVER_ERROR);
     }
+  }
+
+  private validateSendEmail(customerIdentification: string): boolean {
+   
+    return !customerIdentification.match(".*22222.*");
   }
 } 
 

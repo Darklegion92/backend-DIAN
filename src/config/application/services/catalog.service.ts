@@ -12,6 +12,8 @@ import { TypeItemIdentification } from '../../domain/entities/type-item-identifi
 import { TypeDocument } from '../../../document/domain/entities/type-document.entity';
 import { PaymentForm } from '../../domain/entities/payment-form.entity';
 import { PaymentMethod } from '../../domain/entities/payment-method.entity';
+import { TypeOperation } from 'src/config/domain/entities/type-operation.entity';
+import { Discount } from 'src/config/domain/entities/discount.entity';
 
 @Injectable()
 export class CatalogService {
@@ -38,6 +40,10 @@ export class CatalogService {
     private readonly paymentFormRepository: Repository<PaymentForm>,
     @InjectRepository(PaymentMethod)
     private readonly paymentMethodRepository: Repository<PaymentMethod>,
+    @InjectRepository(TypeOperation)
+    private readonly typeOperationRepository: Repository<TypeOperation>,
+    @InjectRepository(Discount)
+    private readonly discountRepository: Repository<Discount>,  
   ) {}
 
   /**
@@ -511,5 +517,45 @@ export class CatalogService {
   async getPaymentMethodIdByCode(code: string): Promise<number> {
     const paymentMethod = await this.getPaymentMethodByCode(code);
     return paymentMethod.id;
+  }
+
+  /**
+   * Obtener tipo de operación por código
+   */
+  async getTypeOperationByCode(code: string) {
+    const typeOperation = await this.typeOperationRepository.findOne({
+      where: { code: code.trim() },
+      select: ['id', 'name', 'code']
+    });
+
+    if (!typeOperation) {
+      throw new Error(`Tipo de operación con código '${code}' no encontrado`);
+    }
+
+    return typeOperation;
+  }
+
+  /**
+   * Obtener ID de tipo de operación por código
+   */
+  async getTypeOperationIdByCode(code: string): Promise<number> {
+    const typeOperation = await this.getTypeOperationByCode(code);
+    return typeOperation.id;
+  }
+
+  /**
+   * Obtener ID de descuento por código
+   */
+  async getDiscountIdByCode(code: string): Promise<number> {
+    const discount = await this.discountRepository.findOne({
+      where: { code: code.trim() },
+      select: ['id', 'name', 'code']
+    });
+
+    if (!discount) {
+      throw new Error(`Descuento con código '${code}' no encontrado`);
+    }
+
+    return discount.id;
   }
 } 
