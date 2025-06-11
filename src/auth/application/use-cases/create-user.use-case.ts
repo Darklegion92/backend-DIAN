@@ -33,7 +33,7 @@ export class CreateUserUseCase {
     user.job_title_person_responsible = createUserDto.job_title_person_responsible;
     user.organization_department_person_responsible = createUserDto.organization_department_person_responsible;
     user.document_person_responsible = createUserDto.document_person_responsible;
-
+    
     return this.userRepository.save(user);
   }
 } 

@@ -55,7 +55,13 @@ export class UpdateUserUseCase {
       user.job_title_person_responsible = updateUserDto.job_title_person_responsible;
     }
 
-    
+    if (updateUserDto.organization_department_person_responsible) {
+      user.organization_department_person_responsible = updateUserDto.organization_department_person_responsible;
+    }
+
+    if (updateUserDto.document_person_responsible) {
+      user.document_person_responsible = updateUserDto.document_person_responsible;
+    }
     return this.userRepository.save(user);
   }
 } 
