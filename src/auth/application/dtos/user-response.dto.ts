@@ -93,4 +93,10 @@ export class InternalUserResponseDto {
   role: UserRole;
   createdAt: Date;
   updatedAt: Date;
+  company_document: string;
+  first_name_person_responsible: string;
+  last_name_person_responsible: string;
+  job_title_person_responsible: string;
+  organization_department_person_responsible: string;
+  document_person_responsible: string;
 } 

@@ -1,8 +1,6 @@
 import { Controller, Put, Get, Post, Body, Param, Query, UseGuards, ParseIntPipe, NotFoundException } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiParam, ApiQuery, ApiBody } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../../../auth/infrastructure/guards/jwt-auth.guard';
-import { RolesGuard } from '../../../common/guards/roles.guard';
-import { DealerAccessGuard } from '../../../common/guards/dealer-access.guard';
 import { Roles } from '../../../common/decorators/roles.decorator';
 import { UserRole, User } from '../../../auth/domain/entities/user.entity';
 import { UpdateEnvironmentUseCase } from '../../application/use-cases/update-environment.use-case';
@@ -11,7 +9,6 @@ import { UpdateEnvironmentResponseDto } from '../../application/dtos/update-envi
 import { CompanyService } from '../../../config/application/services/company.service';
 import { CompanyWithCertificateDto } from '../../../config/application/dto/company-with-certificate.dto';
 import { CreateCompanyExternalDto } from '../../../config/application/dto/create-company-external.dto';
-import { PaginationQueryDto } from '../../../common/dtos/pagination-query.dto';
 import { PaginatedResponseDto } from '../../../common/dtos/paginated-response.dto';
 import { CurrentUser } from '../../../auth/infrastructure/decorators/current-user.decorator';
 import { CompanyFilterQueryDto } from '../../../config/application/dto/company-filter-query.dto';
@@ -128,8 +125,6 @@ export class CompaniesController {
   }
 
   @Put('environment')
-  @UseGuards(DealerAccessGuard)
-  @Roles(UserRole.ADMIN, UserRole.DEALER)
   @ApiOperation({
     summary: 'Actualizar ambiente de empresa',
     description: 'Actualiza la configuración del ambiente de una empresa específica.',

@@ -39,6 +39,23 @@ export class UpdateUserUseCase {
       user.role = updateUserDto.role;
     }
 
+    if (updateUserDto.company_document) {
+      user.company_document = updateUserDto.company_document;
+    }
+
+    if (updateUserDto.first_name_person_responsible) {
+      user.first_name_person_responsible = updateUserDto.first_name_person_responsible;
+    }
+
+    if (updateUserDto.last_name_person_responsible) {
+      user.last_name_person_responsible = updateUserDto.last_name_person_responsible;
+    }
+
+    if (updateUserDto.job_title_person_responsible) {
+      user.job_title_person_responsible = updateUserDto.job_title_person_responsible;
+    }
+
+    
     return this.userRepository.save(user);
   }
 } 

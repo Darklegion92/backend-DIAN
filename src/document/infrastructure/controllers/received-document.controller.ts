@@ -5,7 +5,7 @@ import { PaginatedResult, ReceivedDocument } from '../../domain/repositories/rec
 import { ApiBearerAuth, ApiOperation, ApiQuery, ApiResponse, ApiTags, ApiBody } from '@nestjs/swagger';
 import { JwtAuthGuard } from 'src/auth/infrastructure/guards/jwt-auth.guard';
 import { User } from 'src/auth/domain/entities/user.entity';
-import { GetUser } from 'src/auth/infrastructure/decorators/get-user.decorator';
+import { CurrentUser } from 'src/auth/infrastructure/decorators/current-user.decorator';
 
 @ApiTags('Documentos Recibidos')
 @Controller('received-documents')
@@ -203,7 +203,7 @@ export class ReceivedDocumentController {
     })
     async sendEvent(
         @Body('cufes') {cufes, token}: {cufes: string[], token: string},
-        @GetUser() user: User,
+        @CurrentUser() user: User,
     ) {
         return this.receivedDocumentService.sendEvent(cufes, user, token);
     }
@@ -235,7 +235,7 @@ export class ReceivedDocumentController {
     })
     async rejectDocument(
         @Body('cufe') {cufe, token}: {cufe: string, token: string},
-        @GetUser() user: User,
+        @CurrentUser() user: User,
     ) {
         return this.receivedDocumentService.rejectDocument(cufe, user, token);
     }

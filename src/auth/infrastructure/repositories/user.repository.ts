@@ -30,7 +30,7 @@ export class UserRepository implements IUserRepository {
     const offset = (page - 1) * limit;
     
     const [users, total] = await this.userRepository.findAndCount({
-      select: ['id', 'username', 'email', 'role', 'name', 'createdAt', 'updatedAt'],
+      select: ['id', 'username', 'email', 'role', 'name', 'createdAt', 'updatedAt', 'company_document', 'first_name_person_responsible', 'last_name_person_responsible', 'job_title_person_responsible', 'organization_department_person_responsible', 'document_person_responsible'],
       order: { [sortBy]: sortOrder },
       skip: offset,
       take: limit,
@@ -42,14 +42,14 @@ export class UserRepository implements IUserRepository {
   async findById(id: string): Promise<User | null> {
     return this.userRepository.findOne({
       where: { id },
-      select: ['id', 'username', 'email', 'role', 'name', 'createdAt', 'updatedAt'],
+      select: ['id', 'username', 'email', 'role', 'name', 'createdAt', 'updatedAt', 'company_document', 'first_name_person_responsible', 'last_name_person_responsible', 'job_title_person_responsible', 'organization_department_person_responsible', 'document_person_responsible'],
     });
   }
 
   async findByIdWithPassword(id: string): Promise<User | null> {
     return this.userRepository.findOne({
       where: { id },
-      select: ['id', 'username', 'email', 'role', 'name', 'password', 'createdAt', 'updatedAt'],
+      select: ['id', 'username', 'email', 'role', 'name', 'password', 'createdAt', 'updatedAt', 'company_document', 'first_name_person_responsible', 'last_name_person_responsible', 'job_title_person_responsible', 'organization_department_person_responsible', 'document_person_responsible'],
     });
   }
 

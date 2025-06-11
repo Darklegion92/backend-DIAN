@@ -1,6 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsEmail, IsNotEmpty, IsString, MinLength, IsEnum } from 'class-validator';
 import { UserRole } from '../../domain/entities/user.entity';
+import { Optional } from '@nestjs/common';
 
 export class CreateUserDto {
   @ApiProperty({ 
@@ -44,4 +45,55 @@ export class CreateUserDto {
   @IsEnum(UserRole)
   @IsNotEmpty()
   role: UserRole;
+
+
+  @ApiProperty({
+    description: 'Documento de empresa asignada al usuario',
+    example: '123456789'
+  })
+  @IsString()
+  @Optional()
+  company_document: string;
+
+  @ApiProperty({
+    description: 'Nombre de la persona encargada de los Radianes',
+    example: 'Juan'
+  })
+  @IsString()
+  @Optional()
+  first_name_person_responsible: string;
+
+  @ApiProperty({
+    description: 'Apellido de la persona encargada de los Radianes',
+    example: 'Perez'
+  })
+  @IsString()
+  @Optional()
+  last_name_person_responsible: string;
+
+  @ApiProperty({
+    description: 'Cargo de la persona encargada de los Radianes',
+    example: 'Gerente'
+  })
+  @IsString()
+  @Optional()
+  job_title_person_responsible: string;
+  
+  @ApiProperty({
+    description: 'Departamento al que pertenece la persona encargada de los radianes',
+    example: 'Gerente'
+  })
+  @IsString()
+  @Optional()
+  organization_department_person_responsible: string;
+
+  @ApiProperty({
+    description: 'Documento de la persona encargada de los Radianes',
+    example: 'Gerente'
+  })
+  @IsString()
+  @Optional()
+  document_person_responsible: string;
+
+
 } 

@@ -49,4 +49,58 @@ export class UpdateUserDto {
   @IsEnum(UserRole)
   @IsOptional()
   role?: UserRole;
+
+  @ApiProperty({
+    description: 'Documento de empresa asignada al usuario',
+    example: '123456789',
+    required: false
+  })
+  @IsString()
+  @IsOptional()
+  company_document?: string;
+
+  @ApiProperty({
+    description: 'Nombre de la persona encargada de los Radianes',
+    example: 'Juan',
+    required: false
+  })
+  @IsString()
+  @IsOptional()
+  first_name_person_responsible?: string; 
+
+  @ApiProperty({
+    description: 'Apellido de la persona encargada de los Radianes',
+    example: 'Perez',
+    required: false
+  })
+  @IsString()
+  @IsOptional()
+  last_name_person_responsible?: string;
+
+  @ApiProperty({  
+    description: 'Cargo de la persona encargada de los Radianes',
+    example: 'Gerente',
+    required: false
+  })
+  @IsString()
+  @IsOptional()
+  job_title_person_responsible?: string;
+
+  @ApiProperty({
+    description: 'Departamento al que pertenece la persona encargada de los radianes',
+    example: 'Gerente',
+    required: false
+  })
+  @IsString()
+  @IsOptional()
+  organization_department_person_responsible?: string;
+
+  @ApiProperty({
+    description: 'Documento de la persona encargada de los Radianes',
+    example: '123456789',
+    required: false
+  })
+  @IsString()
+  @IsOptional()
+  document_person_responsible?: string;
 } 
