@@ -96,6 +96,17 @@ export class User {
   updatedAt: Date;
 
   @ApiProperty({
+    description: 'Documento de empresa asignada al usuario',
+    example: 1,
+
+  })
+  @Column({
+    type: 'varchar',
+    nullable: true,
+  })
+  company_document: string;
+
+  @ApiProperty({
     description: 'Documento persona encargada de los Radianes',
     example: 1,
 

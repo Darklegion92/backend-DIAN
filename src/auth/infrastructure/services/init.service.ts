@@ -43,6 +43,7 @@ export class InitService implements OnModuleInit {
           \`first_name_person_responsible\` varchar(255) NULL,
           \`last_name_person_responsible\` varchar(255) NULL,
           \`job_title_person_responsible\` varchar(255) NULL,
+          \`company_document\` varchar(255) NULL,
           \`organization_department_person_responsible\` varchar(255) NULL,
           \`created_at\` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
           \`updated_at\` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
@@ -72,12 +73,7 @@ export class InitService implements OnModuleInit {
           username: 'admin',
           password: hashedPassword,
           name: 'Administrador',
-          role: UserRole.ADMIN,
-          document_person_responsible: '123456789',
-          first_name_person_responsible: 'Admin',
-          last_name_person_responsible: 'System',
-          job_title_person_responsible: 'Administrador del Sistema',
-          organization_department_person_responsible: 'TI'
+          role: UserRole.ADMIN
         };
 
         await this.userRepository.create(adminUserData);

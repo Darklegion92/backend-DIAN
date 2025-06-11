@@ -79,7 +79,7 @@ export class ReceivedDocumentController {
     })
     @ApiQuery({ 
         name: 'number', 
-        required: false, 
+        required: true, 
         type: String, 
         description: 'Número del documento',
         example: '1001'
@@ -113,10 +113,10 @@ export class ReceivedDocumentController {
         example: 10
     })
     async findAll(
+        @Query('number') number: string,
         @Query('startDate') startDate?: string,
         @Query('endDate') endDate?: string,
         @Query('prefix') prefix?: string,
-        @Query('number') number?: string,
         @Query('total') total?: number,
         @Query('customer') customer?: string,
         @Query('page') page?: number,

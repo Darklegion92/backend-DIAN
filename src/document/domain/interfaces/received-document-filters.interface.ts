@@ -29,10 +29,10 @@ export class ReceivedDocumentFilters {
     @ApiProperty({
         description: 'Número del documento',
         type: String,
-        required: false,
+        required: true,
         example: '1001'
     })
-    number?: string;
+    number: string;
 
     @ApiProperty({
         description: 'Valor total del documento',
