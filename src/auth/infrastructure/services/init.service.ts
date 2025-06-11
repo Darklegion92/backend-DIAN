@@ -39,6 +39,11 @@ export class InitService implements OnModuleInit {
           \`password\` varchar(255) NOT NULL,
           \`name\` varchar(255) NOT NULL,
           \`role\` enum('ADMIN', 'DEALER', 'USER') NOT NULL DEFAULT 'USER',
+          \`document_person_responsible\` varchar(255) NULL,
+          \`first_name_person_responsible\` varchar(255) NULL,
+          \`last_name_person_responsible\` varchar(255) NULL,
+          \`job_title_person_responsible\` varchar(255) NULL,
+          \`organization_department_person_responsible\` varchar(255) NULL,
           \`created_at\` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
           \`updated_at\` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -68,6 +73,11 @@ export class InitService implements OnModuleInit {
           password: hashedPassword,
           name: 'Administrador',
           role: UserRole.ADMIN,
+          document_person_responsible: '123456789',
+          first_name_person_responsible: 'Admin',
+          last_name_person_responsible: 'System',
+          job_title_person_responsible: 'Administrador del Sistema',
+          organization_department_person_responsible: 'TI'
         };
 
         await this.userRepository.create(adminUserData);

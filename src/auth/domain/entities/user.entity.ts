@@ -94,4 +94,56 @@ export class User {
   })
   @UpdateDateColumn({ name: 'updated_at' })
   updatedAt: Date;
+
+  @ApiProperty({
+    description: 'Documento persona encargada de los Radianes',
+    example: 1,
+
+  })
+  @Column({
+    type: 'varchar',
+    nullable: true,
+  })
+  document_person_responsible: string;
+
+  @ApiProperty({
+    description: 'Nombre persona encargada de los Radianes',
+    example: 'John Doe',
+  })
+  @Column({
+    type: 'varchar',
+    nullable: true,
+  })
+  first_name_person_responsible: string;
+
+  @ApiProperty({
+    description: 'Apellido persona encargada de los Radianes',
+    example: 'Doe',
+  })
+  @Column({
+    type: 'varchar',
+    nullable: true,
+  })
+  last_name_person_responsible: string;
+
+
+  @ApiProperty({
+    description: 'Cargo persona encargada de los Radianes',
+    example: 'CEO',
+  })
+  @Column({
+    type: 'varchar',
+    nullable: true,
+  })
+  job_title_person_responsible: string;
+
+  @ApiProperty({
+    description: 'Organización persona encargada de los Radianes',
+    example: 'Soltec',
+  })
+  @Column({
+    type: 'varchar',
+    nullable: true,
+  })
+  organization_department_person_responsible: string;
 }
