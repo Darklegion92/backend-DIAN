@@ -11,10 +11,12 @@ export class ReceivedDocumentRepository implements IReceivedDocumentRepository {
         @InjectRepository(ReceivedDocumentEntity)
         private readonly receivedDocumentRepository: Repository<ReceivedDocumentEntity>,
     ) {}
-    async update(data: Partial<ReceivedDocument>, where: any): Promise<[number, ReceivedDocument[]]> {
-        const result = await this.receivedDocumentRepository.update(where, data);
-        const updated = await this.receivedDocumentRepository.find({ where });
-        return [result.affected || 0, updated];
+    async update(data: Partial<ReceivedDocument>, where: any): Promise<[number]> {
+
+        console.log(data, where.where.cufe);
+        const result = await this.receivedDocumentRepository.update(where.where,data);
+        
+        return [result.affected || 0];
     }
 
     async findAll(filters: ReceivedDocumentFilters): Promise<PaginatedResult<ReceivedDocument>> {

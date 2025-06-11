@@ -307,5 +307,5 @@ export class ReceivedDocument {
 
 export interface IReceivedDocumentRepository {
     findAll(filters: ReceivedDocumentFilters): Promise<PaginatedResult<ReceivedDocument>>;
-    update(data: Partial<ReceivedDocument>, where: any): Promise<[number, ReceivedDocument[]]>;
+    update(data: Partial<ReceivedDocument>, where: any): Promise<[number]>;
 } 
