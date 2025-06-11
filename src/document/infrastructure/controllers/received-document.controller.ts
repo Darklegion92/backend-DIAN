@@ -10,11 +10,11 @@ import { CurrentUser } from 'src/auth/infrastructure/decorators/current-user.dec
 @ApiTags('Documentos Recibidos')
 @Controller('received-documents')
 @UseGuards(JwtAuthGuard)
-@ApiBearerAuth()          
+@ApiBearerAuth()
 export class ReceivedDocumentController {
     constructor(
         private readonly receivedDocumentService: ReceivedDocumentService,
-    ) {}
+    ) { }
 
     @Get()
     @ApiOperation({
@@ -56,59 +56,59 @@ export class ReceivedDocumentController {
         status: 500,
         description: 'Error interno del servidor'
     })
-    @ApiQuery({ 
-        name: 'startDate', 
-        required: false, 
-        type: String, 
+    @ApiQuery({
+        name: 'startDate',
+        required: false,
+        type: String,
         description: 'Fecha de inicio (YYYY-MM-DD)',
         example: '2024-01-01'
     })
-    @ApiQuery({ 
-        name: 'endDate', 
-        required: false, 
-        type: String, 
+    @ApiQuery({
+        name: 'endDate',
+        required: false,
+        type: String,
         description: 'Fecha fin (YYYY-MM-DD)',
         example: '2024-12-31'
     })
-    @ApiQuery({ 
-        name: 'prefix', 
-        required: false, 
-        type: String, 
+    @ApiQuery({
+        name: 'prefix',
+        required: false,
+        type: String,
         description: 'Prefijo del documento',
         example: 'FEVA'
     })
-    @ApiQuery({ 
-        name: 'number', 
-        required: true, 
-        type: String, 
+    @ApiQuery({
+        name: 'number',
+        required: true,
+        type: String,
         description: 'Número del documento',
         example: '1001'
     })
-    @ApiQuery({ 
-        name: 'total', 
-        required: false, 
-        type: Number, 
+    @ApiQuery({
+        name: 'total',
+        required: false,
+        type: Number,
         description: 'Total del documento',
         example: 1000000
     })
-    @ApiQuery({ 
-        name: 'customer', 
-        required: false, 
-        type: String, 
+    @ApiQuery({
+        name: 'customer',
+        required: false,
+        type: String,
         description: 'Nombre o identificación del cliente',
         example: '900123456-1'
     })
-    @ApiQuery({ 
-        name: 'page', 
-        required: false, 
-        type: Number, 
+    @ApiQuery({
+        name: 'page',
+        required: false,
+        type: Number,
         description: 'Número de página (comienza en 1)',
         example: 1
     })
-    @ApiQuery({ 
-        name: 'limit', 
-        required: false, 
-        type: Number, 
+    @ApiQuery({
+        name: 'limit',
+        required: false,
+        type: Number,
         description: 'Límite de registros por página',
         example: 10
     })
@@ -159,18 +159,15 @@ export class ReceivedDocumentController {
                     description: 'Fecha fin (YYYY-MM-DD)',
                     example: '2024-12-31'
                 },
-                token: {
-                    type: 'string',
-                    description: 'Token de autenticación'
-                }
             },
-            required: ['start_date', 'end_date', 'token']
+            required: ['start_date', 'end_date']        
         }
     })
     async fetchInvoicesEmail(
-        @Query('body') {start_date, end_date, token}: {start_date: string, end_date: string, token: string},
+        @Body() { start_date, end_date }: { start_date: string, end_date: string },
+        @CurrentUser() user: User,
     ) {
-        return this.receivedDocumentService.fetchInvoicesEmail(start_date, end_date, token);
+        return this.receivedDocumentService.fetchInvoicesEmail(start_date, end_date, user.company_document);
     }
 
     @Post('send-event')
@@ -191,21 +188,18 @@ export class ReceivedDocumentController {
                     items: {
                         type: 'string'
                     },
-                    description: 'Lista de CUFEs de los documentos'
+                    description: 'Lista de CUFEs de los documentos',
+                    example: ['1234567890', '1234567891']
                 },
-                token: {
-                    type: 'string',
-                    description: 'Token de autenticación'
-                }
             },
-            required: ['cufes', 'token']
+            required: ['cufes']
         }
     })
     async sendEvent(
-        @Body('cufes') {cufes, token}: {cufes: string[], token: string},
+        @Body() cufes: string[],
         @CurrentUser() user: User,
     ) {
-        return this.receivedDocumentService.sendEvent(cufes, user, token);
+        return this.receivedDocumentService.sendEvent(cufes, user, user.company_document);
     }
 
     @Post('reject-document')
@@ -223,20 +217,17 @@ export class ReceivedDocumentController {
             properties: {
                 cufe: {
                     type: 'string',
-                    description: 'CUFE del documento a rechazar'
+                    description: 'CUFE del documento a rechazar',
+                    example: '1234567890'
                 },
-                token: {
-                    type: 'string',
-                    description: 'Token de autenticación'
-                }
             },
-            required: ['cufe', 'token']
+            required: ['cufe']
         }
     })
     async rejectDocument(
-        @Body('cufe') {cufe, token}: {cufe: string, token: string},
+        @Body() cufe: string,
         @CurrentUser() user: User,
     ) {
-        return this.receivedDocumentService.rejectDocument(cufe, user, token);
+        return this.receivedDocumentService.rejectDocument(cufe, user, user.company_document);
     }
 } 

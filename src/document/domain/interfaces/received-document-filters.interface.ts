@@ -137,10 +137,10 @@ export class ReceivedDocumentFilters {
 
 export interface ImapReceiptAcknowledgmentRequest {
     start_date: string;         // Fecha de inicio en formato YYYY-MM-DD
-    end_date: string;          // Fecha fin en formato YYYY-MM-DD
-    last_event: number;        // Último evento (0 por defecto)
-    base64_attacheddocument: boolean;  // Si se requiere el documento adjunto en base64
-    only_read: boolean;        // Si solo se deben leer los correos
+    end_date?: string;          // Fecha fin en formato YYYY-MM-DD
+    last_event?: number;        // Último evento (0 por defecto)
+    base64_attacheddocument?: boolean;  // Si se requiere el documento adjunto en base64
+    only_read?: boolean;        // Si solo se deben leer los correos
 }
 
 export interface ImapReceiptAcknowledgmentResponse {

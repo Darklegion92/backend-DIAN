@@ -5,6 +5,7 @@ import { HttpService } from '@nestjs/axios';
 import { Injectable, Logger, Inject } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { User } from 'src/auth/domain/entities/user.entity';
+import { CompanyService } from 'src/config/application/services/company.service';
 
 @Injectable()
 export class ReceivedDocumentService {
@@ -16,6 +17,7 @@ export class ReceivedDocumentService {
         private readonly receivedDocumentRepository: IReceivedDocumentRepository,
         private readonly httpService: HttpService,
         private readonly configService: ConfigService,
+        private readonly companyService: CompanyService,
     ) {
         this.externalApiUrl = this.configService.get<string>('EXTERNAL_SERVER_URL');
         if (!this.externalApiUrl) {
@@ -33,17 +35,16 @@ export class ReceivedDocumentService {
      * Fetch invoices email from the external API
      * @param start_date - Start date
      * @param end_date - End date
-     * @param token - Token
+     * @param document_company - Document company
      * @returns ImapReceiptAcknowledgmentResponse
      */
-    async fetchInvoicesEmail(start_date: string, end_date: string, token: string): Promise<ImapReceiptAcknowledgmentResponse> {
+    async fetchInvoicesEmail(start_date: string, end_date: string, document_company: string): Promise<ImapReceiptAcknowledgmentResponse> {
+
+        const company = await this.companyService.getCompanyByNit(document_company);
 
         const request: ImapReceiptAcknowledgmentRequest = {
             start_date: start_date,
-            end_date: end_date,
-            last_event: 0,
-            base64_attacheddocument: false,
-            only_read: true
+            end_date: end_date
         }
 
         const response = await firstValueFrom(
@@ -53,12 +54,13 @@ export class ReceivedDocumentService {
                 {
                     headers: {
                         'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`,
+                        'Authorization': `Bearer ${company.tokenDian}`,
                     },
                     timeout: 60000,
                 },
             ),
         );
+
 
         return response.data;
 
@@ -91,11 +93,11 @@ export class ReceivedDocumentService {
      * Send event to the external API
      * @param cufes - CUFEs
      * @param user - User
-     * @param token - Token
+     * @param document_company - Document company
      * @returns ResponseSendEvent
      */
-    async sendEvent(cufes: string[], user: User, token: string): Promise<ResponseSendEvent> {
-       
+    async sendEvent(cufes: string[], user: User, document_company: string): Promise<ResponseSendEvent> {
+        const company = await this.companyService.getCompanyByNit(document_company);
         for (const cufe of cufes) {
             const dataSend: DataSendInvoiceEvent = {
                 event_id: "1",
@@ -111,7 +113,7 @@ export class ReceivedDocumentService {
                 }
             }
 
-            const response = await this.sendDianEvent(dataSend, token);
+            const response = await this.sendDianEvent(dataSend, company.tokenDian);
             if(response?.ResponseDian?.Envelope?.Body?.SendEventUpdateStatusResponse?.SendEventUpdateStatusResult?.ErrorMessage?.string?.includes("LGC62")){
                 await this.receivedDocumentRepository.update({ state_document_id: 0 }, { where: { cufe } });
             }else if (response.message === 'Ya se registro este evento para este documento.' || response.success || response?.ResponseDian?.Envelope?.Body?.SendEventUpdateStatusResponse?.SendEventUpdateStatusResult?.IsValid === "true" 
@@ -131,7 +133,7 @@ export class ReceivedDocumentService {
                             }
                         }
 
-                        const response = await this.sendDianEvent(dataSend, token);
+                        const response = await this.sendDianEvent(dataSend, company.tokenDian);
                         if (response?.ResponseDian?.Envelope?.Body?.SendEventUpdateStatusResponse?.SendEventUpdateStatusResult?.IsValid === "true"  
                             || response.success || response?.ResponseDian?.Envelope?.Body?.SendEventUpdateStatusResponse?.SendEventUpdateStatusResult?.ErrorMessage?.string?.includes("LGC01")) {
 
@@ -149,7 +151,7 @@ export class ReceivedDocumentService {
                                     }
                                 }
 
-                                await this.sendDianEvent(dataSend, token);
+                                await this.sendDianEvent(dataSend, company.tokenDian);
                             }
                 }
         }
@@ -165,10 +167,11 @@ export class ReceivedDocumentService {
      * Reject document
      * @param cufe - CUFE
      * @param user - User
-     * @param token - Token
+     * @param document_company - Document company
      * @returns ResponseSendEvent
      */
-    async rejectDocument(cufe: string, user: User, token: string): Promise<ResponseSendEvent> {
+    async rejectDocument(cufe: string, user: User, document_company: string): Promise<ResponseSendEvent> {
+        const company = await this.companyService.getCompanyByNit(document_company);
         const dataSend: DataSendInvoiceEvent = {
             event_id: "2",
             document_reference: {
@@ -183,7 +186,7 @@ export class ReceivedDocumentService {
             }
         }
 
-        await this.sendDianEvent(dataSend, token);
+        await this.sendDianEvent(dataSend, company.tokenDian);
 
         return {
             success: true,

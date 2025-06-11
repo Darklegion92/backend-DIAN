@@ -37,7 +37,13 @@ export class LoginUseCase {
       user: {
         id: user.id,
         email: user.email,
-        role: user.role
+        role: user.role,
+        company_document: user.company_document,
+        first_name_person_responsible: user.first_name_person_responsible,
+        last_name_person_responsible: user.last_name_person_responsible,
+        job_title_person_responsible: user.job_title_person_responsible,
+        organization_department_person_responsible: user.organization_department_person_responsible,
+        document_person_responsible: user.document_person_responsible
       }
     };
   }

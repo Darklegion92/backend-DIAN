@@ -13,6 +13,7 @@ import { ReceivedDocumentController } from './infrastructure/controllers/receive
 import { ReceivedDocumentRepository } from './infrastructure/repositories/received-document.repository';
 import { ReceivedDocumentService } from './domain/services/received-document.service';
 import { ReceivedDocumentEntity } from './infrastructure/entities/received-document.entity';
+import { ConfigModule as ConfigModuleConfig } from '../config/config.module';
 
 // TODO: Importar la entidad Document cuando esté disponible
 // import { Document } from './domain/entities/document.entity';
@@ -25,6 +26,7 @@ import { ReceivedDocumentEntity } from './infrastructure/entities/received-docum
     JwtModule, // Necesario para que funcionen los guards que dependen de JwtService
     InvoiceModule,
     SharedModule,
+    ConfigModuleConfig,
   ],
   controllers: [DocumentController, ReceivedDocumentController],
   providers: [
