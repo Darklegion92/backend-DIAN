@@ -51,7 +51,6 @@ export class CreateUserDto {
     description: 'Documento de empresa asignada al usuario',
     example: '123456789'
   })
-  @IsString()
   @Optional()
   company_document: string;
 
@@ -59,41 +58,36 @@ export class CreateUserDto {
     description: 'Nombre de la persona encargada de los Radianes',
     example: 'Juan'
   })
-  @IsString()
   @Optional()
-  first_name_person_responsible: string;
+  first_name_person_responsible?: string;
 
   @ApiProperty({
     description: 'Apellido de la persona encargada de los Radianes',
     example: 'Perez'
   })
-  @IsString()
   @Optional()
-  last_name_person_responsible: string;
+  last_name_person_responsible?: string;
 
   @ApiProperty({
     description: 'Cargo de la persona encargada de los Radianes',
     example: 'Gerente'
   })
-  @IsString()
   @Optional()
-  job_title_person_responsible: string;
+  job_title_person_responsible?: string;
   
   @ApiProperty({
     description: 'Departamento al que pertenece la persona encargada de los radianes',
     example: 'Gerente'
   })
-  @IsString()
   @Optional()
-  organization_department_person_responsible: string;
+  organization_department_person_responsible?: string;
 
   @ApiProperty({
     description: 'Documento de la persona encargada de los Radianes',
     example: 'Gerente'
   })
-  @IsString()
   @Optional()
-  document_person_responsible: string;
+  document_person_responsible?: string;
 
 
 } 

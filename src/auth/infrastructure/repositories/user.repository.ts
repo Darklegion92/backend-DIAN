@@ -19,7 +19,7 @@ export class UserRepository implements IUserRepository {
 
   async findAll(): Promise<User[]> {
     return this.userRepository.find({
-      select: ['id', 'username', 'email', 'role', 'name', 'createdAt', 'updatedAt'],
+      select: ['id', 'username', 'email', 'role', 'name', 'createdAt', 'updatedAt', 'company_document', 'first_name_person_responsible', 'last_name_person_responsible', 'job_title_person_responsible', 'organization_department_person_responsible', 'document_person_responsible'],
       order: { createdAt: 'DESC' },
     });
   }
