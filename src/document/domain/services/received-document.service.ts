@@ -45,7 +45,8 @@ export class ReceivedDocumentService {
         const request: ImapReceiptAcknowledgmentRequest = {
             start_date: start_date,
             end_date: end_date,
-            only_read: true
+            only_read: true,
+            base64_attacheddocument: false,
         }
 
         const response = await firstValueFrom(
