@@ -56,7 +56,7 @@ export class ReceivedDocumentService {
                         'Content-Type': 'application/json',
                         'Authorization': `Bearer ${company.tokenDian}`,
                     },
-                    timeout: 60000,
+                    timeout: 200000,
                 },
             ),
         );
