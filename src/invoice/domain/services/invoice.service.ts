@@ -172,7 +172,7 @@ export class InvoiceService {
           type_document_id: 1,
           date,
           time,
-          resolutionNumber,
+          resolution_number: resolutionNumber,
           prefix,
           customer: undefined,
           legal_monetary_totals: undefined,

@@ -100,7 +100,7 @@ export interface CreateInvoiceRequest {
 
   // Documento
   type_document_id: number;
-  resolutionNumber?: string;
+  resolution_number?: string;
   prefix?: string;
   number: number;
   date?: string;

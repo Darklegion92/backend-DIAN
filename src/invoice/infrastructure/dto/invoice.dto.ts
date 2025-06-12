@@ -706,7 +706,7 @@ export class CreateInvoiceDto {
   @ApiProperty({ description: 'Número de resolución', required: false })
   @IsOptional()
   @IsString()
-  resolutionNumber?: string;
+  resolution_number?: string;
 
   @ApiProperty({ description: 'Prefijo de la factura', required: false })
   @IsOptional()
