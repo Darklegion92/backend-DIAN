@@ -1,4 +1,4 @@
-import { Controller, Post, Body, UseGuards } from '@nestjs/common';
+import { Controller, Post, Body, UseGuards, Req, Logger } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../guards/jwt-auth.guard';
 import { LoginUseCase } from '../../application/use-cases/login.use-case';
@@ -7,10 +7,13 @@ import { LoginDto } from '../../application/dtos/login.dto';
 import { LoginResponseDto } from '../../application/dtos/login-response.dto';
 import { LogoutResponseDto } from '../../application/dtos/logout-response.dto';
 import { InternalLoginDataDto } from '../../application/dtos/login-data.dto';
+import { Request } from 'express';
 
 @ApiTags('🔐 Autenticación')
 @Controller('auth')
 export class AuthController {
+  private readonly logger = new Logger(AuthController.name);
+
   constructor(
     private readonly loginUseCase: LoginUseCase,
     private readonly logoutUseCase: LogoutUseCase,
@@ -81,8 +84,26 @@ export class AuthController {
       }
     }
   })
-  async login(@Body() loginDto: LoginDto): Promise<InternalLoginDataDto> {
-    return this.loginUseCase.execute(loginDto);
+  @ApiResponse({ 
+    status: 429, 
+    description: 'Demasiados intentos fallidos',
+    schema: {
+      type: 'object',
+      properties: {
+        success: { type: 'boolean', example: false },
+        statusCode: { type: 'number', example: 429 },
+        timestamp: { type: 'string', example: '2024-01-15T10:30:00.000Z' },
+        path: { type: 'string', example: '/auth/login' },
+        method: { type: 'string', example: 'POST' },
+        message: { type: 'string', example: 'Demasiados intentos fallidos. Por favor, intente nuevamente en X minutos.' }
+      }
+    }
+  })
+  async login(@Body() loginDto: LoginDto, @Req() request: Request): Promise<InternalLoginDataDto> {
+    const ip = request.ip || request.socket.remoteAddress;
+    this.logger.debug(`Intento de login desde IP: ${ip}`);
+    this.logger.debug('Headers:', request.headers);
+    return this.loginUseCase.execute(loginDto, ip);
   }
 
   @Post('logout')
