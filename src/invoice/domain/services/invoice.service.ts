@@ -37,6 +37,7 @@ export class InvoiceService {
       this.logger.log('Enviando solicitud de factura al servicio externo');
       this.logger.debug('URL del servicio externo:', `${this.externalApiUrl}/invoice`);
       this.logger.debug('Datos de la factura:', JSON.stringify(invoiceData, null, 2));
+      this.logger.debug('Token:', token);
 
       const response = await firstValueFrom(
         this.httpService.post<CreateInvoiceResponse>(
@@ -52,9 +53,6 @@ export class InvoiceService {
         ),
       );
 
-      this.logger.log('Respuesta exitosa del servicio externo');
-      this.logger.debug('Respuesta completa:', JSON.stringify(response.data, null, 2));
-      
       return response.data;
     } catch (error) {
       this.logger.error('Error al consumir el servicio externo de facturas', {error});
