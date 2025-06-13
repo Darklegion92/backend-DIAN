@@ -121,6 +121,7 @@ export class ReceivedDocumentController {
         @Query('customer') customer?: string,
         @Query('aceptacion') aceptacion?: number,
         @Query('page') page?: number,
+        @Query('identification_number') identification_number?: number,
         @Query('limit') limit?: number,
     ): Promise<PaginatedResult<ReceivedDocument>> {
         const filters: ReceivedDocumentFilters = {
@@ -130,6 +131,7 @@ export class ReceivedDocumentController {
             number,
             total,
             customer,
+            identification_number,
             page: page ? page : 1,
             limit: limit ? limit : 10,
         };
