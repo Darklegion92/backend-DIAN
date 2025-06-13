@@ -146,6 +146,7 @@ export class ReceivedDocumentService {
                         }
 
                         const response = await this.sendDianEvent(dataSend, company.tokenDian);
+                        console.log("Response 2",response);
                         if (response?.ResponseDian?.Envelope?.Body?.SendEventUpdateStatusResponse?.SendEventUpdateStatusResult?.IsValid === "true"  
                             || response.success || response?.ResponseDian?.Envelope?.Body?.SendEventUpdateStatusResponse?.SendEventUpdateStatusResult?.ErrorMessage?.string?.includes("LGC01")) {
 
