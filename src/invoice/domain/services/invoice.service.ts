@@ -53,6 +53,9 @@ export class InvoiceService {
         ),
       );
 
+      this.logger.log('Respuesta exitosa del servicio externo');
+      this.logger.debug('Respuesta completa:', JSON.stringify(response.data, null, 2));
+
       return response.data;
     } catch (error) {
       this.logger.error('Error al consumir el servicio externo de facturas', {error});
