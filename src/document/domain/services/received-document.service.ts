@@ -39,8 +39,15 @@ export class ReceivedDocumentService {
      * @returns ImapReceiptAcknowledgmentResponse
      */
     async fetchInvoicesEmail(start_date: string, end_date: string, document_company: string): Promise<ImapReceiptAcknowledgmentResponse> {
-
         const company = await this.companyService.getCompanyByNit(document_company);
+
+        // Verificar si end_date es el día actual
+        const today = new Date().toISOString().split('T')[0];
+        if (end_date === today) {
+            const tomorrow = new Date();
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            end_date = tomorrow.toISOString().split('T')[0];
+        }
 
         const request: ImapReceiptAcknowledgmentRequest = {
             start_date: start_date,
@@ -58,7 +65,7 @@ export class ReceivedDocumentService {
                         'Content-Type': 'application/json',
                         'Authorization': `Bearer ${company.tokenDian}`,
                     },
-                    timeout: 200000,
+                    timeout: 20000000,
                 },
             ),
         );
