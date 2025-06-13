@@ -109,7 +109,7 @@ export class ReceivedDocumentService {
         const company = await this.companyService.getCompanyByNit(document_company);
         for (const cufe of cufes) {
             const dataSend: DataSendInvoiceEvent = {
-                event_id: "1",
+                event_id: "3",
                 document_reference: {
                     cufe
                 },
