@@ -119,6 +119,7 @@ export class ReceivedDocumentController {
         @Query('prefix') prefix?: string,
         @Query('total') total?: number,
         @Query('customer') customer?: string,
+        @Query('aceptacion') aceptacion?: number,
         @Query('page') page?: number,
         @Query('limit') limit?: number,
     ): Promise<PaginatedResult<ReceivedDocument>> {
@@ -132,6 +133,12 @@ export class ReceivedDocumentController {
             page: page ? page : 1,
             limit: limit ? limit : 10,
         };
+
+        if (aceptacion === 0) {
+            filters.aceptacion = false;
+        } else if (aceptacion === 1) {
+            filters.aceptacion = true;
+        }
 
         return this.receivedDocumentService.findAll(filters);
     }
