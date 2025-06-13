@@ -123,11 +123,11 @@ export class ReceivedDocumentService {
             }
 
             const response = await this.sendDianEvent(dataSend, company.tokenDian);
-            if(response?.ResponseDian?.Envelope?.Body?.SendEventUpdateStatusResponse?.SendEventUpdateStatusResult?.ErrorMessage?.string?.includes("LGC62")){
-                await this.receivedDocumentRepository.update({ state_document_id: 0 }, { where: { cufe } });
-            }else if (response.message === 'Ya se registro este evento para este documento.' || response.success || response?.ResponseDian?.Envelope?.Body?.SendEventUpdateStatusResponse?.SendEventUpdateStatusResult?.IsValid === "true" 
-                || response?.ResponseDian?.Envelope?.Body?.SendEventUpdateStatusResponse?.SendEventUpdateStatusResult?.ErrorMessage?.string?.includes("LGC01")) {
+
+            console.log("Response 1",response);
             
+            if (response.message === 'Ya se registro este evento para este documento.' || response.success || response?.ResponseDian?.Envelope?.Body?.SendEventUpdateStatusResponse?.SendEventUpdateStatusResult?.IsValid === "true" 
+                || response?.ResponseDian?.Envelope?.Body?.SendEventUpdateStatusResponse?.SendEventUpdateStatusResult?.ErrorMessage?.string?.includes("LGC01")) {
                         const dataSend: DataSendInvoiceEvent = {
                             event_id: "3",
                             document_reference: {
@@ -143,7 +143,8 @@ export class ReceivedDocumentService {
                         }
 
                         const response = await this.sendDianEvent(dataSend, company.tokenDian);
-                        if (response?.ResponseDian?.Envelope?.Body?.SendEventUpdateStatusResponse?.SendEventUpdateStatusResult?.IsValid === "true"  
+                    console.log("Response 2",response);
+                    if (response?.ResponseDian?.Envelope?.Body?.SendEventUpdateStatusResponse?.SendEventUpdateStatusResult?.IsValid === "true"  
                             || response.success || response?.ResponseDian?.Envelope?.Body?.SendEventUpdateStatusResponse?.SendEventUpdateStatusResult?.ErrorMessage?.string?.includes("LGC01")) {
 
                                 const dataSend: DataSendInvoiceEvent = {
@@ -161,7 +162,8 @@ export class ReceivedDocumentService {
                                 }
 
                                 await this.sendDianEvent(dataSend, company.tokenDian);
-                            }
+                    
+                }
                 }
         }
 
