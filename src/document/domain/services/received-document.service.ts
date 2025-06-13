@@ -164,7 +164,8 @@ export class ReceivedDocumentService {
                                     }
                                 }
 
-                                await this.sendDianEvent(dataSend, company.tokenDian);
+                               const response3 = await this.sendDianEvent(dataSend, company.tokenDian);
+                               console.log("Response 3",response3);
                             }
                 }
         }
