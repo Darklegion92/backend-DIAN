@@ -41,7 +41,7 @@ export class ReceivedDocumentRepository implements IReceivedDocumentRepository {
         
         const queryBuilder = this.receivedDocumentRepository.createQueryBuilder('rd');
 
-        queryBuilder.andWhere('rd.acu_recibo = 1');
+       // queryBuilder.andWhere('rd.acu_recibo = 1');
 
         if (startDate && endDate) {
             queryBuilder.andWhere('rd.created_at BETWEEN :startDate AND :endDate', {
