@@ -55,17 +55,13 @@ export class HostBlockService {
     }
 
     currentHost.attempts += 1;
-    this.logger.debug(`IP ${normalizedIp} tiene ${currentHost.attempts} intentos fallidos`);
+    this.logger.debug(`IP ${normalizedIp} tiene ${currentHost.attempts} intentos fallidos de ${this.MAX_ATTEMPTS} permitidos`);
 
     if (currentHost.attempts >= this.MAX_ATTEMPTS) {
       const blockedUntil = new Date();
       blockedUntil.setMinutes(blockedUntil.getMinutes() + this.BLOCK_DURATION_MINUTES);
       currentHost.blockedUntil = blockedUntil;
       this.logger.warn(`IP ${normalizedIp} ha sido bloqueada por ${this.BLOCK_DURATION_MINUTES} minutos debido a ${this.MAX_ATTEMPTS} intentos fallidos`);
-    } else {
-      // Si no alcanzó el máximo de intentos, mantener la fecha actual de bloqueo
-      currentHost.blockedUntil = new Date();
-      currentHost.blockedUntil.setMinutes(currentHost.blockedUntil.getMinutes() + 1); // Bloquear por 1 minuto entre intentos
     }
 
     this.blockedHosts.set(normalizedIp, currentHost);
