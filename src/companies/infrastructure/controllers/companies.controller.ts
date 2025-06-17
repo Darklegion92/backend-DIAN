@@ -1,8 +1,7 @@
 import { Controller, Put, Get, Post, Body, Param, Query, UseGuards, ParseIntPipe, NotFoundException } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiParam, ApiQuery, ApiBody } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../../../auth/infrastructure/guards/jwt-auth.guard';
-import { Roles } from '../../../common/decorators/roles.decorator';
-import { UserRole, User } from '../../../auth/domain/entities/user.entity';
+import { User } from '../../../auth/domain/entities/user.entity';
 import { UpdateEnvironmentUseCase } from '../../application/use-cases/update-environment.use-case';
 import { UpdateEnvironmentDto } from '../../application/dtos/update-environment.dto';
 import { UpdateEnvironmentResponseDto } from '../../application/dtos/update-environment-response.dto';

@@ -7,10 +7,6 @@ import {
   ApiQuery,
 } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../../../auth/infrastructure/guards/jwt-auth.guard';
-import { RolesGuard } from '../../../common/guards/roles.guard';
-import { DealerAccessGuard } from '../../../common/guards/dealer-access.guard';
-import { Roles } from '../../../common/decorators/roles.decorator';
-import { UserRole } from '../../../auth/domain/entities/user.entity';
 import { ResolutionService } from '../../application/services/resolution.service';
 import { CreateResolutionDto } from '../../application/dto/create-resolution.dto';
 

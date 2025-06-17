@@ -3,7 +3,6 @@ import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
 import { AuthModule } from './auth/auth.module';
 import { ConfigModule } from './config/config.module';
-import { CommonModule } from './common/common.module';
 import { InvoiceModule } from './invoice/invoice.module';
 import { DocumentModule } from './document/document.module';
 import { CompaniesModule } from './companies/companies.module';
@@ -18,7 +17,6 @@ import { SharedModule } from './shared/shared.module';
       rootPath: join(__dirname, '..', 'public'),
     }),
     AuthModule,
-    CommonModule,
     ConfigModule,
     InvoiceModule,
     DocumentModule,

@@ -1,9 +1,6 @@
 import { Controller, Post, Put, Get, Body, Param, Query, UseGuards } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../guards/jwt-auth.guard';
-import { RolesGuard } from '../../../common/guards/roles.guard';
-import { Roles } from '../../../common/decorators/roles.decorator';
-import { UserRole } from '../../domain/entities/user.entity';
 import { CreateUserUseCase } from '../../application/use-cases/create-user.use-case';
 import { UpdateUserUseCase } from '../../application/use-cases/update-user.use-case';
 import { GetUserByIdUseCase } from '../../application/use-cases/get-user-by-id.use-case';
@@ -150,8 +147,6 @@ export class UserController {
   }
 
   @Get()
-  @UseGuards(RolesGuard)
-  @Roles(UserRole.ADMIN)
   @ApiOperation({ 
     summary: 'Obtener lista paginada de usuarios',
     description: 'Obtiene una lista paginada de todos los usuarios del sistema con opciones de filtrado y ordenamiento. Solo accesible para ADMIN.',
@@ -210,8 +205,6 @@ export class UserController {
   }
 
   @Get(':id')
-  @UseGuards(RolesGuard)
-  @Roles(UserRole.ADMIN)
   @ApiOperation({ 
     summary: 'Obtener un usuario por ID',
     description: 'Obtiene la información completa de un usuario específico usando su ID único. Solo accesible para ADMIN.',
@@ -262,8 +255,6 @@ export class UserController {
   }
 
   @Post()
-  @UseGuards(RolesGuard)
-  @Roles(UserRole.ADMIN)
   @ApiOperation({ 
     summary: 'Crear un nuevo usuario',
     description: 'Crea un nuevo usuario en el sistema con los datos proporcionados. Solo accesible para ADMIN.',
@@ -334,8 +325,6 @@ export class UserController {
   }
 
   @Put(':id')
-  @UseGuards(RolesGuard)
-  @Roles(UserRole.ADMIN)
   @ApiOperation({ 
     summary: 'Actualizar un usuario existente',
     description: 'Actualiza los datos de un usuario existente usando su ID único. Solo accesible para ADMIN.',
