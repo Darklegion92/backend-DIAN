@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { UserRepository } from '../../infrastructure/repositories/user.repository';
-import { InternalUserResponseDto } from '../dtos/user-response.dto';
-import { User } from '../../domain/entities/user.entity';
+import { InternalUserResponseDto } from '@/auth/application/ports/output/dtos/user-response.dto';
+import { User } from '@/auth/domain/entities/user.entity';
+import { UserRepository } from '@/auth/infrastructure/persistence/repositories/user.repository';
 
 @Injectable()
 export class GetCurrentUserUseCase {

@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common';
-import { UserRepository } from '../../infrastructure/repositories/user.repository';
-import { InternalUserResponseDto } from '../dtos/user-response.dto';
-import { PaginationQueryDto } from '../../../common/dtos/pagination-query.dto';
-import { PaginatedResponseDto } from '../../../common/dtos/paginated-response.dto';
-import { User } from '../../domain/entities/user.entity';
+import { UserRepository } from '@/auth/infrastructure/persistence/repositories/user.repository';
+import { InternalUserResponseDto } from '@/auth/application/ports/output/dtos/user-response.dto';
+import { PaginationQueryDto } from '@/common/presentation/dtos/pagination-query.dto';
+import { PaginatedResponseDto } from '@/common/presentation/dtos/paginated-response.dto';
+import { User } from '@/auth/domain/entities/user.entity';
 
 @Injectable()
 export class GetUsersPaginatedUseCase {
@@ -31,8 +31,8 @@ export class GetUsersPaginatedUseCase {
     return PaginatedResponseDto.create(
       userResponseDtos,
       total,
-      paginationQuery.page,
-      paginationQuery.limit,
+      paginationQuery.page || 1,
+      paginationQuery.limit || 10,
     );
   }
 } 

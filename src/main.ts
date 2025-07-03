@@ -56,7 +56,7 @@ async function bootstrap() {
     new ValidationPipe({
       transform: true,
       transformOptions: {
-        enableImplicitConversion: true,
+        enableImplicitConversion: false, // Deshabilitado para evitar conversión incorrecta de booleanos
       },
       whitelist: true,
       forbidNonWhitelisted: true,

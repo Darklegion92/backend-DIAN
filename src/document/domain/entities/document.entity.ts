@@ -1,3 +1,4 @@
+import { TypeDocument } from '@/catalog/domain/entities/type-document.entity';
 import {
   Entity,
   PrimaryGeneratedColumn,
@@ -8,7 +9,6 @@ import {
   ManyToOne,
   JoinColumn,
 } from 'typeorm';
-import { TypeDocument } from './type-document.entity';
 
 @Entity('documents')
 export class Document {

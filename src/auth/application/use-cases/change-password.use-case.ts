@@ -1,8 +1,9 @@
 import { Injectable, UnauthorizedException, Inject, NotFoundException } from '@nestjs/common';
-import { User } from '../../domain/entities/user.entity';
-import { IUserRepository, USER_REPOSITORY } from '../../domain/repositories/user.repository.interface';
-import { ChangePasswordDto } from '../dtos/change-password.dto';
+import { User } from '@/auth/domain/entities/user.entity';
+
+import { ChangePasswordDto } from '@/auth/application/ports/input/dtos/change-password.dto';
 import * as bcrypt from 'bcrypt';
+import { IUserRepository, USER_REPOSITORY } from '@/auth/domain/repositories/user.repository.interface';
 
 @Injectable()
 export class ChangePasswordUseCase {

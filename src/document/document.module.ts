@@ -1,44 +1,48 @@
-import { Module } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { JwtModule } from '@nestjs/jwt';
-import { ConfigModule, ConfigService } from '@nestjs/config';
+import { Module, forwardRef } from '@nestjs/common';
 import { HttpModule } from '@nestjs/axios';
-import { DocumentController } from './infrastructure/controllers/document.controller';
-import { DocumentService } from './domain/services/document.service';
-import { Document } from './domain/entities/document.entity';
-import { TypeDocument } from './domain/entities/type-document.entity';
-import { InvoiceModule } from '../invoice/invoice.module';
-import { SharedModule } from '../shared/shared.module';
-import { ReceivedDocumentController } from './infrastructure/controllers/received-document.controller';
-import { ReceivedDocumentRepository } from './infrastructure/repositories/received-document.repository';
-import { ReceivedDocumentService } from './domain/services/received-document.service';
-import { ReceivedDocumentEntity } from './infrastructure/entities/received-document.entity';
-import { ConfigModule as ConfigModuleConfig } from '../config/config.module';
+import { TypeOrmModule } from '@nestjs/typeorm';
 
-// TODO: Importar la entidad Document cuando esté disponible
-// import { Document } from './domain/entities/document.entity';
+import { CommonModule } from '@/common/common.module';
+import { CatalogModule } from '@/catalog/catalog.module';
+import { InvoiceModule } from '@/invoice/invoice.module';
+import { CreditNoteModule } from '@/credit-note/credit-note.module';
+import { SupportDocumentModule } from '@/support-document/support-document.module';
+
+import { DocumentController } from './presentation/controllers/document.controller';
+import { DocumentService } from './infrastructure/services/document.service';
+import { Document } from './domain/entities/document.entity';
+import { DocumentRepository } from '@/invoice/infrastructure/repositories/document.repository';
+
+// Servicios de la nueva arquitectura
+import { DocumentProcessorFactory } from './application/services/document-processor.factory';
+import { DocumentProcessorRegistryService } from './application/services/document-processor-registry.service';
 
 @Module({
   imports: [
     HttpModule,
-    ConfigModule,
-    TypeOrmModule.forFeature([Document, TypeDocument, ReceivedDocumentEntity]),
-    JwtModule, // Necesario para que funcionen los guards que dependen de JwtService
-    InvoiceModule,
-    SharedModule,
-    ConfigModuleConfig,
+    CommonModule,
+    CatalogModule,
+    TypeOrmModule.forFeature([Document]),
+    
+    // Importar módulos que contienen los casos de uso específicos
+    // Usar forwardRef() solo para InvoiceModule que tiene dependencia circular
+    forwardRef(() => InvoiceModule),
+    CreditNoteModule,
+    SupportDocumentModule
   ],
-  controllers: [DocumentController, ReceivedDocumentController],
+  controllers: [DocumentController],
   providers: [
     DocumentService,
-    ReceivedDocumentService,
-    {
-      provide: 'IReceivedDocumentRepository',
-      useClass: ReceivedDocumentRepository,
-    }
+    DocumentRepository,
+    
+    // Servicios de la nueva arquitectura hexagonal
+    DocumentProcessorFactory,
+    DocumentProcessorRegistryService
   ],
   exports: [
-    DocumentService
+    DocumentService,
+    DocumentRepository,
+    DocumentProcessorFactory
   ]
 })
 export class DocumentModule {} 

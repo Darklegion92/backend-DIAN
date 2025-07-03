@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { LogoutResponseDto } from '../dtos/logout-response.dto';
+import { LogoutResponseDto } from '@/auth/application/ports/output/dtos/logout-response.dto';
 
 @Injectable()
 export class LogoutUseCase {

@@ -1,15 +1,26 @@
 import { Module } from '@nestjs/common';
 import { ServeStaticModule } from '@nestjs/serve-static';
-import { join } from 'path';
-import { AuthModule } from './auth/auth.module';
-import { ConfigModule } from './config/config.module';
-import { InvoiceModule } from './invoice/invoice.module';
-import { DocumentModule } from './document/document.module';
-import { CompaniesModule } from './companies/companies.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { getTypeOrmConfig } from './config/typeorm.config';
 import { ConfigModule as NestConfigModule, ConfigService } from '@nestjs/config';
-import { SharedModule } from './shared/shared.module';
+
+import { join } from 'path';
+
+import { getTypeOrmConfig } from './common/infrastructure/config/database/typeorm.config';
+import { AuthModule } from './auth/auth.module';
+import { CommonModule } from './common/common.module';
+import { CompaniesModule } from './company/companies.module';
+import { ResolutionsModule } from './resolutions/resolutions.module';
+import { SoftwareModule } from './software/software.module';
+import { CatalogModule } from './catalog/catalog.module';
+import { CertificatesModule } from './certificates/certificates.module';
+import { InvoiceModule } from './invoice/invoice.module';
+import { CreditNoteModule } from './credit-note/credit-note.module';
+import { SupportDocumentModule } from './support-document/support-document.module';
+import { ReceivedDocumentModule } from './received-document/received-document.module';
+import { DocumentModule } from './document/document.module';
+import { SystemModule } from './system/system.module';
+import { PayrollModule } from './payroll/payroll.module';
+
 
 @Module({
   imports: [
@@ -17,10 +28,19 @@ import { SharedModule } from './shared/shared.module';
       rootPath: join(__dirname, '..', 'public'),
     }),
     AuthModule,
-    ConfigModule,
-    InvoiceModule,
-    DocumentModule,
+    CommonModule,
+    CatalogModule,
+    CertificatesModule,
     CompaniesModule,
+    ResolutionsModule,
+    SoftwareModule,
+    InvoiceModule,
+    CreditNoteModule,
+    SupportDocumentModule,
+    ReceivedDocumentModule,
+    DocumentModule,
+    SystemModule,
+    PayrollModule,
     NestConfigModule.forRoot({
       isGlobal: true,
     }),
@@ -29,7 +49,6 @@ import { SharedModule } from './shared/shared.module';
       useFactory: (configService) => getTypeOrmConfig(configService),
       inject: [ConfigService],
     }),
-    SharedModule
   ],
   controllers: [],
   providers: [],

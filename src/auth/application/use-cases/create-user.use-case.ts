@@ -1,10 +1,10 @@
 import { Injectable, ConflictException } from '@nestjs/common';
 import { Inject } from '@nestjs/common';
-import { USER_REPOSITORY } from '../../domain/repositories/user.repository.interface';
-import { UserRepository } from '../../infrastructure/repositories/user.repository';
-import { CreateUserDto } from '../dtos/create-user.dto';
-import { User } from '../../domain/entities/user.entity';
+import { CreateUserDto } from '@/auth/application/ports/input/dtos/create-user.dto';
+import { User } from '@/auth/domain/entities/user.entity';
+import { USER_REPOSITORY } from '@/auth/domain/repositories/user.repository.interface';
 import * as bcrypt from 'bcrypt';
+import { UserRepository } from '@/auth/infrastructure/persistence/repositories/user.repository';
 
 @Injectable()
 export class CreateUserUseCase {
@@ -28,11 +28,11 @@ export class CreateUserUseCase {
     user.role = createUserDto.role;
     user.username = createUserDto.username;
     user.company_document = createUserDto.company_document;
-    user.first_name_person_responsible = createUserDto.first_name_person_responsible;
-    user.last_name_person_responsible = createUserDto.last_name_person_responsible;
-    user.job_title_person_responsible = createUserDto.job_title_person_responsible;
-    user.organization_department_person_responsible = createUserDto.organization_department_person_responsible;
-    user.document_person_responsible = createUserDto.document_person_responsible;
+    user.first_name_person_responsible = createUserDto.first_name_person_responsible || '';
+    user.last_name_person_responsible = createUserDto.last_name_person_responsible || '';
+    user.job_title_person_responsible = createUserDto.job_title_person_responsible || '';
+    user.organization_department_person_responsible = createUserDto.organization_department_person_responsible || '';
+    user.document_person_responsible = createUserDto.document_person_responsible || '';
     
     return this.userRepository.save(user);
   }

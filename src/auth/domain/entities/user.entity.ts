@@ -6,12 +6,7 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import { ApiProperty } from '@nestjs/swagger';
-
-export enum UserRole {
-  ADMIN = 'ADMIN',
-  DEALER = 'DEALER',
-  USER = 'USER',
-}
+import { Role } from '../enums/role.enum';
 
 @Entity('users_soltec')
 export class User {
@@ -70,16 +65,16 @@ export class User {
 
   @ApiProperty({
     description: 'Rol del usuario en el sistema',
-    enum: UserRole,
-    example: UserRole.USER,
+    enum: Role,
+    example: Role.USER,
   })
   @Column({
     type: 'enum',
-    enum: UserRole,
-    default: UserRole.USER,
+    enum: Role,
+    default: Role.USER,
     nullable: false,
   })
-  role: UserRole;
+  role: Role;
 
   @ApiProperty({
     description: 'Fecha de creación del usuario',

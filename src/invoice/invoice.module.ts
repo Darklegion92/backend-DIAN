@@ -1,24 +1,32 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { HttpModule } from '@nestjs/axios';
-import { ConfigModule } from '@nestjs/config';
-import { InvoiceService } from './domain/services/invoice.service';
-import { ConfigModule as AppConfigModule } from '../config/config.module';
-import { SharedModule } from '../shared/shared.module';
-import { InvoiceController } from './infrastructure/controllers/invoice.controller';
+import { InvoiceService } from '@/invoice/infrastructure/services/invoice.service';
+import { CommonModule } from '@/common/common.module';
+import { CatalogModule } from '@/catalog/catalog.module';
+import { DocumentModule } from '@/document/document.module';
+import { CompaniesModule } from '@/company/companies.module';
+import { InvoiceController } from './presentation/controllers/invoice.controller';
+import { ProcessInvoiceUseCase } from './application/use-cases/process-invoice.use-case';
+import { ProcessInvoiceContingencyUseCase } from './application/use-cases/process-invoice-contingency.use-case';
 
 @Module({
   imports: [
     HttpModule,
-    ConfigModule,
-    AppConfigModule,
-    SharedModule
+    CommonModule,
+    CatalogModule,
+    CompaniesModule,
+    forwardRef(() => DocumentModule)
   ],
   controllers: [InvoiceController],
   providers: [
-    InvoiceService
+    InvoiceService,
+    ProcessInvoiceUseCase,
+    ProcessInvoiceContingencyUseCase
   ],
   exports: [
-    InvoiceService
+    InvoiceService,
+    ProcessInvoiceUseCase,
+    ProcessInvoiceContingencyUseCase
   ]
 })
 export class InvoiceModule {} 

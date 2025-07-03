@@ -1,10 +1,10 @@
 import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
 import { Inject } from '@nestjs/common';
-import { USER_REPOSITORY } from '../../domain/repositories/user.repository.interface';
-import { UserRepository } from '../../infrastructure/repositories/user.repository';
-import { UpdateUserDto } from '../dtos/update-user.dto';
-import { User } from '../../domain/entities/user.entity';
+import { UserRepository } from '@/auth/infrastructure/persistence/repositories/user.repository';
+import { UpdateUserDto } from '@/auth/application/ports/input/dtos/update-user.dto';
+import { User } from '@/auth/domain/entities/user.entity';
 import * as bcrypt from 'bcrypt';
+import { USER_REPOSITORY } from '@/auth/domain/repositories/user.repository.interface';
 
 @Injectable()
 export class UpdateUserUseCase {

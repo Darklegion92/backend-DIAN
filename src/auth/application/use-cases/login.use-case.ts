@@ -1,12 +1,12 @@
 import { Injectable, UnauthorizedException, HttpException, HttpStatus, Logger } from '@nestjs/common';
 import { Inject } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { USER_REPOSITORY } from '../../domain/repositories/user.repository.interface';
-import { UserRepository } from '../../infrastructure/repositories/user.repository';
-import { LoginDto } from '../dtos/login.dto';
-import { InternalLoginDataDto } from '../dtos/login-data.dto';
-import { HostBlockService } from '../../infrastructure/services/host-block.service';
+import { UserRepository } from '@/auth/infrastructure/persistence/repositories/user.repository';
+import { LoginDto } from '@/auth/application/ports/input/dtos/login.dto';
+import { InternalLoginDataDto } from '@/auth/application/ports/input/dtos/login-data.dto';
+import { HostBlockService } from '@/auth/domain/services/security/host-block.service';
 import * as bcrypt from 'bcrypt';
+import { USER_REPOSITORY } from '@/auth/domain/repositories/user.repository.interface';
 
 @Injectable()
 export class LoginUseCase {

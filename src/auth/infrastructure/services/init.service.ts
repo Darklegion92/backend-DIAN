@@ -2,10 +2,10 @@ import { Injectable, OnModuleInit, Logger } from '@nestjs/common';
 import { Inject } from '@nestjs/common';
 import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
-import { USER_REPOSITORY } from '../../domain/repositories/user.repository.interface';
-import { UserRepository } from '../../infrastructure/repositories/user.repository';
-import { UserRole } from '../../domain/entities/user.entity';
+import { UserRepository } from '@/auth/infrastructure/persistence/repositories/user.repository';
+import { Role } from '@/auth/domain/enums/role.enum';
 import * as bcrypt from 'bcrypt';
+import { USER_REPOSITORY } from '@/auth/domain/repositories/user.repository.interface';
 
 @Injectable()
 export class InitService implements OnModuleInit {
@@ -23,7 +23,9 @@ export class InitService implements OnModuleInit {
       await this.createUsersSoltecTableIfNotExists();
       await this.createDefaultAdmin();
     } catch (error) {
-      this.logger.error('Error during initialization:', error.message);
+      if (error instanceof Error) {
+        this.logger.error('Error during initialization:', error.message);
+      }
     }
   }
 
@@ -53,7 +55,9 @@ export class InitService implements OnModuleInit {
       await this.dataSource.query(createTableSQL);
       this.logger.log('✅ Tabla users_soltec verificada/creada exitosamente');
     } catch (error) {
-      this.logger.error('❌ Error creando tabla users_soltec:', error.message);
+      if (error instanceof Error) {
+        this.logger.error('❌ Error creando tabla users_soltec:', error.message);
+      }
       throw error;
     }
   }
@@ -73,7 +77,7 @@ export class InitService implements OnModuleInit {
           username: 'admin',
           password: hashedPassword,
           name: 'Administrador',
-          role: UserRole.ADMIN
+          role: Role.ADMIN
         };
 
         await this.userRepository.create(adminUserData);
@@ -82,8 +86,10 @@ export class InitService implements OnModuleInit {
         this.logger.log('✅ Usuario admin ya existe');
       }
     } catch (error) {
-      this.logger.error('❌ Error creando usuario admin:', error.message);
+      if (error instanceof Error) {
+        this.logger.error('❌ Error creando usuario admin:', error.message);
+      }
       throw error;
     }
   }
-}
+} 
