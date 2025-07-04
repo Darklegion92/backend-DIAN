@@ -545,11 +545,11 @@ export class ProcessPayrollService {
       );
 
       this.logger.log('Respuesta exitosa del servicio externo');
-      this.logger.debug('Respuesta completa:', JSON.stringify(response, null, 2));
+      this.logger.log('Respuesta completa:', JSON.stringify(response, null, 2));
 
       return response.data;
     } catch (error) {
-      this.logger.error('Error al consumir el servicio externo de nominas', JSON.stringify(error, null, 2));
+      this.logger.error('Error al consumir el servicio externo de facturas', {error});
       
       if (error.response) {
         const status = error.response.status;
