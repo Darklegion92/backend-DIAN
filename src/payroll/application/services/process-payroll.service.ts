@@ -507,8 +507,16 @@ export class ProcessPayrollService {
 
       const company = await this.companyService.getCompanyByNit(nitCompany);
 
-      
-      return this.sendPayrollToService(payroll, company.tokenDian);
+      const response = await this.sendPayrollToService(payroll, company.tokenDian);
+      return {
+        success: true,
+        statusCode: 200,
+        message: 'Nómina enviada correctamente',
+        data:{
+         cufe: response.cune,
+         date: this.generateDataService.formatDate(response.date),
+        }
+      }
 
 
     } catch (error) {
@@ -546,7 +554,6 @@ export class ProcessPayrollService {
       console.log(response.data);
 
       this.logger.log('Respuesta exitosa del servicio externo');
-      this.logger.log('Respuesta completa:', JSON.stringify(response, null, 2));
 
       return response.data;
     } catch (error) {
