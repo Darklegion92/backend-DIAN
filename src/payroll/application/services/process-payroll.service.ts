@@ -549,7 +549,7 @@ export class ProcessPayrollService {
 
       return response.data;
     } catch (error) {
-      this.logger.error('Error al consumir el servicio externo de nominas', {error});
+      this.logger.error('Error al consumir el servicio externo de nominas', JSON.stringify(error, null, 2));
       
       if (error.response) {
         const status = error.response.status;
