@@ -192,4 +192,46 @@ export class CompanyWithCertificateDto {
     example: 'usuario@dian.gov.co',
   })
   userEmail: string;
+
+  @ApiPropertyOptional({
+    description: 'Host del servidor de correo',
+    example: 'smtp.gmail.com',
+  })
+  mailHost: string;
+
+  @ApiPropertyOptional({
+    description: 'Puerto del servidor de correo',
+    example: '587',
+  })
+  mailPort: string;
+
+  @ApiPropertyOptional({
+    description: 'Usuario del servidor de correo',
+    example: 'empresa@gmail.com',
+  })
+  mailUsername: string;
+
+  @ApiPropertyOptional({
+    description: 'Contraseña del servidor de correo',
+    example: 'password',
+  })
+  mailPassword: string;
+
+  @ApiPropertyOptional({
+    description: 'Tipo de encriptación del servidor de correo',
+    example: 'tls',
+  })
+  mailEncryption: string;
+
+  @ApiPropertyOptional({
+    description: 'Dirección de correo del remitente',
+    example: 'noreply@empresa.com',
+  })
+  mailFromAddress: string;
+
+  @ApiPropertyOptional({
+    description: 'Nombre del remitente',
+    example: 'API DE FACTURACION ELECTRONICA',
+  })
+  mailFromName: string;
 } 

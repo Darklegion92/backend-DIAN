@@ -197,4 +197,60 @@ export class CreateCompanyExternalDto {
   @IsOptional()
   @IsString()
   imap_port: string;
+
+  @ApiProperty({
+    description: 'Host del servidor SMTP',
+    example: 'smtp.gmail.com',
+  })
+  @IsOptional()
+  @IsString()
+  mail_host: string;
+
+  @ApiProperty({
+    description: 'Puerto del servidor SMTP',
+    example: '587',
+  })
+  @IsOptional()
+  @IsString()
+  mail_port: string;
+
+  @ApiProperty({
+    description: 'Usuario del correo SMTP',
+    example: 'usuario@gmail.com',
+  })
+  @IsOptional()
+  @IsEmail({}, { message: 'Debe ser un correo electrónico válido' })
+  mail_username: string;
+
+  @ApiProperty({
+    description: 'Contraseña del correo SMTP',
+    example: '********',
+  })
+  @IsOptional()
+  @IsString()
+  mail_password: string;
+
+  @ApiProperty({
+    description: 'Tipo de encriptación del servidor SMTP',
+    example: 'tls',
+  })
+  @IsOptional()
+  @IsString()
+  mail_encryption: string;
+
+  @ApiProperty({
+    description: 'Dirección de correo del remitente',
+    example: 'noreply@empresa.com',
+  })
+  @IsOptional()
+  @IsEmail({}, { message: 'Debe ser un correo electrónico válido' })
+  mail_from_address: string;
+
+  @ApiProperty({
+    description: 'Nombre del remitente',
+    example: 'API DE FACTURACION ELECTRONICA',
+  })
+  @IsOptional()
+  @IsString()
+  mail_from_name: string;
 } 

@@ -299,6 +299,13 @@ export class CompanyService {
       tokenDian,
       usuarioDian,
       userEmail,
+      mailHost: company.user.mailHost,
+      mailPort: company.user.mailPort,
+      mailUsername: company.user.mailUsername,
+      mailPassword: company.user.mailPassword,
+      mailEncryption: company.user.mailEncryption,
+      mailFromAddress: company.user.mailFromAddress,
+      mailFromName: company.user.mailFromName,
     };
   }
 }

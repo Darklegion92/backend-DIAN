@@ -519,16 +519,16 @@ export class ProcessPayrollService {
 
   async sendPayrollToService(payroll: PayrollDto, token: string) {
     try {
-      this.logger.log('Enviando solicitud de factura al servicio externo');
-      this.logger.debug('URL del servicio externo:', `${this.externalApiUrl}/invoice`);
-      this.logger.debug('Datos de la factura:', JSON.stringify(payroll, null, 2));
-      this.logger.debug('Token:', token);
 
       let url = `${this.externalApiUrl}/payroll`;
 
       if(payroll.getPredecessor() != null) {
         url = `${this.externalApiUrl}/payroll-adjust-note`;
       }
+      this.logger.log('Enviando solicitud de nómina al servicio externo');
+      this.logger.debug('URL del servicio externo:', url);
+      this.logger.debug('Datos de la nómina:', JSON.stringify(payroll, null, 2));
+      this.logger.debug('Token:', token);
 
       const response = await firstValueFrom(
         this.httpService.post<any>(
@@ -549,7 +549,7 @@ export class ProcessPayrollService {
 
       return response.data;
     } catch (error) {
-      this.logger.error('Error al consumir el servicio externo de facturas', {error});
+      this.logger.error('Error al consumir el servicio externo de nominas', {error});
       
       if (error.response) {
         const status = error.response.status;
