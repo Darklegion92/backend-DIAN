@@ -31,7 +31,7 @@ export class SoftwareService {
       let url = `${externalServerUrl}/config/software`;
 
       if (type_software === 'payroll') {
-        url = `${externalServerUrl}/config/payroll`;
+        url = `${externalServerUrl}/config/software/payroll`;
       }
 
       const response = await firstValueFrom(
