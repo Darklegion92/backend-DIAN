@@ -114,7 +114,7 @@ export class ProcessPayrollService {
         noelNom1,
         noelNom2,
         noelDir,
-        Boolean(emplSalinteg),
+        emplSalinteg == 'S',
         emplSalario,
         noelEmail,
       );
@@ -493,7 +493,7 @@ export class ProcessPayrollService {
         payment,
         paymentDates,
         accrued,
-        deductions
+        deductions,
       );
 
       if (noelNumant != null) {
@@ -527,7 +527,7 @@ export class ProcessPayrollService {
       let url = `${this.externalApiUrl}/payroll`;
 
       if(payroll.getPredecessor() != null) {
-        url = `${this.externalApiUrl}/payroll/predecessor`;
+        url = `${this.externalApiUrl}/payroll-adjust-note`;
       }
 
       const response = await firstValueFrom(

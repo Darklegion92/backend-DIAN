@@ -25,4 +25,12 @@ export class CreateSoftwareDto {
   @IsNotEmpty()
   @IsString()
   token: string;
+
+  @ApiProperty({
+    description: 'Tipo de software',
+    example: 'payroll',
+  })
+  @IsNotEmpty()
+  @IsString()
+  type_software: string;
 } 

@@ -14,6 +14,7 @@ export class SoftwareService {
 
   async createSoftware({
     token,
+    type_software,
     ...createSoftwareDto
   }: CreateSoftwareDto): Promise<SoftwareResponseDto> {
     try {
@@ -27,7 +28,11 @@ export class SoftwareService {
         );
       }
 
-      const url = `${externalServerUrl}/config/software`;
+      let url = `${externalServerUrl}/config/software`;
+
+      if (type_software === 'payroll') {
+        url = `${externalServerUrl}/config/payroll`;
+      }
 
       const response = await firstValueFrom(
         this.httpService.put<SoftwareResponseDto>(url, createSoftwareDto, {
