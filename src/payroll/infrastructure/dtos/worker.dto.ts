@@ -26,7 +26,7 @@ export class WorkerDto {
   // NOEL_DIR
   private readonly address: string;
   // EMPL_SALINTEG
-  private readonly integral_salary: boolean;
+  private readonly integral_salarary: boolean;
   // EMPL_SALARIO
   private readonly salary: string;
   // NOEL_EMAIL
@@ -60,7 +60,7 @@ export class WorkerDto {
     this.first_name = firstName;
     this.middle_name = middleName;
     this.address = address;
-    this.integral_salary = integralSalary;
+    this.integral_salarary = integralSalary;
     this.salary = salary;
     this.email = email;
   }
@@ -114,7 +114,7 @@ export class WorkerDto {
   }
 
   getIntegralSalarary(): boolean {
-    return this.integral_salary;
+    return this.integral_salarary;
   }
 
   getSalary(): string {
