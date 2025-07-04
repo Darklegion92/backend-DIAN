@@ -544,7 +544,7 @@ export class ProcessPayrollService {
         ),
       );
 
-      this.logger.log('Respuesta exitosa del servicio externo');
+      this.logger.log('Respuesta exitosa del servicio externo', response);
       this.logger.log('Respuesta completa:', JSON.stringify(response, null, 2));
 
       return response.data;
