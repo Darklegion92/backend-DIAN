@@ -157,17 +157,7 @@ export class PayrollController {
 
       const repsonse =  await this.payrollService.processPayroll(payrollRequestDto);  
 
-      console.log(repsonse);
-      
-      return {
-        success: true,
-        message: "Nómina procesada exitosamente",
-        statusCode: HttpStatus.CREATED,
-        data: {
-          cufe: '',
-          date: '',
-        }
-      };
+      return repsonse;
     } catch (error) {
       this.logger.error(`❌ Error procesando nómina: ${error.message}`, error.stack);
       throw error;
