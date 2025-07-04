@@ -118,7 +118,6 @@ export class ReceivedDocumentController {
         @Query('startDate') startDate?: string,
         @Query('endDate') endDate?: string,
         @Query('prefix') prefix?: string,
-        @Query('total') total?: number,
         @Query('customer') customer?: string,
         @Query('aceptacion') aceptacion?: number,
         @Query('page') page?: number,
@@ -127,10 +126,9 @@ export class ReceivedDocumentController {
     ): Promise<PaginatedResult<ReceivedDocument>> {
         const filters: ReceivedDocumentFilters = {
             startDate: startDate ? new Date(startDate) : undefined,
-            endDate: endDate ? new Date(endDate) : undefined,
+            endDate: endDate ? new Date(new Date(endDate).setDate(new Date(endDate).getDate() + 1)) : undefined,
             prefix,
             number,
-            total,
             customer,
             identification_number,
             page: page ? page : 1,

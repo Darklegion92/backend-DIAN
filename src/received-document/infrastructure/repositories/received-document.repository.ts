@@ -25,7 +25,6 @@ export class ReceivedDocumentRepository implements IReceivedDocumentRepository {
             endDate, 
             prefix, 
             number, 
-            total, 
             customer,
             customer_name,
             identification_number,
@@ -44,7 +43,7 @@ export class ReceivedDocumentRepository implements IReceivedDocumentRepository {
        queryBuilder.andWhere('rd.acu_recibo = 1');
 
         if (startDate && endDate) {
-            queryBuilder.andWhere('rd.created_at BETWEEN :startDate AND :endDate', {
+            queryBuilder.andWhere('rd.date_issue BETWEEN :startDate AND :endDate', {
                 startDate,
                 endDate,
             });
@@ -56,10 +55,6 @@ export class ReceivedDocumentRepository implements IReceivedDocumentRepository {
 
         if (number) {
             queryBuilder.andWhere('rd.number LIKE :number', { number: `%${number}%` });
-        }
-
-        if (total) {
-            queryBuilder.andWhere('rd.total = :total', { total });
         }
 
         if (customer) {
@@ -109,7 +104,7 @@ export class ReceivedDocumentRepository implements IReceivedDocumentRepository {
 
         const documents = items.map(item => ({
             ...item,
-            id: Number(item.id) // Aseguramos que el ID sea numérico
+            id: Number(item.id)
         }));
 
         return {

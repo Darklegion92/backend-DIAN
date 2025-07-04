@@ -2,44 +2,52 @@ import { ApiProperty } from '@nestjs/swagger';
 
 export class ReceivedDocumentFilters {
     @ApiProperty({
-        description: 'Fecha de inicio para filtrar documentos',
-        type: Date,
+        description: 'Fecha de inicio para filtrar documentos (YYYY-MM-DD)',
+        type: String,
         required: false,
         example: '2024-01-01'
     })
-    startDate?: Date;
+    startDate?: string;
 
     @ApiProperty({
-        description: 'Fecha fin para filtrar documentos',
-        type: Date,
+        description: 'Fecha fin para filtrar documentos (YYYY-MM-DD)',
+        type: String,
         required: false,
         example: '2024-12-31'
     })
-    endDate?: Date;
+    endDate?: string;
 
     @ApiProperty({
-        description: 'Prefijo del documento',
-        type: String,
-        required: false,
-        example: 'FEVA'
-    })
-    prefix?: string;
-
-    @ApiProperty({
-        description: 'Número del documento',
-        type: String,
-        required: true,
-        example: '1001'
-    })
-    number: string;
-
-    @ApiProperty({
-        description: 'Valor total del documento',
+        description: 'Identificación del vendedor',
         type: Number,
         required: false,
-        example: 1000000
+        example: 900123456
     })
-    total?: number;
+    identification_number?: number;
+
+    @ApiProperty({
+        description: 'Nombre del vendedor',
+        type: String,
+        required: false,
+        example: 'EMPRESA VENDEDORA S.A.S'
+    })
+    name_seller?: string;
+
+    @ApiProperty({
+        description: 'Estado del documento',
+        type: Number,
+        required: false,
+        example: 1
+    })
+    state_document_id?: number;
+
+    @ApiProperty({
+        description: 'ID del tipo de documento',
+        type: Number,
+        required: false,
+        example: 1
+    })
+    type_document_id?: number;
 
     @ApiProperty({
         description: 'Identificación del cliente',
@@ -58,12 +66,20 @@ export class ReceivedDocumentFilters {
     customer_name?: string;
 
     @ApiProperty({
-        description: 'Identificación del vendedor',
-        type: Number,
+        description: 'Prefijo del documento',
+        type: String,
         required: false,
-        example: 900123456
+        example: 'FEVA'
     })
-    identification_number?: number;
+    prefix?: string;
+
+    @ApiProperty({
+        description: 'Número del documento',
+        type: String,
+        required: false,
+        example: '1001'
+    })
+    number?: string;
 
     @ApiProperty({
         description: 'CUFE del documento',
@@ -74,12 +90,20 @@ export class ReceivedDocumentFilters {
     cufe?: string;
 
     @ApiProperty({
-        description: 'ID del tipo de documento',
+        description: 'Rango mínimo del valor total',
         type: Number,
         required: false,
-        example: 1
+        example: 1000000
     })
-    type_document_id?: number;
+    min_total?: number;
+
+    @ApiProperty({
+        description: 'Rango máximo del valor total',
+        type: Number,
+        required: false,
+        example: 5000000
+    })
+    max_total?: number;
 
     @ApiProperty({
         description: 'Estado del acuse de recibo',
@@ -112,6 +136,14 @@ export class ReceivedDocumentFilters {
         example: false
     })
     rechazo?: boolean;
+
+    @ApiProperty({
+        description: 'ID del ambiente (1: Pruebas, 2: Producción)',
+        type: Number,
+        required: false,
+        example: 2
+    })
+    ambient_id?: number;
 
     @ApiProperty({
         description: 'Número de página (comienza en 1)',

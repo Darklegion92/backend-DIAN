@@ -80,6 +80,7 @@ export class ReceivedDocumentService {
     }
 
     async findAll(filters: ReceivedDocumentFilters): Promise<PaginatedResult<ReceivedDocument>> {
+        console.log("Filters", filters);
         return this.receivedDocumentRepository.findAll(filters);
     }
 
