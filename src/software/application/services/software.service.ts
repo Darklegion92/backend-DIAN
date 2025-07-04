@@ -29,9 +29,14 @@ export class SoftwareService {
       }
 
       let url = `${externalServerUrl}/config/software`;
+      let data: any = createSoftwareDto;
 
       if (type_software === 'payroll') {
-        url = `${externalServerUrl}/config/software/payroll`;
+        url = `${externalServerUrl}/config/softwarepayroll`;
+        data = {
+          idpayroll: createSoftwareDto.id,
+          pinpayroll: createSoftwareDto.pin,
+        };
       }
 
       const response = await firstValueFrom(
