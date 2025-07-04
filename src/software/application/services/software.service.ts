@@ -40,7 +40,7 @@ export class SoftwareService {
       }
 
       const response = await firstValueFrom(
-        this.httpService.put<SoftwareResponseDto>(url, createSoftwareDto, {
+        this.httpService.put<SoftwareResponseDto>(url, data, {
           headers: {
             'Content-Type': 'application/json',
             Authorization: `Bearer ${token}`,
