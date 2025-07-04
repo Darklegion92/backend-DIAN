@@ -125,14 +125,14 @@ export class ReceivedDocumentController {
         @Query('limit') limit?: number,
     ): Promise<PaginatedResult<ReceivedDocument>> {
         const filters: ReceivedDocumentFilters = {
-            startDate: startDate ? new Date(startDate) : undefined,
-            endDate: endDate ? new Date(new Date(endDate).setDate(new Date(endDate).getDate() + 1)) : undefined,
+            startDate: startDate ? startDate : undefined,
+            endDate: endDate ? new Date(new Date(endDate).setDate(new Date(endDate).getDate() + 1)).toISOString().split('T')[0] : undefined,
             prefix,
             number,
             customer,
             identification_number,
-            page: page ? page : 1,
-            limit: limit ? limit : 10,
+            page: page ? Number(page) : 1,
+            limit: limit ? Number(limit) : 10
         };
 
         if (aceptacion === 0) {
