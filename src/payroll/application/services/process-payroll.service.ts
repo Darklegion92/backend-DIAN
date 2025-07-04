@@ -514,7 +514,7 @@ export class ProcessPayrollService {
         message: 'Nómina enviada correctamente',
         data:{
          cufe: response.cune,
-         date: this.generateDataService.formatDate(response.date),
+         date: this.generateDataService.formatDate(new Date()),
         }
       }
 
