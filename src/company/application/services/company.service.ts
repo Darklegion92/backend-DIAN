@@ -95,10 +95,10 @@ export class CompanyService {
 
       // Si la respuesta del servidor externo tiene datos de error estructurados
       if (error.response?.data) {
-        console.log(error);
-
+        
         const errorData = error.response.data;
-
+        
+        console.log("Error data",errorData);
         // Si la respuesta tiene el formato de error de validación esperado
         if (errorData.message && errorData.errors) {
           throw new ExternalValidationException(
@@ -299,13 +299,13 @@ export class CompanyService {
       tokenDian,
       usuarioDian,
       userEmail,
-      mailHost: company.user.mailHost,
-      mailPort: company.user.mailPort,
-      mailUsername: company.user.mailUsername,
-      mailPassword: company.user.mailPassword,
-      mailEncryption: company.user.mailEncryption,
-      mailFromAddress: company.user.mailFromAddress,
-      mailFromName: company.user.mailFromName,
+      mailHost: user?.mailHost,
+      mailPort: user?.mailPort,
+      mailUsername: user?.mailUsername,
+      mailPassword: user?.mailPassword,
+      mailEncryption: user?.mailEncryption,
+      mailFromAddress: user?.mailFromAddress,
+      mailFromName: user?.mailFromName,
     };
   }
 }
