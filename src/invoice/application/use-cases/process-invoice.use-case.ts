@@ -276,7 +276,7 @@ export class ProcessInvoiceUseCase implements DocumentProcessorPort {
    * @param token - Token de autenticación
    * @returns Respuesta de la DIAN
    */
-  private async sendInvoiceToDian(transformedData: InvoiceRequestDto, token: string): Promise<InvoiceResponseDto> {
+  public async sendInvoiceToDian(transformedData: InvoiceRequestDto, token: string): Promise<InvoiceResponseDto> {
     try {
       this.logger.log('Enviando solicitud de factura al servicio externo');
       this.logger.debug('URL del servicio externo:', `${this.externalApiUrl}/invoice`);

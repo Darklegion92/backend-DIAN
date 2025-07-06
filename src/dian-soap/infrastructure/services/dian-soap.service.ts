@@ -7,9 +7,12 @@ import { SendBillDto } from '../../domain/dtos/send-bill.dto';
 import { GetStatusDto } from '../../domain/dtos/get-status.dto';
 import { soapLogger } from './logger.service';
 import { EnviarRequestDto } from '../../presentation/dtos/enviar-request.dto';
-import { EnviarResponseDto } from '../../presentation/dtos/response/enviar-response.dto';
+import { EnviarResponseDto, MensajeValidacion } from '../../presentation/dtos/response/enviar-response.dto';
 import { createHash } from 'crypto';
 import { DocumentTransformerFactory } from './transformers/document-transformer.factory';
+import { ProcessInvoiceUseCase } from '@/invoice/application/use-cases/process-invoice.use-case';
+import { CompanyService } from '@/company/application/services/company.service';
+import { DocumentService } from '@/document/infrastructure/services/document.service';
 
 @Injectable()
 export class DianSoapService implements OnModuleInit {
@@ -18,14 +21,17 @@ export class DianSoapService implements OnModuleInit {
   private readonly logger = new Logger(DianSoapService.name);
 
   constructor(
-    private readonly documentTransformerFactory: DocumentTransformerFactory
+    private readonly documentTransformerFactory: DocumentTransformerFactory,
+    private readonly processInvoiceUseCase: ProcessInvoiceUseCase,
+    private readonly companyService: CompanyService,
+    private readonly documentService: DocumentService
   ) {
     // Busca el archivo WSDL en el directorio src o dist
     const srcPath = path.join(__dirname, '..', 'wsdl', 'dian.wsdl');
     const distPath = path.join(__dirname, '..', '..', '..', 'src', 'dian-soap', 'infrastructure', 'wsdl', 'dian.wsdl');
-    
+
     this.wsdlPath = fs.existsSync(srcPath) ? srcPath : distPath;
-    
+
     if (!fs.existsSync(this.wsdlPath)) {
       throw new Error(`WSDL file not found at ${this.wsdlPath}`);
     }
@@ -64,52 +70,133 @@ export class DianSoapService implements OnModuleInit {
               });
 
               try {
-                const { tokenEmpresa, tokenPassword, factura, adjuntos } = args;
+                const { tokenEmpresa, tokenPassword, factura } = args;
 
                 if (!tokenEmpresa || !tokenPassword || !factura) {
                   throw new Error('Faltan datos requeridos: tokenEmpresa, tokenPassword o factura');
                 }
-                // Transformar el request según el tipo de documento usando la fábrica
 
-                console.log("factura", factura);
-                //TODO: pendiente extraer el companyId de token empresa
-                const documentoTransformado = await this.documentTransformerFactory.transform(factura, 1);
-
-                console.log("documentoTransformado", documentoTransformado);
+                const company = await this.companyService.getCompanyByNit("901309622");
+                const documentoTransformado = await this.documentTransformerFactory.transform(factura, company.id);
 
                 soapLogger.info('Documento transformado', {
                   requestId,
                   tipoDocumento: factura.tipoDocumento,
                   documentoTransformado
-                }); 
-
-     
-                const response = new EnviarResponseDto({
-                  //codigo: 200,
-                  consecutivoDocumento: factura.consecutivoDocumento || `PRUE${Date.now()}`,
-                 // cufe,
-                  esValidoDian: true,
-                  fechaAceptacionDIAN: new Date().toISOString().slice(0, 19).replace('T', ' '),
-                 // hash: createHash('sha384').update(xmlAttachedDocument).digest('hex'),
-                  //mensaje: 'Documento procesado correctamente',
-                  mensajesValidacion: [],
-                  //nombre: 'DOCUMENTO_PROCESADO',
-                  //qr: `https://catalogo-vpfe.dian.gov.co/document/searchqr?documentkey=${cufe}`,
-                  reglasNotificacionDIAN: [],
-                  reglasValidacionDIAN: [],
-                  //resultado: 'Procesado',
-                  //tipoCufe: 'CUFE-SHA384',
-                  //xml: Buffer.from(xmlAttachedDocument).toString('base64')
                 });
 
-                soapLogger.info('Solicitud Enviar completada', {
-                  requestId,
-                  resultado: response.resultado,
-                  cufe: response.cufe
-                });
+                if (documentoTransformado.prefix === "SETP") {
+                  documentoTransformado.number = 990080000 + documentoTransformado.number;
+                }
 
-                return { EnviarResult: response };
+                const responseInvoice = await this.processInvoiceUseCase.sendInvoiceToDian(documentoTransformado, company.tokenDian);
 
+                if (responseInvoice.ResponseDian) {
+                  const body = responseInvoice.ResponseDian.Envelope.Body;
+                  if (body.SendBillSyncResponse.SendBillSyncResult.IsValid === "true") {
+                    const cufe = responseInvoice.cufe;
+                    const response = new EnviarResponseDto({
+                      codigo: 200,
+                      consecutivoDocumento: factura.consecutivoDocumento || `PRUE${Date.now()}`,
+                      cufe,
+                      esValidoDian: true,
+                      fechaAceptacionDIAN: new Date().toISOString().slice(0, 19).replace('T', ' '),
+                      hash: createHash('sha384').update(responseInvoice.attacheddocument).digest('hex'),
+                      mensaje: 'Documento procesado correctamente',
+                      mensajesValidacion: [],
+                      nombre: 'DOCUMENTO_PROCESADO',
+                      qr: responseInvoice.QRStr,
+                      reglasNotificacionDIAN: [],
+                      reglasValidacionDIAN: [],
+                      resultado: 'Procesado',
+                      tipoCufe: 'CUFE-SHA384',
+                      xml: Buffer.from(responseInvoice.attacheddocument).toString('base64')
+                    });
+                    return { EnviarResult: response };
+                  }
+
+
+                  if (body?.SendBillSyncResponse?.SendBillSyncResult.ErrorMessage?.string?.includes("Regla: 90")) {
+                    const response = new EnviarResponseDto({
+                      codigo: 400,
+                      consecutivoDocumento: factura.consecutivoDocumento || `PRUE${Date.now()}`,
+                      esValidoDian: true,
+                      fechaAceptacionDIAN: new Date().toISOString().slice(0, 19).replace('T', ' '),
+                      hash: createHash('sha384').update(responseInvoice.attacheddocument).digest('hex'),
+                      mensaje: 'Documento ha sido enviado con otro proveedor electrónico',
+                      mensajesValidacion: [],
+                      nombre: 'DOCUMENTO_PROCESADO',
+                      qr: responseInvoice.QRStr,
+                      reglasNotificacionDIAN: [],
+                      reglasValidacionDIAN: [],
+                      resultado: 'Error',
+                      tipoCufe: 'CUFE-SHA384',
+                      xml: Buffer.from(responseInvoice.attacheddocument).toString('base64')
+                    });
+                    return { EnviarResult: response };
+
+                  }
+
+                  const mensajesValidacion: MensajeValidacion[] =  [];
+
+                  if(body?.SendBillSyncResponse?.SendBillSyncResult.ErrorMessage?.string){
+                    mensajesValidacion.push({
+                      codigo: "401",
+                      mensaje: body?.SendBillSyncResponse?.SendBillSyncResult.ErrorMessage?.string
+                    })
+                  }else if(body?.SendBillSyncResponse?.SendBillSyncResult.ErrorMessage?.strings){
+
+                    body?.SendBillSyncResponse?.SendBillSyncResult.ErrorMessage?.strings.forEach(mensaje => {
+                      mensajesValidacion.push({
+                        codigo: "401",
+                        mensaje: mensaje
+                      })
+                    })
+                  }
+
+                  const response = new EnviarResponseDto({
+                    codigo: 401,
+                    consecutivoDocumento: factura.consecutivoDocumento || `PRUE${Date.now()}`,
+                    esValidoDian: false,
+                    fechaAceptacionDIAN: new Date().toISOString().slice(0, 19).replace('T', ' '),
+                    hash: createHash('sha384').update(responseInvoice.attacheddocument).digest('hex'),
+                    mensaje: 'Documento no valido',
+                    mensajesValidacion,
+                    nombre: 'DOCUMENTO_PROCESADO_ERROR',
+                    reglasNotificacionDIAN: [],
+                    reglasValidacionDIAN: [],
+                    resultado: 'Error',
+                  });
+                  return { EnviarResult: response };
+
+                } else {
+                  if (responseInvoice.message.includes("Este documento ya fue enviado anteriormente, se registra en la base de datos.")) {
+                    const responseDocument = await this.documentService.getDocument(documentoTransformado.prefix, documentoTransformado.number, company.identificationNumber);
+                    if (responseDocument) {
+
+                      const qrString = ""
+                      const attachedDocument = responseDocument.xml;
+                      const response = new EnviarResponseDto({
+                        codigo: 200,
+                        consecutivoDocumento: factura.consecutivoDocumento || `PRUE${Date.now()}`,
+                        cufe: responseDocument.cufe,
+                        esValidoDian: true,
+                        fechaAceptacionDIAN: responseDocument.dateIssue.toISOString().slice(0, 19).replace('T', ' '),
+                        hash: createHash('sha384').update(attachedDocument).digest('hex'),
+                        mensaje: 'Documento procesado correctamente',
+                        mensajesValidacion: [],
+                        nombre: 'DOCUMENTO_PROCESADO',
+                        qr: qrString,
+                        reglasNotificacionDIAN: [],
+                        reglasValidacionDIAN: [],
+                        resultado: 'Procesado',
+                        tipoCufe: 'CUFE-SHA384',
+                        xml: Buffer.from(attachedDocument).toString('base64')
+                      });
+                      return { EnviarResult: response };
+                    }
+                  }
+                }
               } catch (error) {
                 soapLogger.error('Error procesando solicitud Enviar', {
                   requestId,
@@ -117,21 +204,12 @@ export class DianSoapService implements OnModuleInit {
                   stack: error.stack
                 });
 
-                const xmlError = `
-                  <?xml version="1.0" encoding="UTF-8"?>
-                  <Error>
-                    <Message>${error.message}</Message>
-                  </Error>
-                `;
-
                 return {
                   EnviarResult: new EnviarResponseDto({
                     codigo: 500,
                     consecutivoDocumento: '',
                     cufe: '',
                     esValidoDian: false,
-                    fechaAceptacionDIAN: new Date().toISOString().slice(0, 19).replace('T', ' '),
-                    hash: createHash('sha384').update(xmlError).digest('hex'),
                     mensaje: error.message,
                     mensajesValidacion: [{
                       codigo: '500',
@@ -143,7 +221,6 @@ export class DianSoapService implements OnModuleInit {
                     reglasValidacionDIAN: [],
                     resultado: 'Error',
                     tipoCufe: 'CUFE-SHA384',
-                    xml: Buffer.from(xmlError).toString('base64')
                   })
                 };
               }
@@ -198,7 +275,7 @@ export class DianSoapService implements OnModuleInit {
       };
 
       const xml = fs.readFileSync(this.wsdlPath, 'utf8');
-      
+
       await new Promise<void>((resolve, reject) => {
         soap.listen(this.server, '/ws/v1.0/Service.svc', serviceObject, xml, (err) => {
           if (err) {
@@ -233,7 +310,7 @@ export class DianSoapService implements OnModuleInit {
   private async logRequest(filename: string, data: any) {
     const logPath = path.join(process.cwd(), 'logs', filename);
     const logEntry = `[${new Date().toISOString()}] REQUEST: ${JSON.stringify(data, null, 2)}\n`;
-    
+
     await fs.promises.appendFile(logPath, logEntry).catch(err => {
       this.logger.error('Error escribiendo log de request', err);
     });
@@ -242,7 +319,7 @@ export class DianSoapService implements OnModuleInit {
   private async logError(filename: string, error: any) {
     const logPath = path.join(process.cwd(), 'logs', filename);
     const logEntry = `[${new Date().toISOString()}] ERROR: ${error.message}\nStack: ${error.stack}\n`;
-    
+
     await fs.promises.appendFile(logPath, logEntry).catch(err => {
       this.logger.error('Error escribiendo log de error', err);
     });
