@@ -52,12 +52,14 @@ export class ProcessInvoiceUseCase implements DocumentProcessorPort {
     try {
 
       const transformedData = await this.transformInvoiceData(dto);
-
+      
+      console.log("PDF Document", transformedData);
       const company: CompanyWithCertificateDto = await this.companyService.getCompanyByNit(dto.nit);
 
       const dianResponse = await this.sendInvoiceToDian(transformedData, company.tokenDian);
 
       const pdfDocument = await this.generateInvoicePdf(dianResponse, dto.nit);
+
 
       const response: SendDocumentElectronicResponse = {
         success: true,

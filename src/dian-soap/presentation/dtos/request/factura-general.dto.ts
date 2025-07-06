@@ -131,7 +131,7 @@ export interface FacturaDetalleDto {
   cantidadReal: string;
   cantidadRealUnidadMedida: string;
   cantidadUnidades: string;
-  cargosDescuentos: string | null;
+  cargosDescuentos: CargosDescuentosDto;
   codigoFabricante: string | null;
   codigoIdentificadorPais: string | null;
   codigoProducto: string;
@@ -169,6 +169,20 @@ export interface FacturaDetalleDto {
   subCodigoProducto: string | null;
   tipoAIU: string | null;
   unidadMedida: string;
+}
+
+export interface CargosDescuentosDto {
+  CargosDescuentos?: CargosDescuentoDto | CargosDescuentoDto[]
+}
+
+export interface CargosDescuentoDto {
+  codigo: string;
+  descripcion: string;
+  indicador: string;
+  monto: string;
+  montoBase: string;
+  porcentaje: string;
+  secuencia: string;
 }
 
 export interface FacturaImpuestosDto {

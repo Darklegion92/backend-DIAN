@@ -71,7 +71,7 @@ export class DianSoapService implements OnModuleInit {
                 }
                 // Transformar el request según el tipo de documento usando la fábrica
 
-                console.log("factura", factura.cliente);
+                console.log("factura", factura);
                 //TODO: pendiente extraer el companyId de token empresa
                 const documentoTransformado = await this.documentTransformerFactory.transform(factura, 1);
 

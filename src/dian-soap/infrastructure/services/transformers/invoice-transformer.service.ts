@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { DocumentTransformer } from './document-transformer.interface';
-import { ClienteDto, FacturaDetalleDto, FacturaGeneralDto, FacturaImpuestosDto, MedioDePagoDto } from '../../../presentation/dtos/request/factura-general.dto';
+import { CargosDescuentoDto, ClienteDto, FacturaDetalleDto, FacturaGeneralDto, FacturaImpuestosDto, MedioDePagoDto } from '../../../presentation/dtos/request/factura-general.dto';
 import { InvoiceRequestDto } from '@/invoice/domain/interfaces/invoice-request.interface';
 import { CatalogService } from '@/catalog/application/services/catalog.service';
-import { LegalMonetaryTotalsDto, LineDto, PaymentFormDto, SellerOrCustomerDto, TaxTotalDto } from '@/common/domain/interfaces/document-common.interface';
+import { AllowanceChargeDto, LegalMonetaryTotalsDto, LineDto, PaymentFormDto, SellerOrCustomerDto, TaxTotalDto } from '@/common/domain/interfaces/document-common.interface';
 import { ResolutionService } from '@/resolutions/application/services/resolution.service';
 import { GenerateDataService } from '@/common/infrastructure/services/generate-data.service';
 
@@ -47,8 +47,9 @@ export class InvoiceTransformerService implements DocumentTransformer<InvoiceReq
 
     const paymentForm = await this.generatePaymentForms(factura.mediosDePago.MediosDePago);
 
-    const taxTotals = await this.generateTaxtotals(factura.impuestosGenerales.FacturaImpuestos);
-    
+    const { taxes, with_holding_taxes } = await this.generateTaxtotals(factura.impuestosGenerales.FacturaImpuestos);
+
+
     return {
       number: parseInt(number),
       prefix,
@@ -61,8 +62,9 @@ export class InvoiceTransformerService implements DocumentTransformer<InvoiceReq
       legal_monetary_totals: legalMonetaryTotals,
       invoice_lines: invoiceLines,
       payment_form: paymentForm,
-      tax_totals: taxTotals,
+      tax_totals: taxes,
       sendmail: this.generateDataService.sendEmail(customer),
+      with_holding_tax_total: with_holding_taxes.length > 0 ? with_holding_taxes : undefined,
     };
 
   }
@@ -93,7 +95,7 @@ export class InvoiceTransformerService implements DocumentTransformer<InvoiceReq
       type_regime_id: typeRegimeId,
       postal_zone_code: cliente.direccionCliente.zonaPostal,
       address: cliente.direccionCliente.direccion,
-      
+
     };
   }
 
@@ -106,44 +108,62 @@ export class InvoiceTransformerService implements DocumentTransformer<InvoiceReq
   async generateInvoiceLines(facturaDetalle: FacturaDetalleDto | FacturaDetalleDto[]): Promise<LineDto[]> {
     const invoiceLines: LineDto[] = [];
 
+    if (typeof facturaDetalle === "string") {
+      return invoiceLines;
+    }
+
 
     if (Array.isArray(facturaDetalle)) {
-      await facturaDetalle.forEach(async (detalle) => {
+
+      for (const detalle of facturaDetalle) {
         const unitMeasureId = await this.catalogService.getUnitMeasureIdByCode(detalle.unidadMedida);
         const typeItemIdentificationId = await this.catalogService.getTypeItemIdentificationIdByCode(detalle.estandarCodigoProducto);
-        const impuestos = await this.generateTaxtotals(detalle.impuestosDetalles.FacturaImpuestos);
+        const { taxes, allowance_charges } = await this.generateTaxtotals(detalle.impuestosDetalles.FacturaImpuestos);
+
+        const allowanceChargesGeneral: AllowanceChargeDto[] = this.generateAllowanceCharges(detalle.cargosDescuentos?.CargosDescuentos);
+
+        const allowanceCharges: AllowanceChargeDto[] = allowance_charges.concat(allowanceChargesGeneral);
 
         invoiceLines.push({
           unit_measure_id: unitMeasureId,
           invoiced_quantity: Number(detalle.cantidadUnidades),
           line_extension_amount: Number(detalle.precioTotalSinImpuestos),
-          tax_totals: impuestos,
+          tax_totals: taxes,
           description: detalle.descripcion,
           code: detalle.codigoProducto,
           type_item_identification_id: typeItemIdentificationId,
           price_amount: Number(detalle.precioVentaUnitario),
           base_quantity: Number(detalle.cantidadPorEmpaque),
           free_of_charge_indicator: false,
+          allowance_charges: allowanceCharges.length > 0 ? allowanceCharges : undefined,
 
         });
-      });
+      }
     } else {
 
       const unitMeasureId = await this.catalogService.getUnitMeasureIdByCode(facturaDetalle.unidadMedida);
       const typeItemIdentificationId = await this.catalogService.getTypeItemIdentificationIdByCode(facturaDetalle.estandarCodigoProducto);
-      const impuestos = await this.generateTaxtotals(facturaDetalle.impuestosDetalles.FacturaImpuestos);
+      const { taxes, allowance_charges } = await this.generateTaxtotals(facturaDetalle.impuestosDetalles.FacturaImpuestos);
+
+      console.log(facturaDetalle.cargosDescuentos);
+      
+
+      const allowanceChargesGeneral: AllowanceChargeDto[] = this.generateAllowanceCharges(facturaDetalle?.cargosDescuentos?.CargosDescuentos);
+
+      const allowanceCharges: AllowanceChargeDto[] = allowance_charges.concat(allowanceChargesGeneral);
 
       invoiceLines.push({
         unit_measure_id: unitMeasureId,
         invoiced_quantity: Number(facturaDetalle.cantidadUnidades),
         line_extension_amount: Number(facturaDetalle.precioTotalSinImpuestos),
-        tax_totals: impuestos,
+        tax_totals: taxes,
         description: facturaDetalle.descripcion,
         code: facturaDetalle.codigoProducto,
         type_item_identification_id: typeItemIdentificationId,
         price_amount: Number(facturaDetalle.precioVentaUnitario),
         base_quantity: Number(facturaDetalle.cantidadPorEmpaque),
         free_of_charge_indicator: false,
+        allowance_charges: allowanceCharges.length > 0 ? allowanceCharges : undefined,
       });
     }
 
@@ -155,34 +175,89 @@ export class InvoiceTransformerService implements DocumentTransformer<InvoiceReq
    * @param impuestos - Impuestos de la factura
    * @returns TaxTotalDto[] - Impuestos de la factura
    */
-  async generateTaxtotals(impuestos: FacturaImpuestosDto | FacturaImpuestosDto[]): Promise<TaxTotalDto[]> {
+  async generateTaxtotals(impuestos: FacturaImpuestosDto | FacturaImpuestosDto[]): Promise<{ taxes: TaxTotalDto[], allowance_charges: AllowanceChargeDto[], with_holding_taxes: TaxTotalDto[] }> {
     const taxTotals: TaxTotalDto[] = [];
+    const allowance_charges: AllowanceChargeDto[] = [];
+    const withholding_taxes: TaxTotalDto[] = [];
+    if (typeof impuestos === "string") {
+      return { taxes: taxTotals, allowance_charges: allowance_charges, with_holding_taxes: withholding_taxes };
+    }
 
     if (Array.isArray(impuestos)) {
-      await impuestos.forEach(async (impuesto) => {
+      for (const impuesto of impuestos) {
         const taxtId = await this.catalogService.getTaxIdByCode(impuesto.codigoTOTALImp);
         const unitMeasureId = await this.catalogService.getUnitMeasureIdByCode(impuesto.unidadMedida);
-        taxTotals.push({
-          tax_id: taxtId,
-          tax_amount: Number(impuesto.valorTOTALImp),
-          percent: Number(impuesto.porcentajeTOTALImp),
-          taxable_amount: Number(impuesto.baseImponibleTOTALImp),
-          unit_measure_id: unitMeasureId,
-        });
-      });
+        if (taxtId === 10) {
+          taxTotals.push({
+            tax_id: taxtId,
+            unit_measure_id: 70,
+            tax_amount: Number(impuesto.valorTOTALImp),
+            taxable_amount: 0,
+            percent: 0,
+            per_unit_amount: Number(impuesto.valorTributoUnidad),
+            base_unit_measure: 1,
+          });
+
+          allowance_charges.push({
+            charge_indicator: false,
+            allowance_charge_reason: "DESCUENTO GENERAL",
+            amount: 0,
+            base_amount: Number(impuesto.valorTOTALImp),
+          });
+
+        } else if ([5, 6, 7].includes(taxtId)) {
+          withholding_taxes.push({
+            tax_id: taxtId,
+            tax_amount: Number(impuesto.valorTOTALImp),
+            percent: Number(impuesto.porcentajeTOTALImp),
+            taxable_amount: Number(impuesto.baseImponibleTOTALImp),
+            unit_measure_id: unitMeasureId,
+          });
+
+        } else {
+          taxTotals.push({
+            tax_id: taxtId,
+            tax_amount: Number(impuesto.valorTOTALImp),
+            percent: Number(impuesto.porcentajeTOTALImp),
+            taxable_amount: Number(impuesto.baseImponibleTOTALImp),
+            unit_measure_id: unitMeasureId,
+          });
+        }
+
+
+      }
     } else {
       const taxtId = await this.catalogService.getTaxIdByCode(impuestos.codigoTOTALImp);
       const unitMeasureId = await this.catalogService.getUnitMeasureIdByCode(impuestos.unidadMedida);
-      taxTotals.push({
-        tax_id: taxtId,
-        tax_amount: Number(impuestos.valorTOTALImp),
-        percent: Number(impuestos.porcentajeTOTALImp),
-        taxable_amount: Number(impuestos.baseImponibleTOTALImp),
-        unit_measure_id: unitMeasureId,
-      });
-    }
+      if (taxtId === 10) {
+        taxTotals.push({
+          tax_id: taxtId,
+          unit_measure_id: 70,
+          tax_amount: Number(impuestos.valorTOTALImp),
+          taxable_amount: 0,
+          percent: 0,
+          per_unit_amount: Number(impuestos.valorTributoUnidad),
+          base_unit_measure: 1,
+        });
 
-    return taxTotals;
+        allowance_charges.push({
+          charge_indicator: false,
+          allowance_charge_reason: "DESCUENTO GENERAL",
+          amount: 0,
+          base_amount: Number(impuestos.baseImponibleTOTALImp),
+        });
+
+      } else {
+        taxTotals.push({
+          tax_id: taxtId,
+          tax_amount: Number(impuestos.valorTOTALImp),
+          percent: Number(impuestos.porcentajeTOTALImp),
+          taxable_amount: Number(impuestos.baseImponibleTOTALImp),
+          unit_measure_id: unitMeasureId,
+        });
+      }
+    }
+    return { taxes: taxTotals, allowance_charges: allowance_charges, with_holding_taxes: withholding_taxes };
   }
 
 
@@ -195,8 +270,12 @@ export class InvoiceTransformerService implements DocumentTransformer<InvoiceReq
 
     const paymentForms: PaymentFormDto[] = [];
 
+    if (typeof mediosDePago === "string") {
+      return paymentForms;
+    }
+
     if (Array.isArray(mediosDePago)) {
-      await mediosDePago.forEach(async (medioDePago) => {
+      for (const medioDePago of mediosDePago) {
         const paymentFormId = await this.catalogService.getPaymentFormIdByCode(medioDePago.metodoDePago);
         const paymentMethodId = await this.catalogService.getPaymentMethodIdByCode(medioDePago.medioPago);
 
@@ -209,8 +288,8 @@ export class InvoiceTransformerService implements DocumentTransformer<InvoiceReq
         };
 
         paymentForms.push(paymentForm);
-      });
-    }else{
+      }
+    } else {
       const paymentFormId = await this.catalogService.getPaymentFormIdByCode(mediosDePago.metodoDePago);
       const paymentMethodId = await this.catalogService.getPaymentMethodIdByCode(mediosDePago.medioPago);
       const paymentForm: PaymentFormDto = {
@@ -223,5 +302,39 @@ export class InvoiceTransformerService implements DocumentTransformer<InvoiceReq
     }
 
     return paymentForms;
+  }
+
+  /**
+   * Genera los cargos y descuentos de la factura
+   * @param cargosDescuento - Cargos y descuentos de la factura
+   * @returns AllowanceChargeDto[] - Cargos y descuentos de la factura
+   */
+  generateAllowanceCharges(cargosDescuento: CargosDescuentoDto | CargosDescuentoDto[]): AllowanceChargeDto[] {
+    const allowanceCharges: AllowanceChargeDto[] = [];
+
+    if (typeof cargosDescuento === "string" || !cargosDescuento) {
+      return allowanceCharges;
+    }
+
+    if (Array.isArray(cargosDescuento)) {
+      cargosDescuento.forEach((cargosDescuento) => {
+        const allowanceCharge: AllowanceChargeDto = {
+          charge_indicator: cargosDescuento.indicador === "1",
+          allowance_charge_reason: cargosDescuento.descripcion,
+          amount: Number(cargosDescuento.monto),
+          base_amount: Number(cargosDescuento.montoBase),
+        };
+        allowanceCharges.push(allowanceCharge);
+      });
+    } else {
+      const allowanceCharge: AllowanceChargeDto = {
+        charge_indicator: false,
+        allowance_charge_reason: cargosDescuento.descripcion,
+        amount: Number(cargosDescuento.monto),
+        base_amount: Number(cargosDescuento.montoBase),
+      };
+      allowanceCharges.push(allowanceCharge);
+    }
+    return allowanceCharges;
   }
 } 
