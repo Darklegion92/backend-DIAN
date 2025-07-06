@@ -234,4 +234,18 @@ export class CompanyWithCertificateDto {
     example: 'API DE FACTURACION ELECTRONICA',
   })
   mailFromName: string;
+
+  @ApiPropertyOptional({
+    description: 'Token de la empresa',
+    example: '1234567890dasdas',
+    nullable: true,
+  })
+  tokenEmpresa?: string;
+
+  @ApiPropertyOptional({
+    description: 'Contraseña del usuario DIAN responsable de la empresa',
+    example: '1234567dfsfsfs890',
+    nullable: true,
+  })
+  tokenPassword?: string;
 } 

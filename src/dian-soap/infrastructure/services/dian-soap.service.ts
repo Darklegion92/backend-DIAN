@@ -76,7 +76,18 @@ export class DianSoapService implements OnModuleInit {
                   throw new Error('Faltan datos requeridos: tokenEmpresa, tokenPassword o factura');
                 }
 
-                const company = await this.companyService.getCompanyByNit("901309622");
+                const company = await this.companyService.getCompanyByTokenEmpresa(tokenEmpresa);
+
+                if (!company || company.tokenPassword !== tokenPassword) {
+                  return new EnviarResponseDto({
+                    codigo: 401,
+                    consecutivoDocumento: factura.consecutivoDocumento || `PRUE${Date.now()}`,
+                    esValidoDian: false,
+                    mensaje: 'Token o contraseña incorrectos',
+                    mensajesValidacion: [],
+                  });
+                }
+
                 const documentoTransformado = await this.documentTransformerFactory.transform(factura, company.id);
 
                 soapLogger.info('Documento transformado', {
