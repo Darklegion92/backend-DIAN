@@ -383,4 +383,15 @@ export class ResolutionService {
       );
     }
   }
+
+  async getResolutionNumber(prefix: string, companyId: number) {
+    const resolution = await this.resolutionRepository.findOne({
+      where: {
+        prefix,
+        companyId
+      }
+    });
+    return resolution.resolution;
+  }
+
 } 

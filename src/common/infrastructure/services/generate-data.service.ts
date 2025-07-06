@@ -31,7 +31,7 @@ export class GenerateDataService {
       municipality_id: municipalityId,
       type_liability_id: typeLiabilityId || 117,
       type_regime_id: typeRegimeId || 2,
-      postal_zone_code: parseInt(data[68]) || 1,
+      postal_zone_code: data[68] || "000000",
       address: data[62] || 'Sin dirección'
     };
   }
@@ -184,6 +184,31 @@ export class GenerateDataService {
     const pdfFileName = urlinvoicepdf || `${documentPrefix}documento.pdf`;
     
     return pdfFileName;
+  }
+
+  /**
+   * Valida si el correo electrónico y el número de identificación son válidos
+   * @param customer - Cliente de la factura
+   * @returns boolean - true si el correo electrónico y el número de identificación son válidos, false en caso contrario
+   */
+  sendEmail(customer: SellerOrCustomerDto): boolean {
+
+    if(!customer.email){
+      return false;
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if(!emailRegex.test(customer.email)){
+      return false;
+    }
+
+    const repeatedDigitsRegex = /(\d)\1{4,}/;
+    if(repeatedDigitsRegex.test(customer.identification_number)){
+      return false;
+    }
+
+    return true;
+
   }
 
 }

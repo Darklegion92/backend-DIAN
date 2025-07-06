@@ -358,6 +358,12 @@ export class CatalogService {
     };
   }
 
+
+  async getMunicipalityIdByCode(code: string): Promise<number> {
+    const municipality = await this.getMunicipalityByCode(code);
+    return municipality.id;
+  }
+
   /**
    * Obtener unidades de medida activas
    */
