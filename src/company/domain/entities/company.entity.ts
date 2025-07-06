@@ -320,13 +320,13 @@ export class Company {
     description: 'Token de la empresa',
     example: '1234567890dasdas',
   })
-  @Column({ name: 'token_empresa', type: 'varchar', length: 20, nullable: true })
+  @Column({ name: 'tokenEmpresa', type: 'varchar', length: 20, nullable: true })
   tokenEmpresa: string;
 
   @ApiPropertyOptional({
     description: 'Contraseña del usuario DIAN responsable de la empresa',
     example: '1234567dfsfsfs890',
   })
-  @Column({ name: 'token_password', type: 'varchar', length: 20, nullable: true })
+  @Column({ name: 'tokenPassword', type: 'varchar', length: 20, nullable: true })
   tokenPassword: string;   
 } 

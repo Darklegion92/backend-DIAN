@@ -46,8 +46,6 @@ export class CompanyService {
         );
       }
 
-
-
       // Extraer nit y digito del body
       const { nit, digito, ...dataToSend } = companyData;
       const url = `${externalServerUrl}/config/${nit}/${digito}`;
@@ -300,6 +298,7 @@ export class CompanyService {
       imapPort: company.imapPort,
       imapUser: company.imapUser,
       imapEncryption: company.imapEncryption,
+      imapPassword: company.imapPassword,
       soltecUserId: company.soltecUserId,
       createdAt: company.createdAt,
       updatedAt: company.updatedAt,
@@ -324,7 +323,7 @@ export class CompanyService {
   async getCompanyByTokenEmpresa(tokenEmpresa: string): Promise<CompanyWithCertificateDto  | null> {
     const company = await this.companyRepository.createQueryBuilder('company')
       .leftJoinAndSelect('company.soltecUser', 'soltecUser')
-      .where('company.token_empresa = :tokenEmpresa', { tokenEmpresa })
+      .where('company.tokenEmpresa = :tokenEmpresa', { tokenEmpresa })
       .getOne();
 
     if (!company) {

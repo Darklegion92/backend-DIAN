@@ -140,6 +140,12 @@ export class CompanyWithCertificateDto {
   imapEncryption: string;
 
   @ApiPropertyOptional({
+    description: 'Contraseña del servidor de correo',
+    example: 'password',
+  })
+  imapPassword: string;
+
+  @ApiPropertyOptional({
     description: 'ID del usuario Soltec asignado a la empresa',
     example: 'uuid-string-here',
   })
