@@ -16,6 +16,7 @@ import { CommonModule } from '@/common/common.module';
 import { EnviarHandler } from './infrastructure/handlers/enviar.handler';
 import { EstadoDocumentoHandler } from './infrastructure/handlers/estado-documento.handler';
 import { EnvioCorreoHandler } from './infrastructure/handlers/envio-correo.handler';
+import { DescargaPdfHandler } from './infrastructure/handlers/descarga-pdf.handler';
 import { CompaniesModule } from '@/company/companies.module';
 
 @Module({
@@ -38,6 +39,7 @@ import { CompaniesModule } from '@/company/companies.module';
     EnviarHandler,
     EstadoDocumentoHandler,
     EnvioCorreoHandler,
+    DescargaPdfHandler,
   ],
   exports: [DianSoapService],
 })

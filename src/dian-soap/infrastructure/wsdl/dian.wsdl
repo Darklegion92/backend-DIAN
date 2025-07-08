@@ -185,6 +185,37 @@
           </xsd:sequence>
         </xsd:complexType>
       </xsd:element>
+
+      <!-- DescargaPDF Request -->
+      <xsd:element name="DescargaPDF">
+        <xsd:complexType>
+          <xsd:sequence>
+            <xsd:element name="tokenEmpresa" type="xsd:string"/>
+            <xsd:element name="tokenPassword" type="xsd:string"/>
+            <xsd:element name="documento" type="xsd:string"/>
+          </xsd:sequence>
+        </xsd:complexType>
+      </xsd:element>
+
+      <!-- DescargaPDF Response -->
+      <xsd:element name="DescargaPDFResponse">
+        <xsd:complexType>
+          <xsd:sequence>
+            <xsd:element name="DescargaPDFResult">
+              <xsd:complexType>
+                <xsd:sequence>
+                  <xsd:element name="codigo" type="xsd:int"/>
+                  <xsd:element name="cufe" type="xsd:string"/>
+                  <xsd:element name="documento" type="xsd:string"/>
+                  <xsd:element name="hash" type="xsd:string"/>
+                  <xsd:element name="mensaje" type="xsd:string"/>
+                  <xsd:element name="resultado" type="xsd:string"/>
+                </xsd:sequence>
+              </xsd:complexType>
+            </xsd:element>
+          </xsd:sequence>
+        </xsd:complexType>
+      </xsd:element>
     </xsd:schema>
   </wsdl:types>
 
@@ -219,6 +250,12 @@
   <wsdl:message name="EnvioCorreoSoapOut">
     <wsdl:part name="parameters" element="tns:EnvioCorreoResponse"/>
   </wsdl:message>
+  <wsdl:message name="DescargaPDFSoapIn">
+    <wsdl:part name="parameters" element="tns:DescargaPDF"/>
+  </wsdl:message>
+  <wsdl:message name="DescargaPDFSoapOut">
+    <wsdl:part name="parameters" element="tns:DescargaPDFResponse"/>
+  </wsdl:message>
 
   <!-- Port Type -->
   <wsdl:portType name="IService">
@@ -241,6 +278,10 @@
     <wsdl:operation name="EnvioCorreo">
       <wsdl:input message="tns:EnvioCorreoSoapIn"/>
       <wsdl:output message="tns:EnvioCorreoSoapOut"/>
+    </wsdl:operation>
+    <wsdl:operation name="DescargaPDF">
+      <wsdl:input message="tns:DescargaPDFSoapIn"/>
+      <wsdl:output message="tns:DescargaPDFSoapOut"/>
     </wsdl:operation>
   </wsdl:portType>
 
@@ -284,7 +325,16 @@
       </wsdl:output>
     </wsdl:operation>
     <wsdl:operation name="EnvioCorreo">
-      <soap:operation soapAction="http://tempuri.org/IService/EnvioCorreo"/>
+      <soap:operation soapAction="http://tempuri.org/EnvioCorreo"/>
+      <wsdl:input>
+        <soap:body use="literal"/>
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal"/>
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="DescargaPDF">
+      <soap:operation soapAction="http://tempuri.org/DescargaPDF" style="document"/>
       <wsdl:input>
         <soap:body use="literal"/>
       </wsdl:input>

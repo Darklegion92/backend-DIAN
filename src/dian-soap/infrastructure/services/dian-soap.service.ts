@@ -9,6 +9,7 @@ import { AdjuntosSoapService } from './adjuntos-soap.service';
 import { EnviarHandler } from '../handlers/enviar.handler';
 import { EstadoDocumentoHandler } from '../handlers/estado-documento.handler';
 import { EnvioCorreoHandler } from '../handlers/envio-correo.handler';
+import { DescargaPdfHandler } from '../handlers/descarga-pdf.handler';
 
 @Injectable()
 export class DianSoapService implements OnModuleInit {
@@ -21,6 +22,7 @@ export class DianSoapService implements OnModuleInit {
     private readonly enviarHandler: EnviarHandler,
     private readonly estadoDocumentoHandler: EstadoDocumentoHandler,
     private readonly envioCorreoHandler: EnvioCorreoHandler,
+    private readonly descargaPdfHandler: DescargaPdfHandler,
   ) {
     // Busca el archivo WSDL en el directorio src o dist
     const srcPath = path.join(__dirname, '..', 'wsdl', 'dian.wsdl');
@@ -61,6 +63,7 @@ export class DianSoapService implements OnModuleInit {
             Enviar: (args: any) => this.enviarHandler.handle(args),
             EstadoDocumento: (args: any) => this.estadoDocumentoHandler.handle(args),
             EnvioCorreo: (args: any) => this.envioCorreoHandler.handle(args),
+            DescargaPDF: (args: any) => this.descargaPdfHandler.handle(args),
             CargarAdjuntos: async (args: any) => {
               soapLogger.info('Invocando CargarAdjuntos desde serviceObject');
               return this.adjuntosSoapService.cargarAdjuntos(args);
