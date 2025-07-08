@@ -26,7 +26,7 @@ export class EnvioCorreoHandler {
     try {
       const { tokenEmpresa, tokenPassword, documento, correo, adjuntos } = args;
 
-      if (!tokenEmpresa || !tokenPassword || !documento || !correo || !adjuntos) {
+      if (!tokenEmpresa || !tokenPassword || !documento || !adjuntos) {
         throw new Error('Faltan datos requeridos: tokenEmpresa, tokenPassword, documento, correo o adjuntos');
       }
 
@@ -67,13 +67,16 @@ export class EnvioCorreoHandler {
       </div>
     `;
 
+    const email_cc_list = !!correo ? [{email: correo}] : null;
+
       const sendEmail = await this.mailService.sendMailWithCompanyConfig({
         prefix,
         number: number.toString(),
         token: company.tokenDian,
-        email_cc_list: [{email: correo}],
+        email_cc_list,
         html_body: body,  
       });
+
 
       if (sendEmail.success) {
         return {
@@ -89,6 +92,7 @@ export class EnvioCorreoHandler {
         resultado: 'Error',
       };
     } catch (error) {
+      console.log("error", error);
       soapLogger.error('Error en EnvioCorreo', { requestId, error: error.message });
       return {
         codigo: 500,
