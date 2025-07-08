@@ -17,7 +17,13 @@ export class GenerateDataService {
     const typeDocumentIdentificationId: number = await this.databaseUtils.findIdByCode(data[6], 'type_document_identifications');
     const typeLiabilityId: number = await this.databaseUtils.findIdByCode(data[9], 'type_liabilities');
     const typeRegimeId: number = await this.databaseUtils.findIdByCode(data[13], 'type_regimes');
-    const municipalityId: number = await this.databaseUtils.findIdByCode(data[5], 'municipalities');
+
+    let codeMunicipality: string = data[66];
+    if(codeMunicipality.length === 4){
+      codeMunicipality = "0" + codeMunicipality;
+    }
+
+    const municipalityId: number = await this.databaseUtils.findIdByCode(codeMunicipality, 'municipalities');
 
     return {
       identification_number: data[5],
@@ -83,11 +89,6 @@ export class GenerateDataService {
           taxTotals.push(taxTotal);
           break;
       }
-
-
-
-
-      taxTotals.push(taxTotal);
     }
 
     return taxTotals;
