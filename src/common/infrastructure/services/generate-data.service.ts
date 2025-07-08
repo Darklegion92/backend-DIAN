@@ -167,7 +167,7 @@ export class GenerateDataService {
    * @param urlinvoicepdf - URL del PDF de la respuesta DIAN (ej: "FES-123.pdf")
    * @returns Nombre del documento formateado
    */
-  public buildDocumentName(typeDocument: string, urlinvoicepdf: string): string {
+  public buildDocumentName(typeDocument: string, urlinvoicepdf: string, name?: string): string {
     let documentPrefix = '';
 
     switch (typeDocument) {
@@ -182,7 +182,7 @@ export class GenerateDataService {
         break;
     }
 
-    const pdfFileName = urlinvoicepdf || `${documentPrefix}documento.pdf`;
+    const pdfFileName = urlinvoicepdf || `${documentPrefix}${name}`;
     
     return pdfFileName;
   }
