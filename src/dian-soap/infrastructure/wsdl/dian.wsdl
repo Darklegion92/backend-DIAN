@@ -155,6 +155,36 @@
           </xsd:sequence>
         </xsd:complexType>
       </xsd:element>
+
+      <!-- EnvioCorreo Request -->
+      <xsd:element name="EnvioCorreo">
+        <xsd:complexType>
+          <xsd:sequence>
+            <xsd:element name="tokenEmpresa" type="xsd:string"/>
+            <xsd:element name="tokenPassword" type="xsd:string"/>
+            <xsd:element name="documento" type="xsd:string"/>
+            <xsd:element name="correo" type="xsd:string"/>
+            <xsd:element name="adjuntos" type="xsd:string"/>
+          </xsd:sequence>
+        </xsd:complexType>
+      </xsd:element>
+
+      <!-- EnvioCorreo Response -->
+      <xsd:element name="EnvioCorreoResponse">
+        <xsd:complexType>
+          <xsd:sequence>
+            <xsd:element name="EnvioCorreoResult">
+              <xsd:complexType>
+                <xsd:sequence>
+                  <xsd:element name="codigo" type="xsd:int"/>
+                  <xsd:element name="mensaje" type="xsd:string"/>
+                  <xsd:element name="resultado" type="xsd:string"/>
+                </xsd:sequence>
+              </xsd:complexType>
+            </xsd:element>
+          </xsd:sequence>
+        </xsd:complexType>
+      </xsd:element>
     </xsd:schema>
   </wsdl:types>
 
@@ -183,6 +213,12 @@
   <wsdl:message name="EliminarAdjuntosSoapOut">
     <wsdl:part name="parameters" element="tns:EliminarAdjuntosResponse"/>
   </wsdl:message>
+  <wsdl:message name="EnvioCorreoSoapIn">
+    <wsdl:part name="parameters" element="tns:EnvioCorreo"/>
+  </wsdl:message>
+  <wsdl:message name="EnvioCorreoSoapOut">
+    <wsdl:part name="parameters" element="tns:EnvioCorreoResponse"/>
+  </wsdl:message>
 
   <!-- Port Type -->
   <wsdl:portType name="IService">
@@ -201,6 +237,10 @@
     <wsdl:operation name="EliminarAdjuntos">
       <wsdl:input message="tns:EliminarAdjuntosSoapIn"/>
       <wsdl:output message="tns:EliminarAdjuntosSoapOut"/>
+    </wsdl:operation>
+    <wsdl:operation name="EnvioCorreo">
+      <wsdl:input message="tns:EnvioCorreoSoapIn"/>
+      <wsdl:output message="tns:EnvioCorreoSoapOut"/>
     </wsdl:operation>
   </wsdl:portType>
 
@@ -236,6 +276,15 @@
     </wsdl:operation>
     <wsdl:operation name="EliminarAdjuntos">
       <soap:operation soapAction="http://tempuri.org/IService/EliminarAdjuntos"/>
+      <wsdl:input>
+        <soap:body use="literal"/>
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal"/>
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="EnvioCorreo">
+      <soap:operation soapAction="http://tempuri.org/IService/EnvioCorreo"/>
       <wsdl:input>
         <soap:body use="literal"/>
       </wsdl:input>

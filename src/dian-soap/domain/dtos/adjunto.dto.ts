@@ -1,6 +1,6 @@
 export class AdjuntoDto {
   archivo: Buffer;           // Arreglo de bytes del archivo
-  email: string[];          // Correos destinatarios
+  email: string[] | {string: string};          // Correos destinatarios
   enviar: '0' | '1';        // 0: Solo adjunta, 1: Adjunta y envía
   formato: string;          // Extensión del archivo (png, bmp, jpg, pdf, doc, docx, xls, xlsx, ppt, pptx, rar)
   nombre: string;           // Nombre del archivo adjunto

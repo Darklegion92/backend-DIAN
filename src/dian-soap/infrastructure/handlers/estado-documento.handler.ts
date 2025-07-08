@@ -1,10 +1,19 @@
 import { Injectable } from '@nestjs/common';
-import { createHash } from 'crypto';
-import { soapLogger } from '../services/logger.service';
+import { IEstadoDocumentoRequest } from '../../domain/interfaces/estado-documento-request.interface';
+import { IEstadoDocumentoResponse } from '../../domain/interfaces/estado-documento-response.interface';
+import { soapLogger } from '../services/logger.service'; 
+import { DocumentService } from '@/document/infrastructure/services/document.service';
+import { GenerateDataService } from '@/common/infrastructure/services/generate-data.service';
+import { CompanyService } from '@/company/application/services/company.service';
+import { Document } from '@/document/domain/entities/document.entity';
 
 @Injectable()
 export class EstadoDocumentoHandler {
-  async handle(args: any): Promise<any> {
+  constructor(private readonly documentService: DocumentService, 
+    private readonly generateDataService: GenerateDataService,
+    private readonly companyService: CompanyService) {}
+
+  async handle(args: IEstadoDocumentoRequest): Promise<IEstadoDocumentoResponse> {
     const requestId = Date.now().toString();
     soapLogger.info('Recibida solicitud EstadoDocumento', {
       requestId,
@@ -17,31 +26,120 @@ export class EstadoDocumentoHandler {
       if (!tokenEmpresa || !tokenPassword || !documento) {
         throw new Error('Faltan datos requeridos: tokenEmpresa, tokenPassword o documento');
       }
-      return {
-        EstadoDocumentoResult: {
-          codigo: 200,
-          mensaje: 'Documento encontrado',
-          resultado: 'Procesado',
-          procesado: true,
-          fechaRespuesta: new Date().toISOString().slice(0, 19).replace('T', ' '),
-          hash: createHash('sha384').update(documento).digest('hex'),
-        },
-      };
-    } catch (error) {
-      soapLogger.error('Error procesando solicitud EstadoDocumento', {
-        requestId,
-        error: error.message,
-        stack: error.stack,
-      });
+
+      let { number, prefix } = this.generateDataService.getNumberAndPrefixString(documento);
+
+      const company = await this.companyService.getCompanyByTokenEmpresa(tokenEmpresa);
+
+      if(prefix === "SETP"){
+        number = number + 990080000;
+      }
+
+
+      const document:Document = await this.documentService.getDocument(prefix, number.toString(), company.identificationNumber);
+
+      if(!document){
+        return  {
+          EstadoDocumentoResult: {
+            aceptacionFisica: false,
+            acuseComentario: '',
+            acuseEstatus: '',
+            acuseResponsable: '',
+            acuseRespuesta: '',
+            ambiente: '',
+            cadenaCodigoQR: '',
+            cadenaCufe: '',
+            Codigo: 500,
+            consecutivo: '',
+            cufe: '',
+            DescriptionDocumento: '',
+            DescriptionEstatusDocumento: '',
+            entregaMetodoDIAN: '',
+            esValidoDIAN: false,
+            estatusDocumento: 'ERROR',
+            eventos: [],
+            fechaAceptacionDIAN: '',
+            fechaDocumento: '',
+            historialDeEntregas: [],
+            mensaje: "No se pudo validar el documento",
+            mensajeDocumento: "Documento no encontrado",
+            poseeAdjuntos: false,
+            poseeRepresentacionGrafica: false,
+            reglasValidacionDIAN: [],
+            resultado: 'Error',
+            tipoCufe: '',
+            tipoDocumento: '',
+            trackID: '',
+          },
+        };
+      }
 
       return {
         EstadoDocumentoResult: {
-          codigo: 500,
+          aceptacionFisica: true,
+          acuseComentario: 'Comentario de acuse de recibo.',
+          acuseEstatus: '1',
+          acuseResponsable: 'acquirer@example.com',
+          acuseRespuesta: '1',
+          ambiente: '1',
+          cadenaCodigoQR: 'mnvbghjkghjkgjkh',
+          cadenaCufe: 'Cadena de ejemplo para el CUFE',
+          Codigo: 200,
+          consecutivo: documento,
+          cufe: document.cufe,
+          DescriptionDocumento: 'Factura de Venta Nacional',
+          DescriptionEstatusDocumento: 'Procesado Correctamente',
+          entregaMetodoDIAN: 'Asincrónico',
+          esValidoDIAN: true,
+          estatusDocumento: 'DIAN_PROCESSED',
+          eventos: [],
+          fechaAceptacionDIAN: document.dateIssue.toISOString().slice(0, 19).replace('T', ' '),
+          fechaDocumento: document.createdAt.toISOString().slice(0, 19).replace('T', ' '),
+          historialDeEntregas: [],
+          mensaje: 'Documento encontrado',
+          mensajeDocumento: '',
+          poseeAdjuntos: false,
+          poseeRepresentacionGrafica: true,
+          reglasValidacionDIAN: [],
+          resultado: 'Procesado',
+          tipoCufe: 'SHA-384',
+          tipoDocumento: '01',
+          trackID: 'track-id-ejemplo-12345',
+        },
+      };
+    } catch (error) {
+
+      return {
+        EstadoDocumentoResult: {
+          aceptacionFisica: false,
+          acuseComentario: '',
+          acuseEstatus: '0',
+          acuseResponsable: '',
+          acuseRespuesta: '0',
+          ambiente: '',
+          cadenaCodigoQR: '',
+          cadenaCufe: '',
+          Codigo: 500,
+          consecutivo: '',
+          cufe: '',
+          DescriptionDocumento: '',
+          DescriptionEstatusDocumento: '',
+          entregaMetodoDIAN: '',
+          esValidoDIAN: false,
+          estatusDocumento: 'ERROR',
+          eventos: [],
+          fechaAceptacionDIAN: '',
+          fechaDocumento: '',
+          historialDeEntregas: [],
           mensaje: error.message,
+          mensajeDocumento: error.message,
+          poseeAdjuntos: false,
+          poseeRepresentacionGrafica: false,
+          reglasValidacionDIAN: [],
           resultado: 'Error',
-          procesado: false,
-          fechaRespuesta: new Date().toISOString().slice(0, 19).replace('T', ' '),
-          hash: createHash('sha384').update(error.message).digest('hex'),
+          tipoCufe: '',
+          tipoDocumento: '',
+          trackID: '',
         },
       };
     }

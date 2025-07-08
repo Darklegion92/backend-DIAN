@@ -6,7 +6,6 @@ import { DocumentTransformerFactory } from './infrastructure/services/transforme
 import { InvoiceTransformerService } from './infrastructure/services/transformers/invoice-transformer.service';
 import { CreditNoteTransformerService } from './infrastructure/services/transformers/credit-note-transformer.service';
 import { AdjuntosSoapService } from './infrastructure/services/adjuntos-soap.service';
-import { XmlDownloaderService } from './infrastructure/services/xml-downloader.service';
 
 import { DocumentModule } from '@/document/document.module';
 import { CatalogModule } from '@/catalog/catalog.module';
@@ -16,6 +15,7 @@ import { CommonModule } from '@/common/common.module';
 
 import { EnviarHandler } from './infrastructure/handlers/enviar.handler';
 import { EstadoDocumentoHandler } from './infrastructure/handlers/estado-documento.handler';
+import { EnvioCorreoHandler } from './infrastructure/handlers/envio-correo.handler';
 import { CompaniesModule } from '@/company/companies.module';
 
 @Module({
@@ -35,9 +35,9 @@ import { CompaniesModule } from '@/company/companies.module';
     InvoiceTransformerService,
     CreditNoteTransformerService,
     AdjuntosSoapService,
-    XmlDownloaderService,
     EnviarHandler,
     EstadoDocumentoHandler,
+    EnvioCorreoHandler,
   ],
   exports: [DianSoapService],
 })
