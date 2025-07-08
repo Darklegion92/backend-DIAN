@@ -59,20 +59,41 @@ export class ProcessInvoiceUseCase implements DocumentProcessorPort {
 
       const pdfDocument = await this.generateInvoicePdf(dianResponse, dto.nit);
 
-      const response: SendDocumentElectronicResponse = {
-        success: true,
-        message: 'Factura electrónica procesada correctamente',
-        data: {
-          cufe: dianResponse.cufe,
-          date: this.generateDataService.formatDateAndTime(new Date()),
-          document: pdfDocument
+
+      if(dianResponse.ResponseDian.Envelope.Body.SendBillSyncResponse.SendBillSyncResult.IsValid === 'True'){
+       return{
+          success: true,
+          message: 'Factura electrónica procesada correctamente',
+          data: {
+            cufe: dianResponse.cufe,
+            date: this.generateDataService.formatDateAndTime(new Date()),
+            document: pdfDocument
+          }
+        };
+      }else{
+        const errorMessage = dianResponse.ResponseDian.Envelope.Body.SendBillSyncResponse.SendBillSyncResult.ErrorMessage;
+        if(errorMessage?.string){
+          return {
+            success: false,
+            message: errorMessage.string,
+            data: {
+              cufe: '',
+              date: '',
+              document: ''
+            }
+          }
+        }else{
+          return {
+            success: false,
+            message: errorMessage.strings.join(', '),
+            data: {
+              cufe: '',
+              date: '',
+              document: ''
+            }
+          }
         }
-      };
-
-      this.logger.log('Factura electrónica procesada exitosamente');
-      this.logger.debug('CUFE generado:', dianResponse.cufe);
-
-      return response;
+      }
 
     } catch (error) {
       this.logger.error('Error al procesar factura electrónica', error);
