@@ -240,6 +240,7 @@ export class CompanyWithCertificateDto {
     example: 'API DE FACTURACION ELECTRONICA',
   })
   mailFromName: string;
+  
 
   @ApiPropertyOptional({
     description: 'Token de la empresa',

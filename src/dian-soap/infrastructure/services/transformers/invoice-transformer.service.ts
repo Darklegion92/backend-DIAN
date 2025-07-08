@@ -19,7 +19,7 @@ export class InvoiceTransformerService implements DocumentTransformer<InvoiceReq
    * @param companyId - ID de la empresa
    * @returns InvoiceRequestDto - Objeto transformado
    */
-  async transform(factura: FacturaGeneralDto, companyId: number): Promise<InvoiceRequestDto> {
+  async transform(factura: FacturaGeneralDto, companyId: number, code?: string): Promise<InvoiceRequestDto> {
 
     if (!factura.cliente) {
       throw new Error('El cliente es requerido para la factura');
@@ -63,7 +63,7 @@ export class InvoiceTransformerService implements DocumentTransformer<InvoiceReq
       invoice_lines: invoiceLines,
       payment_form: paymentForm,
       tax_totals: taxes,
-      sendmail: this.generateDataService.sendEmail(customer),
+      sendmail: this.generateDataService.sendEmail(customer.email, customer.identification_number, code),
       with_holding_tax_total: with_holding_taxes.length > 0 ? with_holding_taxes : undefined,
     };
 

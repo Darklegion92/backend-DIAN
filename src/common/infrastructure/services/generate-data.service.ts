@@ -191,19 +191,24 @@ export class GenerateDataService {
    * @param customer - Cliente de la factura
    * @returns boolean - true si el correo electrónico y el número de identificación son válidos, false en caso contrario
    */
-  sendEmail(customer: SellerOrCustomerDto): boolean {
+  sendEmail(email: string, identificationNumber: string, code?: string): boolean {
 
-    if(!customer.email){
+
+    if(code === "11"){
+      return false
+    }
+
+    if(!email){
       return false;
     }
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if(!emailRegex.test(customer.email)){
+    if(!emailRegex.test(email)){
       return false;
     }
 
     const repeatedDigitsRegex = /(\d)\1{4,}/;
-    if(repeatedDigitsRegex.test(customer.identification_number)){
+    if(repeatedDigitsRegex.test(identificationNumber)){
       return false;
     }
 

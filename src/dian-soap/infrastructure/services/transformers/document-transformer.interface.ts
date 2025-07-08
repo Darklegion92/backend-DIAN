@@ -9,5 +9,5 @@ export interface DocumentTransformer<T> {
    * @param factura Factura general del request SOAP
    * @returns Documento transformado al formato específico
    */
-  transform(factura: FacturaGeneralDto, companyId: number): Promise<T>;
+  transform(factura: FacturaGeneralDto, companyId: number, adjuntos?: string): Promise<T>;
 } 

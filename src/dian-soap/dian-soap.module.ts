@@ -1,28 +1,44 @@
-import { Module, forwardRef } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
+import { HttpModule } from '@nestjs/axios';
+
 import { DianSoapService } from './infrastructure/services/dian-soap.service';
+import { DocumentTransformerFactory } from './infrastructure/services/transformers/document-transformer.factory';
 import { InvoiceTransformerService } from './infrastructure/services/transformers/invoice-transformer.service';
 import { CreditNoteTransformerService } from './infrastructure/services/transformers/credit-note-transformer.service';
-import { DocumentTransformerFactory } from './infrastructure/services/transformers/document-transformer.factory';
+import { AdjuntosSoapService } from './infrastructure/services/adjuntos-soap.service';
+import { XmlDownloaderService } from './infrastructure/services/xml-downloader.service';
+
+import { DocumentModule } from '@/document/document.module';
 import { CatalogModule } from '@/catalog/catalog.module';
-import { CompaniesModule } from '@/company/companies.module';
 import { ResolutionsModule } from '@/resolutions/resolutions.module';
 import { InvoiceModule } from '@/invoice/invoice.module';
-import { DocumentModule } from '@/document/document.module';
+import { CommonModule } from '@/common/common.module';
+
+import { EnviarHandler } from './infrastructure/handlers/enviar.handler';
+import { EstadoDocumentoHandler } from './infrastructure/handlers/estado-documento.handler';
+import { CompaniesModule } from '@/company/companies.module';
 
 @Module({
   imports: [
-    CatalogModule,
+    HttpModule,
     CompaniesModule,
+    CatalogModule,
     ResolutionsModule,
     InvoiceModule,
-    forwardRef(() => DocumentModule)
+    forwardRef(() => DocumentModule),
+    CommonModule,
   ],
+  controllers: [],
   providers: [
     DianSoapService,
+    DocumentTransformerFactory,
     InvoiceTransformerService,
     CreditNoteTransformerService,
-    DocumentTransformerFactory
+    AdjuntosSoapService,
+    XmlDownloaderService,
+    EnviarHandler,
+    EstadoDocumentoHandler,
   ],
-  exports: [DianSoapService]
+  exports: [DianSoapService],
 })
 export class DianSoapModule {} 

@@ -2,6 +2,7 @@ export class SendBillDto {
   fileName: string;
   contentFile: string; // Base64 del XML
 
+  // TODO: Tipar data con una interfaz SendBillDtoProps que defina la estructura esperada
   constructor(data: any) {
     this.fileName = data?.fileName;
     this.contentFile = data?.contentFile;

@@ -13,7 +13,6 @@ export class DocumentTransformerFactory {
 
   getTransformer(tipoDocumento: string): DocumentTransformer<any> {
 
-    console.log("tipoDocumento", tipoDocumento);
     switch (tipoDocumento) {
       case '01':
         return this.invoiceTransformer;
@@ -26,9 +25,9 @@ export class DocumentTransformerFactory {
     }
   }
 
-  transform(factura: FacturaGeneralDto, companyId: number): any {
+  transform(factura: FacturaGeneralDto, companyId: number, adjuntos?: string): any {
     const transformer = this.getTransformer(factura.tipoDocumento);
     
-    return transformer.transform(factura, companyId);
+    return transformer.transform(factura, companyId, adjuntos);
   }
 } 

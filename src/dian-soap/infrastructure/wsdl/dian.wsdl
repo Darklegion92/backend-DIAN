@@ -17,6 +17,13 @@
           <xsd:element name="content" type="xsd:string"/>
         </xsd:sequence>
       </xsd:complexType>
+      
+      <xsd:complexType name="AdjuntoType">
+        <xsd:sequence>
+          <xsd:element name="archivo" type="xsd:base64Binary"/>
+          <xsd:element name="nombre" type="xsd:string"/>
+        </xsd:sequence>
+      </xsd:complexType>
 
       <!-- Enviar Request -->
       <xsd:element name="Enviar">
@@ -62,8 +69,8 @@
         </xsd:complexType>
       </xsd:element>
 
-      <!-- GetStatus Request -->
-      <xsd:element name="GetStatus">
+      <!-- GetStatus (EstadoDocumento) Request -->
+      <xsd:element name="EstadoDocumento">
         <xsd:complexType>
           <xsd:sequence>
             <xsd:element name="tokenEmpresa" type="xsd:string"/>
@@ -73,11 +80,11 @@
         </xsd:complexType>
       </xsd:element>
 
-      <!-- GetStatus Response -->
-      <xsd:element name="GetStatusResponse">
+      <!-- GetStatus (EstadoDocumento) Response -->
+      <xsd:element name="EstadoDocumentoResponse">
         <xsd:complexType>
           <xsd:sequence>
-            <xsd:element name="GetStatusResult">
+            <xsd:element name="EstadoDocumentoResult">
               <xsd:complexType>
                 <xsd:sequence>
                   <xsd:element name="codigo" type="xsd:string"/>
@@ -85,6 +92,63 @@
                   <xsd:element name="resultado" type="xsd:string"/>
                   <xsd:element name="cufe" type="xsd:string" minOccurs="0"/>
                   <xsd:element name="procesado" type="xsd:boolean"/>
+                </xsd:sequence>
+              </xsd:complexType>
+            </xsd:element>
+          </xsd:sequence>
+        </xsd:complexType>
+      </xsd:element>
+
+      <!-- CargarAdjuntos Request -->
+      <xsd:element name="CargarAdjuntos">
+        <xsd:complexType>
+          <xsd:sequence>
+            <xsd:element name="tokenEmpresa" type="xsd:string"/>
+            <xsd:element name="tokenPassword" type="xsd:string"/>
+            <xsd:element name="documento" type="xsd:string"/>
+            <xsd:element name="adjunto" type="tns:AdjuntoType"/>
+          </xsd:sequence>
+        </xsd:complexType>
+      </xsd:element>
+
+      <!-- CargarAdjuntos Response -->
+      <xsd:element name="CargarAdjuntosResponse">
+        <xsd:complexType>
+          <xsd:sequence>
+            <xsd:element name="CargarAdjuntosResult">
+              <xsd:complexType>
+                <xsd:sequence>
+                  <xsd:element name="codigo" type="xsd:int"/>
+                  <xsd:element name="mensaje" type="xsd:string"/>
+                  <xsd:element name="resultado" type="xsd:string"/>
+                </xsd:sequence>
+              </xsd:complexType>
+            </xsd:element>
+          </xsd:sequence>
+        </xsd:complexType>
+      </xsd:element>
+
+      <!-- EliminarAdjuntos Request -->
+      <xsd:element name="EliminarAdjuntos">
+        <xsd:complexType>
+          <xsd:sequence>
+            <xsd:element name="tokenEmpresa" type="xsd:string"/>
+            <xsd:element name="tokenPassword" type="xsd:string"/>
+            <xsd:element name="documento" type="xsd:string"/>
+          </xsd:sequence>
+        </xsd:complexType>
+      </xsd:element>
+
+      <!-- EliminarAdjuntos Response -->
+      <xsd:element name="EliminarAdjuntosResponse">
+        <xsd:complexType>
+          <xsd:sequence>
+            <xsd:element name="EliminarAdjuntosResult">
+              <xsd:complexType>
+                <xsd:sequence>
+                  <xsd:element name="codigo" type="xsd:int"/>
+                  <xsd:element name="mensaje" type="xsd:string"/>
+                  <xsd:element name="resultado" type="xsd:string"/>
                 </xsd:sequence>
               </xsd:complexType>
             </xsd:element>
@@ -101,11 +165,23 @@
   <wsdl:message name="EnviarSoapOut">
     <wsdl:part name="parameters" element="tns:EnviarResponse"/>
   </wsdl:message>
-  <wsdl:message name="GetStatusSoapIn">
-    <wsdl:part name="parameters" element="tns:GetStatus"/>
+  <wsdl:message name="EstadoDocumentoSoapIn">
+    <wsdl:part name="parameters" element="tns:EstadoDocumento"/>
   </wsdl:message>
-  <wsdl:message name="GetStatusSoapOut">
-    <wsdl:part name="parameters" element="tns:GetStatusResponse"/>
+  <wsdl:message name="EstadoDocumentoSoapOut">
+    <wsdl:part name="parameters" element="tns:EstadoDocumentoResponse"/>
+  </wsdl:message>
+  <wsdl:message name="CargarAdjuntosSoapIn">
+    <wsdl:part name="parameters" element="tns:CargarAdjuntos"/>
+  </wsdl:message>
+  <wsdl:message name="CargarAdjuntosSoapOut">
+    <wsdl:part name="parameters" element="tns:CargarAdjuntosResponse"/>
+  </wsdl:message>
+  <wsdl:message name="EliminarAdjuntosSoapIn">
+    <wsdl:part name="parameters" element="tns:EliminarAdjuntos"/>
+  </wsdl:message>
+  <wsdl:message name="EliminarAdjuntosSoapOut">
+    <wsdl:part name="parameters" element="tns:EliminarAdjuntosResponse"/>
   </wsdl:message>
 
   <!-- Port Type -->
@@ -114,9 +190,17 @@
       <wsdl:input message="tns:EnviarSoapIn"/>
       <wsdl:output message="tns:EnviarSoapOut"/>
     </wsdl:operation>
-    <wsdl:operation name="GetStatus">
-      <wsdl:input message="tns:GetStatusSoapIn"/>
-      <wsdl:output message="tns:GetStatusSoapOut"/>
+    <wsdl:operation name="EstadoDocumento">
+      <wsdl:input message="tns:EstadoDocumentoSoapIn"/>
+      <wsdl:output message="tns:EstadoDocumentoSoapOut"/>
+    </wsdl:operation>
+    <wsdl:operation name="CargarAdjuntos">
+      <wsdl:input message="tns:CargarAdjuntosSoapIn"/>
+      <wsdl:output message="tns:CargarAdjuntosSoapOut"/>
+    </wsdl:operation>
+    <wsdl:operation name="EliminarAdjuntos">
+      <wsdl:input message="tns:EliminarAdjuntosSoapIn"/>
+      <wsdl:output message="tns:EliminarAdjuntosSoapOut"/>
     </wsdl:operation>
   </wsdl:portType>
 
@@ -132,8 +216,26 @@
         <soap:body use="literal"/>
       </wsdl:output>
     </wsdl:operation>
-    <wsdl:operation name="GetStatus">
-      <soap:operation soapAction="http://tempuri.org/IService/GetStatus"/>
+    <wsdl:operation name="EstadoDocumento">
+      <soap:operation soapAction="http://tempuri.org/IService/EstadoDocumento"/>
+      <wsdl:input>
+        <soap:body use="literal"/>
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal"/>
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="CargarAdjuntos">
+      <soap:operation soapAction="http://tempuri.org/IService/CargarAdjuntos"/>
+      <wsdl:input>
+        <soap:body use="literal"/>
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal"/>
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="EliminarAdjuntos">
+      <soap:operation soapAction="http://tempuri.org/IService/EliminarAdjuntos"/>
       <wsdl:input>
         <soap:body use="literal"/>
       </wsdl:input>
