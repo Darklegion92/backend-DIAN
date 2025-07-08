@@ -57,7 +57,7 @@ export class ProcessInvoiceUseCase implements DocumentProcessorPort {
 
       const dianResponse = await this.sendInvoiceToDian(transformedData, company.tokenDian);
 
-      if(dianResponse?.ResponseDian?.Envelope?.Body?.SendBillSyncResponse?.SendBillSyncResult?.IsValid === 'True'){
+      if(dianResponse?.ResponseDian?.Envelope?.Body?.SendBillSyncResponse?.SendBillSyncResult?.IsValid === 'true'){
         const pdfDocument = await this.generateInvoicePdf(dto.nit, dianResponse.urlinvoicepdf, `${transformedData.prefix}${transformedData.number}`);
        return{
           success: true,
