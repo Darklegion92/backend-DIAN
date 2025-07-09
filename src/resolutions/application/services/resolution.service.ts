@@ -29,7 +29,7 @@ interface NumberingRangeApiResponse {
             OperationCode: string;
             OperationDescription: string;
             ResponseList: {
-              NumberRangeResponse: NumberRangeResponse[];
+              NumberRangeResponse: NumberRangeResponse[] | NumberRangeResponse;
             };
           };
         };
@@ -115,10 +115,17 @@ export class ResolutionService {
         response.data.ResponseDian.Envelope.Body.GetNumberingRangeResponse
           .GetNumberingRangeResult.ResponseList.NumberRangeResponse;
 
+      let matchingRange: NumberRangeResponse | null = null;
+
+      if(Array.isArray(numberRangeResponses)) {
       const matchingRange = numberRangeResponses.find(
         (range) =>
           range.ResolutionNumber === resolution && range.Prefix === prefix,
       );
+      } else {
+        matchingRange = numberRangeResponses;
+      }
+
 
       if (matchingRange) {
           return matchingRange;
