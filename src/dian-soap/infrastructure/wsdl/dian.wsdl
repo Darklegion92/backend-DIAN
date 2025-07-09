@@ -347,7 +347,7 @@
   <!-- Service -->
   <wsdl:service name="Service">
     <wsdl:port name="ServiceSoap" binding="tns:ServiceSoap">
-      <soap:address location="http://localhost:8080/ws/v1.0/Service.svc"/>
+      <soap:address location="http://localhost:8081/ws/v1.0/Service.svc"/>
     </wsdl:port>
   </wsdl:service>
 
