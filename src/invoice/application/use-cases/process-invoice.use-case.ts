@@ -58,23 +58,53 @@ export class ProcessInvoiceUseCase implements DocumentProcessorPort {
 
       const dianResponse = await this.sendInvoiceToDian(transformedData, company.tokenDian);
 
-      const pdfDocument = await this.generateInvoicePdf(dianResponse, dto.nit);
-
-
-      const response: SendDocumentElectronicResponse = {
-        success: true,
-        message: 'Factura electrónica procesada correctamente',
-        data: {
-          cufe: dianResponse.cufe,
-          date: this.generateDataService.formatDateAndTime(new Date()),
-          document: pdfDocument
+      if(dianResponse?.ResponseDian?.Envelope?.Body?.SendBillSyncResponse?.SendBillSyncResult?.IsValid === 'true'){
+        const pdfDocument = await this.generateInvoicePdf(dto.nit, dianResponse.urlinvoicepdf, `${transformedData.prefix}${transformedData.number}.pdf`);
+       return{
+          success: true,
+          message: 'Factura electrónica procesada correctamente',
+          data: {
+            cufe: dianResponse.cufe,
+            date: this.generateDataService.formatDateAndTime(new Date()),
+            document: pdfDocument
+          }
+        };
+      }else
+       if(dianResponse.message === "Este documento ya fue enviado anteriormente, se registra en la base de datos."){
+        const pdfDocument = await this.generateInvoicePdf(dto.nit, dianResponse.urlinvoicepdf, `${transformedData.prefix}${transformedData.number}.pdf`);
+        return {
+          success: true,
+          message: 'Factura electrónica procesada correctamente',
+          data: {
+            cufe: dianResponse.cufe,
+            date: this.generateDataService.formatDateAndTime(new Date()),
+            document: pdfDocument
+          }
+        };
+      }else{
+        const errorMessage = dianResponse.ResponseDian.Envelope.Body.SendBillSyncResponse.SendBillSyncResult.ErrorMessage;
+        if(errorMessage?.string){
+          return {
+            success: false,
+            message: errorMessage.string,
+            data: {
+              cufe: '',
+              date: '',
+              document: ''
+            }
+          }
+        }else{
+          return {
+            success: false,
+            message: errorMessage.strings.join(', '),
+            data: {
+              cufe: '',
+              date: '',
+              document: ''
+            }
+          }
         }
-      };
-
-      this.logger.log('Factura electrónica procesada exitosamente');
-      this.logger.debug('CUFE generado:', dianResponse.cufe);
-
-      return response;
+      }
 
     } catch (error) {
       this.logger.error('Error al procesar factura electrónica', error);
@@ -143,7 +173,6 @@ export class ProcessInvoiceUseCase implements DocumentProcessorPort {
     }
 
     const taxTotals: TaxTotalDto[] = await this.generateDataService.getTaxTotalsData(dataTaxTotals);
-
     const invoiceLines: LineDto[] = await this.getInvoiceLinesData(dataInvoiceLines);
 
     const paymentForm: PaymentFormDto = await this.generateDataService.getPaymentFormData(dataPaymentCondition);
@@ -162,6 +191,7 @@ export class ProcessInvoiceUseCase implements DocumentProcessorPort {
     }else{
       transformedData.tax_totals = taxTotals;
     }
+
 
     return transformedData;
 
@@ -392,9 +422,9 @@ export class ProcessInvoiceUseCase implements DocumentProcessorPort {
    * @param companyDocument - Documento de la empresa
    * @returns PDF en base64
    */
-  private async generateInvoicePdf(dianResponse: InvoiceResponseDto, companyDocument: string): Promise<string> {
+  private async generateInvoicePdf(companyDocument: string, urlinvoicepd:string, name: string): Promise<string> {
     try {
-      const documentName = this.generateDataService.buildDocumentName('invoice', dianResponse.urlinvoicepdf);
+      const documentName = this.generateDataService.buildDocumentName('invoice', urlinvoicepd, name);
       const pdfUrl = `${this.externalApiUrl}/invoice/${companyDocument}/${documentName}`;
       
       this.logger.debug('Solicitando PDF desde:', pdfUrl);
