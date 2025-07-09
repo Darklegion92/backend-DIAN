@@ -27,9 +27,60 @@ export interface InvoiceResponseDto {
  * Respuesta de la DIAN
  */
 export interface DianResponseDto {
-  // La estructura de la respuesta de la DIAN puede variar dependiendo del resultado
-  // Incluye campos como status, errors, etc.
-  [key: string]: any;
+  Envelope: EnvelopedDto;
+}
+
+export interface HeaderDto {
+  Action: ActionDto;
+  Security: SecurityDto;
+  Timestamp: TimestampDto;
+}
+
+export interface SecurityDto {
+  "_attributes": AttributesDto;
+  "Timestamp": TimestampDto;
+}
+export interface TimestampDto {
+  "_attributes": AttributesDto;
+  "Created": string;
+  "Expires": string;
+}
+
+export interface ActionDto {
+  "_attributes": AttributesDto;
+  "_value": string;
+}
+
+export interface AttributesDto {
+  "mustUnderstand": string;
+}
+
+export interface EnvelopedDto {
+  Header: HeaderDto;
+  Body: BodyDto;
+
+}
+
+export interface BodyDto {
+  SendBillSyncResponse: SendBillSyncResponseDto;
+}
+
+export interface SendBillSyncResponseDto {
+  SendBillSyncResult: SendBillSyncResultDto;
+}
+
+export interface SendBillSyncResultDto {
+    ErrorMessage: ErrorMessageDto;
+  IsValid: string;
+  StatusCode: string;
+  StatusDescription: string;
+  StatusMessage: string;
+  XmlBase64Bytes: string;
+}
+
+export interface ErrorMessageDto {
+  string: string;
+  strings: string[];
 }
 
 /**
@@ -75,9 +126,9 @@ export interface DianUnavailableResponseDto {
 /**
  * Union type que representa todas las posibles respuestas del endpoint de invoice
  */
-export type InvoiceApiResponseDto = 
-  | InvoiceResponseDto 
-  | InvoiceErrorResponseDto 
-  | InvoicePreviewResponseDto 
-  | InvoiceDuplicateResponseDto 
+export type InvoiceApiResponseDto =
+  | InvoiceResponseDto
+  | InvoiceErrorResponseDto
+  | InvoicePreviewResponseDto
+  | InvoiceDuplicateResponseDto
   | DianUnavailableResponseDto; 

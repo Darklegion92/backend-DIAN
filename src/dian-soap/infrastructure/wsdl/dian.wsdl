@@ -1,0 +1,354 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wsdl:definitions 
+  xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/"
+  xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"
+  xmlns:tns="http://tempuri.org/"
+  xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+  xmlns:soapenc="http://schemas.xmlsoap.org/soap/encoding/"
+  name="Service"
+  targetNamespace="http://tempuri.org/">
+
+  <wsdl:types>
+    <xsd:schema targetNamespace="http://tempuri.org/">
+      <!-- Tipos comunes -->
+      <xsd:complexType name="XmlFileType">
+        <xsd:sequence>
+          <xsd:element name="fileName" type="xsd:string"/>
+          <xsd:element name="content" type="xsd:string"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      
+      <xsd:complexType name="AdjuntoType">
+        <xsd:sequence>
+          <xsd:element name="archivo" type="xsd:base64Binary"/>
+          <xsd:element name="nombre" type="xsd:string"/>
+        </xsd:sequence>
+      </xsd:complexType>
+
+      <!-- Enviar Request -->
+      <xsd:element name="Enviar">
+        <xsd:complexType>
+          <xsd:sequence>
+            <xsd:element name="tokenEmpresa" type="xsd:string"/>
+            <xsd:element name="tokenPassword" type="xsd:string"/>
+            <xsd:element name="factura" type="tns:FacturaType"/>
+            <xsd:element name="adjuntos" type="xsd:string"/>
+          </xsd:sequence>
+        </xsd:complexType>
+      </xsd:element>
+
+      <xsd:complexType name="FacturaType">
+        <xsd:sequence>
+          <xsd:element name="cantidadDecimales" type="xsd:int"/>
+          <xsd:element name="consecutivoDocumento" type="xsd:string"/>
+          <xsd:element name="fechaEmision" type="xsd:string"/>
+          <xsd:element name="fechaVencimiento" type="xsd:string"/>
+          <xsd:element name="moneda" type="xsd:string"/>
+          <xsd:element name="tipoDocumento" type="xsd:string"/>
+          <xsd:element name="totalSinImpuestos" type="xsd:decimal"/>
+          <xsd:element name="totalConImpuestos" type="xsd:decimal"/>
+        </xsd:sequence>
+      </xsd:complexType>
+
+      <!-- Enviar Response -->
+      <xsd:element name="EnviarResponse">
+        <xsd:complexType>
+          <xsd:sequence>
+            <xsd:element name="EnviarResult">
+              <xsd:complexType>
+                <xsd:sequence>
+                  <xsd:element name="codigo" type="xsd:string"/>
+                  <xsd:element name="mensaje" type="xsd:string"/>
+                  <xsd:element name="resultado" type="xsd:string"/>
+                  <xsd:element name="cufe" type="xsd:string" minOccurs="0"/>
+                  <xsd:element name="qr" type="xsd:string" minOccurs="0"/>
+                </xsd:sequence>
+              </xsd:complexType>
+            </xsd:element>
+          </xsd:sequence>
+        </xsd:complexType>
+      </xsd:element>
+
+      <!-- GetStatus (EstadoDocumento) Request -->
+      <xsd:element name="EstadoDocumento">
+        <xsd:complexType>
+          <xsd:sequence>
+            <xsd:element name="tokenEmpresa" type="xsd:string"/>
+            <xsd:element name="tokenPassword" type="xsd:string"/>
+            <xsd:element name="documento" type="xsd:string"/>
+          </xsd:sequence>
+        </xsd:complexType>
+      </xsd:element>
+
+      <!-- GetStatus (EstadoDocumento) Response -->
+      <xsd:element name="EstadoDocumentoResponse">
+        <xsd:complexType>
+          <xsd:sequence>
+            <xsd:element name="EstadoDocumentoResult">
+              <xsd:complexType>
+                <xsd:sequence>
+                  <xsd:element name="codigo" type="xsd:string"/>
+                  <xsd:element name="mensaje" type="xsd:string"/>
+                  <xsd:element name="resultado" type="xsd:string"/>
+                  <xsd:element name="cufe" type="xsd:string" minOccurs="0"/>
+                  <xsd:element name="procesado" type="xsd:boolean"/>
+                </xsd:sequence>
+              </xsd:complexType>
+            </xsd:element>
+          </xsd:sequence>
+        </xsd:complexType>
+      </xsd:element>
+
+      <!-- CargarAdjuntos Request -->
+      <xsd:element name="CargarAdjuntos">
+        <xsd:complexType>
+          <xsd:sequence>
+            <xsd:element name="tokenEmpresa" type="xsd:string"/>
+            <xsd:element name="tokenPassword" type="xsd:string"/>
+            <xsd:element name="documento" type="xsd:string"/>
+            <xsd:element name="adjunto" type="tns:AdjuntoType"/>
+          </xsd:sequence>
+        </xsd:complexType>
+      </xsd:element>
+
+      <!-- CargarAdjuntos Response -->
+      <xsd:element name="CargarAdjuntosResponse">
+        <xsd:complexType>
+          <xsd:sequence>
+            <xsd:element name="CargarAdjuntosResult">
+              <xsd:complexType>
+                <xsd:sequence>
+                  <xsd:element name="codigo" type="xsd:int"/>
+                  <xsd:element name="mensaje" type="xsd:string"/>
+                  <xsd:element name="resultado" type="xsd:string"/>
+                </xsd:sequence>
+              </xsd:complexType>
+            </xsd:element>
+          </xsd:sequence>
+        </xsd:complexType>
+      </xsd:element>
+
+      <!-- EliminarAdjuntos Request -->
+      <xsd:element name="EliminarAdjuntos">
+        <xsd:complexType>
+          <xsd:sequence>
+            <xsd:element name="tokenEmpresa" type="xsd:string"/>
+            <xsd:element name="tokenPassword" type="xsd:string"/>
+            <xsd:element name="documento" type="xsd:string"/>
+          </xsd:sequence>
+        </xsd:complexType>
+      </xsd:element>
+
+      <!-- EliminarAdjuntos Response -->
+      <xsd:element name="EliminarAdjuntosResponse">
+        <xsd:complexType>
+          <xsd:sequence>
+            <xsd:element name="EliminarAdjuntosResult">
+              <xsd:complexType>
+                <xsd:sequence>
+                  <xsd:element name="codigo" type="xsd:int"/>
+                  <xsd:element name="mensaje" type="xsd:string"/>
+                  <xsd:element name="resultado" type="xsd:string"/>
+                </xsd:sequence>
+              </xsd:complexType>
+            </xsd:element>
+          </xsd:sequence>
+        </xsd:complexType>
+      </xsd:element>
+
+      <!-- EnvioCorreo Request -->
+      <xsd:element name="EnvioCorreo">
+        <xsd:complexType>
+          <xsd:sequence>
+            <xsd:element name="tokenEmpresa" type="xsd:string"/>
+            <xsd:element name="tokenPassword" type="xsd:string"/>
+            <xsd:element name="documento" type="xsd:string"/>
+            <xsd:element name="correo" type="xsd:string"/>
+            <xsd:element name="adjuntos" type="xsd:string"/>
+          </xsd:sequence>
+        </xsd:complexType>
+      </xsd:element>
+
+      <!-- EnvioCorreo Response -->
+      <xsd:element name="EnvioCorreoResponse">
+        <xsd:complexType>
+          <xsd:sequence>
+            <xsd:element name="EnvioCorreoResult">
+              <xsd:complexType>
+                <xsd:sequence>
+                  <xsd:element name="codigo" type="xsd:int"/>
+                  <xsd:element name="mensaje" type="xsd:string"/>
+                  <xsd:element name="resultado" type="xsd:string"/>
+                </xsd:sequence>
+              </xsd:complexType>
+            </xsd:element>
+          </xsd:sequence>
+        </xsd:complexType>
+      </xsd:element>
+
+      <!-- DescargaPDF Request -->
+      <xsd:element name="DescargaPDF">
+        <xsd:complexType>
+          <xsd:sequence>
+            <xsd:element name="tokenEmpresa" type="xsd:string"/>
+            <xsd:element name="tokenPassword" type="xsd:string"/>
+            <xsd:element name="documento" type="xsd:string"/>
+          </xsd:sequence>
+        </xsd:complexType>
+      </xsd:element>
+
+      <!-- DescargaPDF Response -->
+      <xsd:element name="DescargaPDFResponse">
+        <xsd:complexType>
+          <xsd:sequence>
+            <xsd:element name="DescargaPDFResult">
+              <xsd:complexType>
+                <xsd:sequence>
+                  <xsd:element name="codigo" type="xsd:int"/>
+                  <xsd:element name="cufe" type="xsd:string"/>
+                  <xsd:element name="documento" type="xsd:string"/>
+                  <xsd:element name="hash" type="xsd:string"/>
+                  <xsd:element name="mensaje" type="xsd:string"/>
+                  <xsd:element name="resultado" type="xsd:string"/>
+                </xsd:sequence>
+              </xsd:complexType>
+            </xsd:element>
+          </xsd:sequence>
+        </xsd:complexType>
+      </xsd:element>
+    </xsd:schema>
+  </wsdl:types>
+
+  <!-- Messages -->
+  <wsdl:message name="EnviarSoapIn">
+    <wsdl:part name="parameters" element="tns:Enviar"/>
+  </wsdl:message>
+  <wsdl:message name="EnviarSoapOut">
+    <wsdl:part name="parameters" element="tns:EnviarResponse"/>
+  </wsdl:message>
+  <wsdl:message name="EstadoDocumentoSoapIn">
+    <wsdl:part name="parameters" element="tns:EstadoDocumento"/>
+  </wsdl:message>
+  <wsdl:message name="EstadoDocumentoSoapOut">
+    <wsdl:part name="parameters" element="tns:EstadoDocumentoResponse"/>
+  </wsdl:message>
+  <wsdl:message name="CargarAdjuntosSoapIn">
+    <wsdl:part name="parameters" element="tns:CargarAdjuntos"/>
+  </wsdl:message>
+  <wsdl:message name="CargarAdjuntosSoapOut">
+    <wsdl:part name="parameters" element="tns:CargarAdjuntosResponse"/>
+  </wsdl:message>
+  <wsdl:message name="EliminarAdjuntosSoapIn">
+    <wsdl:part name="parameters" element="tns:EliminarAdjuntos"/>
+  </wsdl:message>
+  <wsdl:message name="EliminarAdjuntosSoapOut">
+    <wsdl:part name="parameters" element="tns:EliminarAdjuntosResponse"/>
+  </wsdl:message>
+  <wsdl:message name="EnvioCorreoSoapIn">
+    <wsdl:part name="parameters" element="tns:EnvioCorreo"/>
+  </wsdl:message>
+  <wsdl:message name="EnvioCorreoSoapOut">
+    <wsdl:part name="parameters" element="tns:EnvioCorreoResponse"/>
+  </wsdl:message>
+  <wsdl:message name="DescargaPDFSoapIn">
+    <wsdl:part name="parameters" element="tns:DescargaPDF"/>
+  </wsdl:message>
+  <wsdl:message name="DescargaPDFSoapOut">
+    <wsdl:part name="parameters" element="tns:DescargaPDFResponse"/>
+  </wsdl:message>
+
+  <!-- Port Type -->
+  <wsdl:portType name="IService">
+    <wsdl:operation name="Enviar">
+      <wsdl:input message="tns:EnviarSoapIn"/>
+      <wsdl:output message="tns:EnviarSoapOut"/>
+    </wsdl:operation>
+    <wsdl:operation name="EstadoDocumento">
+      <wsdl:input message="tns:EstadoDocumentoSoapIn"/>
+      <wsdl:output message="tns:EstadoDocumentoSoapOut"/>
+    </wsdl:operation>
+    <wsdl:operation name="CargarAdjuntos">
+      <wsdl:input message="tns:CargarAdjuntosSoapIn"/>
+      <wsdl:output message="tns:CargarAdjuntosSoapOut"/>
+    </wsdl:operation>
+    <wsdl:operation name="EliminarAdjuntos">
+      <wsdl:input message="tns:EliminarAdjuntosSoapIn"/>
+      <wsdl:output message="tns:EliminarAdjuntosSoapOut"/>
+    </wsdl:operation>
+    <wsdl:operation name="EnvioCorreo">
+      <wsdl:input message="tns:EnvioCorreoSoapIn"/>
+      <wsdl:output message="tns:EnvioCorreoSoapOut"/>
+    </wsdl:operation>
+    <wsdl:operation name="DescargaPDF">
+      <wsdl:input message="tns:DescargaPDFSoapIn"/>
+      <wsdl:output message="tns:DescargaPDFSoapOut"/>
+    </wsdl:operation>
+  </wsdl:portType>
+
+  <!-- Binding -->
+  <wsdl:binding name="ServiceSoap" type="tns:IService">
+    <soap:binding transport="http://schemas.xmlsoap.org/soap/http"/>
+    <wsdl:operation name="Enviar">
+      <soap:operation soapAction="http://tempuri.org/IService/Enviar"/>
+      <wsdl:input>
+        <soap:body use="literal"/>
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal"/>
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="EstadoDocumento">
+      <soap:operation soapAction="http://tempuri.org/IService/EstadoDocumento"/>
+      <wsdl:input>
+        <soap:body use="literal"/>
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal"/>
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="CargarAdjuntos">
+      <soap:operation soapAction="http://tempuri.org/IService/CargarAdjuntos"/>
+      <wsdl:input>
+        <soap:body use="literal"/>
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal"/>
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="EliminarAdjuntos">
+      <soap:operation soapAction="http://tempuri.org/IService/EliminarAdjuntos"/>
+      <wsdl:input>
+        <soap:body use="literal"/>
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal"/>
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="EnvioCorreo">
+      <soap:operation soapAction="http://tempuri.org/EnvioCorreo"/>
+      <wsdl:input>
+        <soap:body use="literal"/>
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal"/>
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="DescargaPDF">
+      <soap:operation soapAction="http://tempuri.org/DescargaPDF" style="document"/>
+      <wsdl:input>
+        <soap:body use="literal"/>
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal"/>
+      </wsdl:output>
+    </wsdl:operation>
+  </wsdl:binding>
+
+  <!-- Service -->
+  <wsdl:service name="Service">
+    <wsdl:port name="ServiceSoap" binding="tns:ServiceSoap">
+      <soap:address location="http://localhost:8081/ws/v1.0/Service.svc"/>
+    </wsdl:port>
+  </wsdl:service>
+
+</wsdl:definitions> 

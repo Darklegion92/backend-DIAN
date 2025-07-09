@@ -127,24 +127,24 @@ export class DocumentService {
     }
   }
 
-  /**
-   * Generar CUFE simulado para pruebas
-   */
-  private generateSimulatedCufe(): string {
-    const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
-    let result = '';
-    for (let i = 0; i < 96; i++) {
-      result += chars.charAt(Math.floor(Math.random() * chars.length));
-    }
-    return result;
-  }
 
   /**
-   * Generar documento PDF simulado en base64
+   * Obtener un documento por su prefix, number y companyIdentification
+   * @param prefix - Prefijo del documento
+   * @param number - Número del documento
+   * @param companyIdentification - Identificación de la compañía
+   * @returns Documento encontrado o null si no existe
    */
-  private generateSimulatedPdfDocument(): string {
-    // Documento PDF básico en base64 para pruebas
-    return 'JVBERi0xLjcKCjEgMCBvYmoKPDwKL1R5cGUgL0NhdGFsb2cKL1BhZ2VzIDIgMCBSCj4+CmVuZG9iagoKMiAwIG9iago8PAovVHlwZSAvUGFnZXMKL0tpZHMgWzMgMCBSXQovQ291bnQgMQo+PgplbmRvYmoKCjMgMCBvYmoKPDwKL1R5cGUgL1BhZ2UKL1BhcmVudCAyIDAgUgovTWVkaWFCb3ggWzAgMCA2MTIgNzkyXQovUmVzb3VyY2VzIDw8Ci9Gb250IDw8Ci9GMSA0IDAgUgo+Pgo+PgovQ29udGVudHMgNSAwIFIKPj4KZW5kb2JqCgo0IDAgb2JqCjw8Ci9UeXBlIC9Gb250Ci9TdWJ0eXBlIC9UeXBlMQovQmFzZUZvbnQgL0hlbHZldGljYQo+PgplbmRvYmoKCjUgMCBvYmoKPDwKL0xlbmd0aCA2NQo+PgpzdHJlYW0KQlQKL0YxIDEyIFRmCjUwIDc1MCBUZAooRG9jdW1lbnRvIEVsZWN0csOzbmljbyBERU1PKSBUagpFVAplbmRzdHJlYW0KZW5kb2JqCgoKdHJhaWxlcgo8PAovU2l6ZSA2Ci9Sb290IDEgMCBSCj4+CnN0YXJ0eHJlZgo2MTYK';
+  async getDocument(prefix:string, number:string, companyIdentification:string){
+
+    return await this.documentRepository.findOne({
+      where: {
+        prefix,
+        number,
+        identificationNumber: companyIdentification,
+        stateDocumentId: 1
+      }
+    });
   }
 
 

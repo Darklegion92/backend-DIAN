@@ -11,6 +11,7 @@ import { RateLimitService } from '@/common/infrastructure/services/rate-limit.se
 import { DatabaseUtilsService } from '@/common/infrastructure/services/database-utils.service';
 import { RateLimitInterceptor } from '@/common/infrastructure/interceptors/rate-limit.interceptor';
 import { GenerateDataService } from './infrastructure/services/generate-data.service';
+import { MailService } from './infrastructure/services/mail.service';
 
 @Global()
 @Module({
@@ -38,6 +39,7 @@ import { GenerateDataService } from './infrastructure/services/generate-data.ser
     RateLimitService,
     DatabaseUtilsService,
     GenerateDataService,
+    MailService,
     {
       provide: APP_INTERCEPTOR,
       useClass: RateLimitInterceptor,
@@ -50,6 +52,7 @@ import { GenerateDataService } from './infrastructure/services/generate-data.ser
     RateLimitService,
     DatabaseUtilsService,
     GenerateDataService,
+    MailService,
   ],
 })
 export class CommonModule {} 

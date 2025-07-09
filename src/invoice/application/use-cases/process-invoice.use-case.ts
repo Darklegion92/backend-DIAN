@@ -49,16 +49,17 @@ export class ProcessInvoiceUseCase implements DocumentProcessorPort {
       resolutionNumber: dto.resolutionNumber
     });
 
+    const transformedData = await this.transformInvoiceData(dto);
     try {
 
-      const transformedData = await this.transformInvoiceData(dto);
-
+      
+      console.log("PDF Document", transformedData);
       const company: CompanyWithCertificateDto = await this.companyService.getCompanyByNit(dto.nit);
 
       const dianResponse = await this.sendInvoiceToDian(transformedData, company.tokenDian);
 
       if(dianResponse?.ResponseDian?.Envelope?.Body?.SendBillSyncResponse?.SendBillSyncResult?.IsValid === 'true'){
-        const pdfDocument = await this.generateInvoicePdf(dto.nit, dianResponse.urlinvoicepdf, `${transformedData.prefix}${transformedData.number}`);
+        const pdfDocument = await this.generateInvoicePdf(dto.nit, dianResponse.urlinvoicepdf, `${transformedData.prefix}${transformedData.number}.pdf`);
        return{
           success: true,
           message: 'Factura electrónica procesada correctamente',
@@ -70,7 +71,7 @@ export class ProcessInvoiceUseCase implements DocumentProcessorPort {
         };
       }else
        if(dianResponse.message === "Este documento ya fue enviado anteriormente, se registra en la base de datos."){
-        const pdfDocument = await this.generateInvoicePdf(dto.nit, dianResponse.urlinvoicepdf, `${transformedData.prefix}${transformedData.number}`);
+        const pdfDocument = await this.generateInvoicePdf(dto.nit, dianResponse.urlinvoicepdf, `${transformedData.prefix}${transformedData.number}.pdf`);
         return {
           success: true,
           message: 'Factura electrónica procesada correctamente',
@@ -107,7 +108,15 @@ export class ProcessInvoiceUseCase implements DocumentProcessorPort {
 
     } catch (error) {
       this.logger.error('Error al procesar factura electrónica', error);
-      throw error;
+      return {
+        success: false,
+        message:  `Error al procesar factura electrónica: ${error.message}	${transformedData}`,
+        data: {
+          cufe: '',
+          date: '',
+          document: ''
+        }
+      }
     }
   }
 
@@ -305,11 +314,10 @@ export class ProcessInvoiceUseCase implements DocumentProcessorPort {
    * @param token - Token de autenticación
    * @returns Respuesta de la DIAN
    */
-  private async sendInvoiceToDian(transformedData: InvoiceRequestDto, token: string): Promise<InvoiceResponseDto> {
+  public async sendInvoiceToDian(transformedData: InvoiceRequestDto, token: string): Promise<InvoiceResponseDto> {
     try {
       this.logger.log('Enviando solicitud de factura al servicio externo');
       this.logger.debug('URL del servicio externo:', `${this.externalApiUrl}/invoice`);
-      this.logger.debug('Datos de la factura:', JSON.stringify(transformedData, null, 2));
       this.logger.debug('Token:', token);
 
       const response = await firstValueFrom(
@@ -327,7 +335,6 @@ export class ProcessInvoiceUseCase implements DocumentProcessorPort {
       );
 
       this.logger.log('Respuesta exitosa del servicio externo');
-      this.logger.debug('Respuesta completa:', JSON.stringify(response.data, null, 2));
 
       return response.data;
     } catch (error) {

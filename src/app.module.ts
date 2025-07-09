@@ -20,7 +20,7 @@ import { ReceivedDocumentModule } from './received-document/received-document.mo
 import { DocumentModule } from './document/document.module';
 import { SystemModule } from './system/system.module';
 import { PayrollModule } from './payroll/payroll.module';
-
+import { DianSoapModule } from './dian-soap/dian-soap.module';
 
 @Module({
   imports: [
@@ -41,6 +41,7 @@ import { PayrollModule } from './payroll/payroll.module';
     DocumentModule,
     SystemModule,
     PayrollModule,
+    DianSoapModule,
     NestConfigModule.forRoot({
       isGlobal: true,
     }),

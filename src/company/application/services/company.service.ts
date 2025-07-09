@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 import { HttpService } from '@nestjs/axios';
 import { ConfigService } from '@nestjs/config';
 import { firstValueFrom } from 'rxjs';
+import { randomBytes } from 'crypto';
 import { Company } from '../../domain/entities/company.entity';
 import { Certificate } from '@/certificates/domain/entities/certificate.entity';
 import { User } from '@/auth/domain/entities/user.entity';
@@ -45,8 +46,6 @@ export class CompanyService {
         );
       }
 
-
-
       // Extraer nit y digito del body
       const { nit, digito, ...dataToSend } = companyData;
       const url = `${externalServerUrl}/config/${nit}/${digito}`;
@@ -79,6 +78,14 @@ export class CompanyService {
 
       // Actualizar solo el soltec_user_id
       existingCompany.soltecUserId = currentUser.id;
+
+
+      if(existingCompany.tokenEmpresa === null){
+        existingCompany.tokenEmpresa = randomBytes(10).toString('hex');    
+        existingCompany.tokenPassword = randomBytes(10).toString('hex');
+      }
+
+
       const updatedCompany = await this.companyRepository.save(existingCompany);
 
       // Buscar el certificado asociado (si existe)
@@ -221,6 +228,7 @@ export class CompanyService {
     return this.mapToCompanyWithCertificateDto(company, certificate);
   }
 
+
   /**
    * Busca una compañía por su NIT con control de acceso por roles
    */
@@ -290,6 +298,7 @@ export class CompanyService {
       imapPort: company.imapPort,
       imapUser: company.imapUser,
       imapEncryption: company.imapEncryption,
+      imapPassword: company.imapPassword,
       soltecUserId: company.soltecUserId,
       createdAt: company.createdAt,
       updatedAt: company.updatedAt,
@@ -306,6 +315,26 @@ export class CompanyService {
       mailEncryption: user?.mailEncryption,
       mailFromAddress: user?.mailFromAddress,
       mailFromName: user?.mailFromName,
+      tokenEmpresa: company.tokenEmpresa,
+      tokenPassword: company.tokenPassword,
     };
+  }
+
+  async getCompanyByTokenEmpresa(tokenEmpresa: string): Promise<CompanyWithCertificateDto  | null> {
+    const company = await this.companyRepository.createQueryBuilder('company')
+      .leftJoinAndSelect('company.soltecUser', 'soltecUser')
+      .where('company.tokenEmpresa = :tokenEmpresa', { tokenEmpresa })
+      .getOne();
+
+    if (!company) {
+      return null;
+    }
+
+    const certificate = await this.certificateRepository
+      .createQueryBuilder('certificate')
+      .where('certificate.company_id = :companyId', { companyId: company.id })
+      .getOne();  
+
+    return this.mapToCompanyWithCertificateDto(company, certificate);
   }
 }

@@ -4,16 +4,16 @@ import { PaymentFormDto, SellerOrCustomerDto, TaxTotalDto } from "@/common/domai
 
 @Injectable()
 export class GenerateDataService {
-    constructor(private readonly databaseUtils: DatabaseUtilsService) {}
+  constructor(private readonly databaseUtils: DatabaseUtilsService) { }
 
- /**
-   * Obtiene y construye datos de vendedor o cliente
-   * Método común reutilizable en todos los módulos
-   * 
-   * @param data - Array de datos parseados del string
-   * @returns SellerOrCustomerDto con los datos estructurados
-   */
- async getSellerOrCustomerData(data: string[]): Promise<SellerOrCustomerDto> {
+  /**
+    * Obtiene y construye datos de vendedor o cliente
+    * Método común reutilizable en todos los módulos
+    * 
+    * @param data - Array de datos parseados del string
+    * @returns SellerOrCustomerDto con los datos estructurados
+    */
+  async getSellerOrCustomerData(data: string[]): Promise<SellerOrCustomerDto> {
     const typeDocumentIdentificationId: number = await this.databaseUtils.findIdByCode(data[6], 'type_document_identifications');
     const typeLiabilityId: number = await this.databaseUtils.findIdByCode(data[9], 'type_liabilities');
     const typeRegimeId: number = await this.databaseUtils.findIdByCode(data[13], 'type_regimes');
@@ -37,7 +37,7 @@ export class GenerateDataService {
       municipality_id: municipalityId,
       type_liability_id: typeLiabilityId || 117,
       type_regime_id: typeRegimeId || 2,
-      postal_zone_code: parseInt(data[68]) || 1,
+      postal_zone_code: data[68] || "000000",
       address: data[62] || 'Sin dirección'
     };
   }
@@ -136,11 +136,11 @@ export class GenerateDataService {
     const paymentFormId: number = await this.databaseUtils.findIdByCode(data[6], 'payment_forms');
     const paymentMethodId: number = await this.databaseUtils.findIdByCode(data[5], 'payment_methods');
 
-    if(paymentFormId === 2){
+    if (paymentFormId === 2) {
       const fechaHoy = new Date();
       const fechaMasOchoDias = new Date(fechaHoy.getTime() + (8 * 24 * 60 * 60 * 1000));
       const formato = fechaMasOchoDias.toISOString().split('T')[0]; // Formato yyyy-MM-dd
-      
+
       return {
         payment_form_id: paymentFormId,
         payment_method_id: paymentMethodId,
@@ -148,15 +148,15 @@ export class GenerateDataService {
         duration_measure: 8
       };
     }
-     
-    
+
+
     return {
-        payment_form_id: paymentFormId,
-        payment_method_id: paymentMethodId,
-        payment_due_date: data[4],
-        duration_measure: Number(data[9])
-      };
-    
+      payment_form_id: paymentFormId,
+      payment_method_id: paymentMethodId,
+      payment_due_date: data[4],
+      duration_measure: Number(data[9])
+    };
+
   }
 
   /**
@@ -185,6 +185,43 @@ export class GenerateDataService {
     const pdfFileName = urlinvoicepdf || `${documentPrefix}${name}`;
     
     return pdfFileName;
+  }
+
+  /**
+   * Valida si el correo electrónico y el número de identificación son válidos
+   * @param customer - Cliente de la factura
+   * @returns boolean - true si el correo electrónico y el número de identificación son válidos, false en caso contrario
+   */
+  sendEmail(email: string, identificationNumber: string, code?: string): boolean {
+
+
+    if (code === "11") {
+      return false
+    }
+
+    if (!email) {
+      return false;
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return false;
+    }
+
+    const repeatedDigitsRegex = /(\d)\1{4,}/;
+    if (repeatedDigitsRegex.test(identificationNumber)) {
+      return false;
+    }
+
+    return true;
+
+  }
+
+  getNumberAndPrefixString(text: string): { number: number, prefix: string } {
+    const match = text.match(/\d+$/);
+    let number = match ? Number(match[0]) : 0;
+    const prefix = text.replace(number.toString(), "");
+    return { number, prefix };
   }
 
 }

@@ -310,7 +310,7 @@ export interface SellerOrCustomerDto {
   address: string;
   email: string;
   merchant_registration: string;
-  postal_zone_code?: number;
+  postal_zone_code?: string;
 } 
 
 /**
