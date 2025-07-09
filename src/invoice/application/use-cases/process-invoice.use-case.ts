@@ -49,9 +49,9 @@ export class ProcessInvoiceUseCase implements DocumentProcessorPort {
       resolutionNumber: dto.resolutionNumber
     });
 
+    const transformedData = await this.transformInvoiceData(dto);
     try {
 
-      const transformedData = await this.transformInvoiceData(dto);
       
       console.log("PDF Document", transformedData);
       const company: CompanyWithCertificateDto = await this.companyService.getCompanyByNit(dto.nit);
@@ -108,7 +108,15 @@ export class ProcessInvoiceUseCase implements DocumentProcessorPort {
 
     } catch (error) {
       this.logger.error('Error al procesar factura electrónica', error);
-      throw error;
+      return {
+        success: false,
+        message:  `Error al procesar factura electrónica: ${error.message}	${transformedData}`,
+        data: {
+          cufe: '',
+          date: '',
+          document: ''
+        }
+      }
     }
   }
 
