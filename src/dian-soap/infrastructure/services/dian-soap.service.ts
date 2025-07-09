@@ -92,10 +92,10 @@ export class DianSoapService implements OnModuleInit {
         });
       });
 
-      this.server.listen(8080, () => {
+      this.server.listen(8081, () => {
         soapLogger.info('Servidor SOAP iniciado', {
-          endpoint: 'http://localhost:8080/ws/v1.0/Service.svc',
-          wsdl: 'http://localhost:8080/ws/v1.0/Service.svc?wsdl',
+          endpoint: 'http://localhost:8081/ws/v1.0/Service.svc',
+          wsdl: 'http://localhost:8081/ws/v1.0/Service.svc?wsdl',
           startTime: new Date().toISOString()
         });
       });
