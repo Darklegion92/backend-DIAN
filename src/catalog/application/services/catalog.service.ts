@@ -157,7 +157,7 @@ export class CatalogService {
    */
   async getOrganizationTypeIdByCode(code: string): Promise<number> {
     const organizationType = await this.getOrganizationTypeByCode(code);
-    return organizationType.id;
+    return organizationType.id || 2;
   }
 
   /**
@@ -195,7 +195,7 @@ export class CatalogService {
    */
   async getRegimeTypeIdByCode(code: string): Promise<number> {
     const regimeType = await this.getRegimeTypeByCode(code);
-    return regimeType.id;
+    return regimeType.id || 2;
   }
 
   /**
@@ -233,7 +233,7 @@ export class CatalogService {
    */
   async getLiabilityTypeIdByCode(code: string): Promise<number> {
     const liabilityType = await this.getLiabilityTypeByCode(code);
-    return liabilityType.id;
+    return liabilityType.id || 117;
   }
 
   // ========================================================================
