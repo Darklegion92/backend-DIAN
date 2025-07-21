@@ -22,7 +22,7 @@ export class CreateCompanyExternalDto {
   })
   @IsString()
   @IsNotEmpty()
-  @Length(8, 15)
+  @Length(5, 15)
   @Matches(/^[0-9]+$/, { message: 'El NIT debe contener solo números' })
   nit: string;
 
