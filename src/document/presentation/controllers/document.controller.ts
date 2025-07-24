@@ -7,6 +7,7 @@ import { JwtAuthGuard } from '@/auth/presentation/guards/jwt-auth.guard';
 import { DocumentListQueryDto, SendDocumentElectronicDto } from '../dtos/document.dto';
 import { DocumentListResponse, SendDocumentElectronicResponse } from '@/document/domain/interfaces/document.interface';
 import { DocumentService } from '@/document/infrastructure/services/document.service';
+import { Role } from '@/auth/domain/enums/role.enum';
 
 
 @ApiTags('Documentos')
@@ -212,14 +213,11 @@ export class DocumentController {
       state_document_id: 1, // Solo documentos autorizados por la DIAN
     };
 
-    // TODO: Obtener company_id del usuario autenticado según su rol
-    // Por ahora usamos un ID fijo para pruebas
-    // ADMIN debería poder ver todas las empresas
-    // DEALER solo sus empresas asignadas
-    // USER solo su empresa
-    const companyId = 1;
+    if (currentUser.role !== Role.ADMIN) {
+      documentListRequest.identification_number = currentUser.company_document;
+    }
 
-    const result = await this.documentService.getDocuments(documentListRequest, companyId);
+    const result = await this.documentService.getDocuments(documentListRequest);
     
     this.logger.log('Documentos obtenidos exitosamente');
     return result;

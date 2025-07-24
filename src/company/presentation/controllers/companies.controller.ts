@@ -1,4 +1,4 @@
-import { Controller, Put, Get, Post, Body, Param, Query, UseGuards, ParseIntPipe, NotFoundException } from '@nestjs/common';
+import { Controller, Put, Get, Post, Body, Param, Query, UseGuards, ParseIntPipe, NotFoundException, HttpCode } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth, ApiQuery} from '@nestjs/swagger';
 
 import { UpdateEnvironmentUseCase } from '@/company/application/use-cases/update-environment.use-case';
@@ -116,6 +116,19 @@ export class CompaniesController {
       companyData,
       currentUser,
     );
+  }
+
+  @Post(':id/icon')
+  @ApiOperation({
+    summary: 'Actualizar icono de la compañía',
+    description: 'Actualiza el icono de la compañía recibiendo la imagen en base64.'
+  })
+  @HttpCode(204)
+  async updateCompanyIcon(
+    @Param('id', ParseIntPipe) companyId: number,
+    @Body('iconBase64') iconBase64: string
+  ): Promise<{ success: boolean; message: string }> {
+    return this.companyService.updateCompanyIcon(companyId, iconBase64);
   }
 
   @Put('environment')

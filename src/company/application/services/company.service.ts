@@ -29,7 +29,7 @@ export class CompanyService {
     private readonly userDianRepository: Repository<UserDian>,
     private readonly httpService: HttpService,
     private readonly configService: ConfigService,
-  ) {}
+  ) { }
 
   async createCompanyInExternalService(
     companyData: CreateCompanyExternalDto,
@@ -80,8 +80,8 @@ export class CompanyService {
       existingCompany.soltecUserId = currentUser.id;
 
 
-      if(existingCompany.tokenEmpresa === null){
-        existingCompany.tokenEmpresa = randomBytes(10).toString('hex');    
+      if (existingCompany.tokenEmpresa === null) {
+        existingCompany.tokenEmpresa = randomBytes(10).toString('hex');
         existingCompany.tokenPassword = randomBytes(10).toString('hex');
       }
 
@@ -102,10 +102,10 @@ export class CompanyService {
 
       // Si la respuesta del servidor externo tiene datos de error estructurados
       if (error.response?.data) {
-        
+
         const errorData = error.response.data;
-        
-        console.log("Error data",errorData);
+
+        console.log("Error data", errorData);
         // Si la respuesta tiene el formato de error de validación esperado
         if (errorData.message && errorData.errors) {
           throw new ExternalValidationException(
@@ -150,7 +150,7 @@ export class CompanyService {
     // Aplicar filtros de búsqueda
     if (dato) {
       const searchCondition = '(company.identification_number LIKE :searchTerm OR company.merchant_registration LIKE :searchTerm)';
-      
+
       if (currentUser.role !== Role.ADMIN) {
         // Ya hay una condición WHERE para el usuario, agregar AND
         queryBuilder = queryBuilder.andWhere(searchCondition, {
@@ -242,12 +242,12 @@ export class CompanyService {
     // Verificar permisos según el rol del usuario
     let company: Company;
 
-      company = await this.companyRepository
-        .createQueryBuilder('company')
-        .leftJoinAndSelect('company.soltecUser', 'soltecUser')
-        .where('company.identification_number = :nit', { nit: nit.trim() })
-        .getOne();
-   
+    company = await this.companyRepository
+      .createQueryBuilder('company')
+      .leftJoinAndSelect('company.soltecUser', 'soltecUser')
+      .where('company.identification_number = :nit', { nit: nit.trim() })
+      .getOne();
+
 
     if (!company) {
       return null;
@@ -320,7 +320,7 @@ export class CompanyService {
     };
   }
 
-  async getCompanyByTokenEmpresa(tokenEmpresa: string): Promise<CompanyWithCertificateDto  | null> {
+  async getCompanyByTokenEmpresa(tokenEmpresa: string): Promise<CompanyWithCertificateDto | null> {
     const company = await this.companyRepository.createQueryBuilder('company')
       .leftJoinAndSelect('company.soltecUser', 'soltecUser')
       .where('company.tokenEmpresa = :tokenEmpresa', { tokenEmpresa })
@@ -333,8 +333,52 @@ export class CompanyService {
     const certificate = await this.certificateRepository
       .createQueryBuilder('certificate')
       .where('certificate.company_id = :companyId', { companyId: company.id })
-      .getOne();  
+      .getOne();
 
     return this.mapToCompanyWithCertificateDto(company, certificate);
+  }
+
+  /**
+   * Actualiza el icono de la compañía
+   * @param companyId ID de la compañía
+   * @param iconBase64 Imagen en base64
+   */
+  async updateCompanyIcon(companyId: number, iconBase64: string): Promise<{ success: boolean; message: string }> {
+    const company = await this.companyRepository
+      .createQueryBuilder('company')
+      .leftJoinAndSelect('company.user', 'user')
+      .where('company.id = :companyId', { companyId })
+      .getOne();
+
+    const externalServerUrl = this.configService.get<string>('EXTERNAL_SERVER_URL');
+    if (!company) {
+      throw new Error('Compñia no encontrada');
+    }
+
+    try {
+      const response = await firstValueFrom(
+        this.httpService.put<any>(`${externalServerUrl}/config/logo`, {
+          logo: iconBase64.split(',')[1],
+        },
+          {
+            headers: {
+              'Authorization': `Bearer ${company.user.apiToken}`,
+              'Accept': 'application/json',
+              'Connection': 'keep-alive',
+              'Accept-Encoding': 'gzip, deflate'
+            },
+          }
+        )
+      );
+  
+      if (response?.data?.success === false) {
+        throw new Error('Error al actualizar el icono de la compañía');
+      }
+      return response.data;  
+    } catch (error) {
+      console.log(error);
+      throw new Error('Error al actualizar el icono de la compañía');
+    }
+    
   }
 }

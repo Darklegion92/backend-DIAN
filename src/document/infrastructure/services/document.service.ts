@@ -20,16 +20,34 @@ export class DocumentService {
    * Obtener lista de documentos por compañía con paginación y filtros
    * Solo documentos con state_document_id = 1 (Autorizados)
    */
-  async getDocuments(filters: DocumentListRequest, companyId: number): Promise<any> {
+  async getDocuments(filters: DocumentListRequest): Promise<any> {
     try {
       this.logger.log('Obteniendo todos los documentos de la tabla documents');
       this.logger.debug('Filtros aplicados:', JSON.stringify(filters, null, 2));
-      this.logger.debug('ID de compañía:', companyId);
 
       // Consulta simple para traer TODOS los campos de la tabla
       const queryBuilder = this.documentRepository.createQueryBuilder('d')
-        .where('d.state_document_id = :stateId', { stateId: 1 })
-        .andWhere('d.deleted_at IS NULL'); // Solo documentos no eliminados
+        .where('d.state_document_id = :stateId', { stateId: 1 });
+
+      // Filtros dinámicos
+      if (filters.created_at_from) {
+        queryBuilder.andWhere('d.created_at >= :createdAtFrom', { createdAtFrom: filters.created_at_from });
+      }
+      if (filters.created_at_to) {
+        queryBuilder.andWhere('d.created_at <= :createdAtTo', { createdAtTo: filters.created_at_to });
+      }
+      if (filters.prefix) {
+        queryBuilder.andWhere('d.prefix = :prefix', { prefix: filters.prefix });
+      }
+      if (filters.number) {
+        queryBuilder.andWhere('d.number = :number', { number: filters.number });
+      }
+      if (filters.identification_number) {
+        queryBuilder.andWhere('d.identification_number = :identificationNumber', { identificationNumber: filters.identification_number });
+      }
+      if (filters.type_document_id) {
+        queryBuilder.andWhere('d.type_document_id = :typeDocumentId', { typeDocumentId: filters.type_document_id });
+      }
 
       // Paginación básica
       const page = filters.page || 1;
