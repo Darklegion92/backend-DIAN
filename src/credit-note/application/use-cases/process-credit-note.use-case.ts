@@ -175,7 +175,7 @@ export class ProcessCreditNoteUseCase implements DocumentProcessorPort {
 
       const taxTotals: TaxTotalDto[] = [];;
 
-      const taxId: number = await this.databaseUtils.findIdByCode(dataLine[48], 'taxes');
+      const taxId: number = await this.databaseUtils.findIdByCode(dataLine[45], 'taxes');
 
       const taxTotal: TaxTotalDto = {
         tax_id: taxId,
