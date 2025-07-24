@@ -1,4 +1,4 @@
-import { AdditionalDocumentDto, AllowanceChargeDto, BillingReferenceDto, LegalMonetaryTotalsDto, LineDto, OrderReferenceDto, PaymentExchangeRateDto, SellerOrCustomerDto, TaxTotalDto } from '@/common/domain/interfaces/document-common.interface';
+import { AdditionalDocumentDto, AllowanceChargeDto, BillingReferenceDto, LegalMonetaryTotalsDto, LineDto, PaymentExchangeRateDto, SellerOrCustomerDto, TaxTotalDto, InvoicePeriodDto } from '@/common/domain/interfaces/document-common.interface';
 
 export interface CreditNoteRequestDto {
   type_document_id: number;
@@ -25,7 +25,7 @@ export interface CreditNoteRequestDto {
   allowance_charges?: AllowanceChargeDto[];
   tax_totals?: TaxTotalDto[];
   withholding_tax_totals?: TaxTotalDto[];
-  legal_monetary_total: LegalMonetaryTotalsDto;
+  legal_monetary_totals: LegalMonetaryTotalsDto;
   credit_note_lines: LineDto[];
   additional_documents?: Array<AdditionalDocumentDto>;
   send_mail?: boolean;
@@ -33,4 +33,5 @@ export interface CreditNoteRequestDto {
   customer: SellerOrCustomerDto;
   discrepancyresponsecode: number;
   head_note?: string;
+  invoice_period?: InvoicePeriodDto;
 }

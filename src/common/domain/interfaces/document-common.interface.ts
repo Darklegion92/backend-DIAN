@@ -481,3 +481,11 @@ export interface PrepaidPaymentDto {
   paiddate?: string; // Formato: Y-m-d
   instructionid?: string;
 }
+
+export interface InvoicePeriodDto {
+  start_date: string;
+  end_date: string;
+  start_time: string;
+  end_time: string;
+}
+

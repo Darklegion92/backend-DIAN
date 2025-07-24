@@ -3,7 +3,7 @@ import { DocumentProcessorPort } from '@/document/application/ports/input/docume
 import { SendDocumentElectronicDto } from '@/document/presentation/dtos/document.dto';
 import { SendDocumentElectronicResponse } from '@/document/domain/interfaces/document.interface';
 import { DatabaseUtilsService } from '@/common/infrastructure/services/database-utils.service';
-import { BillingReferenceDto, LegalMonetaryTotalsDto, LineDto, SellerOrCustomerDto, TaxTotalDto } from '@/common/domain/interfaces/document-common.interface';
+import { BillingReferenceDto, InvoicePeriodDto, LegalMonetaryTotalsDto, LineDto, SellerOrCustomerDto, TaxTotalDto } from '@/common/domain/interfaces/document-common.interface';
 import { CreditNoteRequestDto, CreditNoteResponseDto, CreditNoteSuccessResponseDto } from '@/credit-note/domain/interfaces';
 import { GenerateDataService } from '@/common/infrastructure/services/generate-data.service';
 import { firstValueFrom } from 'rxjs';
@@ -121,6 +121,17 @@ export class ProcessCreditNoteUseCase implements DocumentProcessorPort {
       issue_date: dataPaymentCondition[6]
     };
 
+    let invoicePeriod: InvoicePeriodDto;
+
+    if(typeOperationId === 8) {
+      invoicePeriod = {
+        start_date: date,
+        end_date: date,
+        start_time: time,
+        end_time: time
+      };
+    }
+
     const transformedData: CreditNoteRequestDto = {
       discrepancyresponsecode: 1,
       prefix,
@@ -133,10 +144,11 @@ export class ProcessCreditNoteUseCase implements DocumentProcessorPort {
       resolution_number: resolutionNumber,
       send_mail: sendmail,
       billing_reference: billingReference,
-      legal_monetary_total: legalMonetaryTotals,
+      legal_monetary_totals: legalMonetaryTotals,
       customer: customerDto,
       tax_totals: taxTotals,
-      credit_note_lines: creditNoteLines
+      credit_note_lines: creditNoteLines,
+      invoice_period: invoicePeriod
     }
 
 
@@ -157,13 +169,13 @@ export class ProcessCreditNoteUseCase implements DocumentProcessorPort {
       const dataLine: string[] = line.split('|');
 
       const unitMeasureId: number = await this.databaseUtils.findIdByCode(dataLine[3], 'unit_measures');
-      const typeItemIdentificationId: number = await this.databaseUtils.findIdByCode(dataLine[4], 'type_item_identifications');
+      const typeItemIdentificationId: number = await this.databaseUtils.findIdByCode(dataLine[14], 'type_item_identifications');
       const priceAmount: number = Number(dataLine[27]) / Number(dataLine[4]);
 
 
       const taxTotals: TaxTotalDto[] = [];;
 
-      const taxId: number = await this.databaseUtils.findIdByCode(dataLine[4], 'taxes');
+      const taxId: number = await this.databaseUtils.findIdByCode(dataLine[48], 'taxes');
 
       const taxTotal: TaxTotalDto = {
         tax_id: taxId,
