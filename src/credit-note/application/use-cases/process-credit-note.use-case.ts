@@ -10,6 +10,7 @@ import { firstValueFrom } from 'rxjs';
 import { HttpService } from '@nestjs/axios';
 import { CompanyService } from '@/company/application/services/company.service';
 import { CompanyWithCertificateDto } from '@/company/presentation/dtos/company-with-certificate.dto';
+import { ConfigService } from '@nestjs/config';
 
 /**
  * Caso de uso para procesar notas crédito (Tipo 4)
@@ -25,9 +26,12 @@ export class ProcessCreditNoteUseCase implements DocumentProcessorPort {
     private readonly databaseUtils: DatabaseUtilsService, 
     private readonly generateDataService: GenerateDataService,
     private readonly httpService: HttpService,
-    private readonly companyService: CompanyService
+    private readonly companyService: CompanyService,
+    private readonly configService: ConfigService
 
-  ) { }
+  ) { 
+    this.externalApiUrl = this.configService.get<string>('EXTERNAL_SERVER_URL');
+  }
 
   /**
    * Procesa una nota crédito
@@ -212,7 +216,7 @@ export class ProcessCreditNoteUseCase implements DocumentProcessorPort {
 
       const response = await firstValueFrom(
         this.httpService.post<CreditNoteResponseDto>(
-          `${this.externalApiUrl}/sd-credit-note`,
+          `${this.externalApiUrl}/credit-note`,
           transformedData,
           {
             headers: {
