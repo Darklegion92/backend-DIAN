@@ -4,7 +4,7 @@ import { SendDocumentElectronicDto } from '@/document/presentation/dtos/document
 import { SendDocumentElectronicResponse } from '@/document/domain/interfaces/document.interface';
 import { DatabaseUtilsService } from '@/common/infrastructure/services/database-utils.service';
 import { BillingReferenceDto, InvoicePeriodDto, LegalMonetaryTotalsDto, LineDto, SellerOrCustomerDto, TaxTotalDto } from '@/common/domain/interfaces/document-common.interface';
-import { CreditNoteRequestDto, CreditNoteResponseDto, CreditNoteSuccessResponseDto } from '@/credit-note/domain/interfaces';
+import { CreditNoteRequestDto, CreditNoteResponseDto, CreditNoteSuccessResponseDto, SuccessResponseDto } from '@/credit-note/domain/interfaces';
 import { GenerateDataService } from '@/common/infrastructure/services/generate-data.service';
 import { firstValueFrom } from 'rxjs';
 import { HttpService } from '@nestjs/axios';
@@ -224,13 +224,13 @@ export class ProcessCreditNoteUseCase implements DocumentProcessorPort {
   * @param transformedData - Datos transformados para la nota crédito
   * @returns Respuesta de la nota crédito
   */
-  private async sendCreditNoteToDian(transformedData: CreditNoteRequestDto, token: string): Promise<CreditNoteResponseDto> {
+  private async sendCreditNoteToDian(transformedData: CreditNoteRequestDto, token: string): Promise<SuccessResponseDto> {
     try {
       this.logger.log('Enviando nota crédito de documento soporte al servicio PHP');
       this.logger.debug('URL del servicio externo:', `${this.externalApiUrl}/sd-credit-note`);
 
       const response = await firstValueFrom(
-        this.httpService.post<CreditNoteResponseDto>(
+        this.httpService.post<SuccessResponseDto>(
           `${this.externalApiUrl}/credit-note`,
           transformedData,
           {
@@ -337,8 +337,17 @@ export class ProcessCreditNoteUseCase implements DocumentProcessorPort {
   /**
    * Type guard para verificar si la respuesta es exitosa
    */
-  private isSuccessResponse(response: CreditNoteResponseDto): response is CreditNoteSuccessResponseDto {
-    return response.success === true;
+  private isSuccessResponse(response: SuccessResponseDto): response is CreditNoteSuccessResponseDto {
+
+    if(response.ResponseDian.Envelope.Body.SendBillSyncResponse.SendBillSyncResult.IsValid === 'true'){
+      return true;
+    }
+
+    if(response.message === 'Este documento ya fue enviado anteriormente, se registra en la base de datos.'){
+      return true;
+    }
+
+    return false;
   }
 
 } 

@@ -66,46 +66,92 @@ export interface ClientInfoDto {
  * Interface principal para respuesta exitosa del endpoint /sd-credit-note
  */
 export interface SuccessResponseDto {
-  success: true;
-  message: string;
-  
-  // Datos principales del documento
-  uuid: string;
-  invoice_number: string;
-  invoice_type_code: string;
-  
-  // Información de fechas
-  date_issue: string;
-  date_due?: string;
-  
-  // Estado y validación
-  is_valid: boolean;
-  get_status: DocumentStatusDto;
-  
-  // Información de las partes
-  issuer: IssuerInfoDto;
-  client: ClientInfoDto;
-  
-  // Archivos generados
-  zip_key?: string;
-  xml_key?: string;
-  pdf?: string; // Base64 encoded PDF
-  QR?: string; // Base64 encoded QR code
-  
-  // Información del certificado
-  certificate_days_left?: number;
-  certificate_subject?: string;
-  
-  // Información comercial
-  sale?: number;
-  total_amount?: number;
-  tax_amount?: number;
-  
-  // Metadatos adicionales
-  processing_time?: number;
-  environment?: 'PRODUCTION' | 'TEST';
-  software_id?: string;
-  software_pin?: string;
+  message:               string;
+  send_email_success:    boolean;
+  send_email_date_time:  boolean;
+  ResponseDian:          ResponseDian;
+  invoicexml:            string;
+  zipinvoicexml:         string;
+  unsignedinvoicexml:    string;
+  reqfe:                 string;
+  rptafe:                string;
+  attacheddocument:      string;
+  urlinvoicexml:         string;
+  urlinvoicepdf:         string;
+  urlinvoiceattached:    string;
+  cude:                  string;
+  QRStr:                 string;
+  certificate_days_left: number;
+}
+
+export interface ResponseDian {
+  Envelope: Envelope;
+}
+
+export interface Envelope {
+  Header: Header;
+  Body:   Body;
+}
+
+export interface Body {
+  SendBillSyncResponse: SendBillSyncResponse;
+}
+
+export interface SendBillSyncResponse {
+  SendBillSyncResult: SendBillSyncResult;
+}
+
+export interface SendBillSyncResult {
+  ErrorMessage:      ErrorMessage;
+  IsValid:           string;
+  StatusCode:        string;
+  StatusDescription: string;
+  StatusMessage:     string;
+  XmlBase64Bytes:    string;
+  XmlBytes:          XMLBytes;
+  XmlDocumentKey:    string;
+  XmlFileName:       string;
+}
+
+export interface ErrorMessage {
+  string: string[];
+}
+
+export interface XMLBytes {
+  _attributes: XMLBytesAttributes;
+}
+
+export interface XMLBytesAttributes {
+  nil: string;
+}
+
+export interface Header {
+  Action:   Action;
+  Security: Security;
+}
+
+export interface Action {
+  _attributes: ActionAttributes;
+  _value:      string;
+}
+
+export interface ActionAttributes {
+  mustUnderstand: string;
+}
+
+export interface Security {
+  _attributes: ActionAttributes;
+  Timestamp:   Timestamp;
+}
+
+export interface Timestamp {
+  _attributes: TimestampAttributes;
+  Created:     Date;
+  Expires:     Date;
+}
+
+export interface TimestampAttributes {
+  Id: string;
 }
 
 export interface SdCreditNoteSuccessResponseDto extends SuccessResponseDto {
@@ -113,7 +159,6 @@ export interface SdCreditNoteSuccessResponseDto extends SuccessResponseDto {
 }
 
 export interface CreditNoteSuccessResponseDto extends SuccessResponseDto {
-  cude?: string;
 }
 
 
