@@ -339,6 +339,8 @@ export class ProcessCreditNoteUseCase implements DocumentProcessorPort {
    */
   private isSuccessResponse(response: SuccessResponseDto): response is CreditNoteSuccessResponseDto {
 
+    console.log(response);
+
     if(response.message === 'Este documento ya fue enviado anteriormente, se registra e n la base de datos.'){
       return true;
     }
