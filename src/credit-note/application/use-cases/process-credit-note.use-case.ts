@@ -115,12 +115,7 @@ export class ProcessCreditNoteUseCase implements DocumentProcessorPort {
 
     const creditNoteLines: LineDto[] = await this.getCreditNoteLinesData(dataCreditNoteLines);
 
-    const billingReference: BillingReferenceDto = {
-      number: dataPaymentCondition[8],
-      uuid: dataPaymentCondition[4],
-      issue_date: dataPaymentCondition[6]
-    };
-
+    let billingReference: BillingReferenceDto;
     let invoicePeriod: InvoicePeriodDto;
 
     if(typeOperationId === 8) {
@@ -130,7 +125,15 @@ export class ProcessCreditNoteUseCase implements DocumentProcessorPort {
         start_time: time,
         end_time: time
       };
+    }else{
+      billingReference = {
+        number: dataPaymentCondition[8],
+        uuid: dataPaymentCondition[4],
+        issue_date: dataPaymentCondition[6]
+      };
+  
     }
+
 
     const transformedData: CreditNoteRequestDto = {
       discrepancyresponsecode: 1,
