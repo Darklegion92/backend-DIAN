@@ -339,13 +339,14 @@ export class ProcessCreditNoteUseCase implements DocumentProcessorPort {
    */
   private isSuccessResponse(response: SuccessResponseDto): response is CreditNoteSuccessResponseDto {
 
-    if(response.ResponseDian.Envelope.Body.SendBillSyncResponse.SendBillSyncResult.IsValid === 'true'){
+    if(response.message === 'Este documento ya fue enviado anteriormente, se registra e n la base de datos.'){
       return true;
     }
 
-    if(response.message === 'Este documento ya fue enviado anteriormente, se registra en la base de datos.'){
+    if(response.ResponseDian?.Envelope?.Body?.SendBillSyncResponse?.SendBillSyncResult?.IsValid === 'true'){
       return true;
     }
+
 
     return false;
   }
