@@ -281,6 +281,11 @@ export class ProcessCreditNoteDocumentSupportUseCase implements DocumentProcesso
    * Type guard para verificar si la respuesta es exitosa
    */
   private isSuccessResponse(response: SdCreditNoteResponseDto): response is SdCreditNoteSuccessResponseDto {
-    return response.success === true;
+    if(response?.ResponseDian?.Envelope.Body.SendBillSyncResponse.SendBillSyncResult.IsValid === 'true'){
+      return true;
+    }
+
+    return false;
   }
+    
 } 
