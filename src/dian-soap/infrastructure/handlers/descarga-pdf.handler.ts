@@ -68,15 +68,11 @@ export class DescargaPdfHandler {
         };
       }
 
-      //TODO: para pruebas de desarrollo
-      const document = 'SETP1'; 
-      let { number, prefix } = this.generateDataService.getNumberAndPrefixString(document);
+      let { number, prefix } = this.generateDataService.getNumberAndPrefixString(documento);
 
       if (prefix === 'SETP') {
         number = number + 991000000;
-      }
-
-      
+      }      
       
       const doc: Document = await this.documentService.getDocument(prefix, number.toString(), company.identificationNumber);
       
