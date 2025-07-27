@@ -325,7 +325,7 @@
       </wsdl:output>
     </wsdl:operation>
     <wsdl:operation name="EnvioCorreo">
-      <soap:operation soapAction="http://tempuri.org/EnvioCorreo"/>
+      <soap:operation soapAction="http://tempuri.org/IService/EnvioCorreo"/>
       <wsdl:input>
         <soap:body use="literal"/>
       </wsdl:input>
@@ -334,7 +334,7 @@
       </wsdl:output>
     </wsdl:operation>
     <wsdl:operation name="DescargaPDF">
-      <soap:operation soapAction="http://tempuri.org/DescargaPDF" style="document"/>
+      <soap:operation soapAction="http://tempuri.org/IService/DescargaPDF"/>
       <wsdl:input>
         <soap:body use="literal"/>
       </wsdl:input>

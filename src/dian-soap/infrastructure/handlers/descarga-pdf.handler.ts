@@ -67,14 +67,19 @@ export class DescargaPdfHandler {
           },
         };
       }
-      let { number, prefix } = this.generateDataService.getNumberAndPrefixString(documento);
+
+      //TODO: para pruebas de desarrollo
+      const document = 'SETP1'; 
+      let { number, prefix } = this.generateDataService.getNumberAndPrefixString(document);
 
       if (prefix === 'SETP') {
-        number = number + 990080000;
+        number = number + 991000000;
       }
 
+      
+      
       const doc: Document = await this.documentService.getDocument(prefix, number.toString(), company.identificationNumber);
-
+      
       if (!doc || !doc.pdf) {
         return {
           DescargaPDFResult: {
@@ -88,15 +93,33 @@ export class DescargaPdfHandler {
         };
       }
 
-      const pdfBase64 = await this.getDocument(prefix, number.toString(), company.identificationNumber);
+      const pdf = await this.getDocument(prefix, number.toString(), company.identificationNumber);
 
-      const hash = crypto.createHash('sha1').update(pdfBase64).digest('hex'); 
+      // Validar que el PDF no esté vacío
+      if (!pdf || pdf.length === 0) {
+        throw new Error('El PDF obtenido está vacío');
+      }
+
+      // Validar que sea un PDF válido (verificar los primeros bytes)
+      const pdfHeader = pdf.toString('hex', 0, 4);
+      
+      if (pdfHeader !== '25504446') { // %PDF en hex
+        throw new Error(`El archivo obtenido no parece ser un PDF válido. Header encontrado: ${pdfHeader}`);
+      }
+
+      const hash = crypto.createHash('sha1').update(pdf).digest('hex'); 
+
+      const pdfBase64 = Buffer.from(pdf).toString('base64');
+
+      // Log básico para confirmar conversión exitosa
+      console.log("PDF convertido a base64 exitosamente. Tamaño:", pdfBase64.length, "caracteres");
+      
       return {
         DescargaPDFResult: {
           codigo: 200,
           cufe: "",
           documento: pdfBase64,
-          hash: "",
+          hash: hash,
           mensaje: 'Documento encontrado y procesado correctamente.',
           resultado: 'Procesado',
         },
@@ -127,11 +150,17 @@ export class DescargaPdfHandler {
     const response = await firstValueFrom(
       this.httpService.get(`${urlMain}/invoice/${company_identification_number}/FES-${prefix}${number}.pdf`, {
         headers: {
-          'Content-Type': 'application/json',
           'Accept': 'application/pdf',
         },
+        responseType: 'arraybuffer', // Importante: especificar que esperamos datos binarios
       })
     );
+
+    // Si la respuesta no es un Buffer, intentar convertirla
+    if (!Buffer.isBuffer(response.data)) {
+      return Buffer.from(response.data);
+    }
+    
     return response.data;
   }
 } 

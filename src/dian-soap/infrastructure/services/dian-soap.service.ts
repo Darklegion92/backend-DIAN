@@ -11,6 +11,15 @@ import { EstadoDocumentoHandler } from '../handlers/estado-documento.handler';
 import { EnvioCorreoHandler } from '../handlers/envio-correo.handler';
 import { DescargaPdfHandler } from '../handlers/descarga-pdf.handler';
 
+// Extender la interfaz Request para incluir rawBody
+declare global {
+  namespace Express {
+    interface Request {
+      rawBody?: Buffer;
+    }
+  }
+}
+
 @Injectable()
 export class DianSoapService implements OnModuleInit {
   private wsdlPath: string;
@@ -35,21 +44,35 @@ export class DianSoapService implements OnModuleInit {
     }
 
     this.server = express();
-    this.server.use(bodyParser.raw({ type: () => true, limit: '50mb' }));
+    
+    // Configurar body-parser para manejar XML SOAP
+    this.server.use(bodyParser.raw({ 
+      type: () => true, 
+      limit: '50mb',
+      verify: (req: any, res, buf) => {
+        req.rawBody = buf;
+      }
+    }));
+    
+    // Middleware de logging mejorado
     this.server.use((req, res, next) => {
       soapLogger.info('Petición entrante', {
         method: req.method,
         url: req.url,
         headers: req.headers,
-        body: req.method === 'POST' ? req.body : undefined
+        body: req.method === 'POST' ? req.body : undefined,
+        rawBodyLength: req.rawBody ? req.rawBody.length : 0
       });
       next();
     });
 
+    // Middleware para manejar errores de parsing
     this.server.use((err, req, res, next) => {
       soapLogger.error('Error del servidor', {
         error: err.message,
-        stack: err.stack
+        stack: err.stack,
+        url: req.url,
+        method: req.method
       });
       next(err);
     });
@@ -60,10 +83,26 @@ export class DianSoapService implements OnModuleInit {
       const serviceObject = {
         Service: {
           ServiceSoap: {
-            Enviar: (args: any) => this.enviarHandler.handle(args),
-            EstadoDocumento: (args: any) => this.estadoDocumentoHandler.handle(args),
-            EnvioCorreo: (args: any) => this.envioCorreoHandler.handle(args),
-            DescargaPDF: (args: any) => this.descargaPdfHandler.handle(args),
+            Enviar: (args: any) => {
+              soapLogger.info('Invocando Enviar desde serviceObject', { args });
+              return this.enviarHandler.handle(args);
+            },
+            EstadoDocumento: (args: any) => {
+              soapLogger.info('Invocando EstadoDocumento desde serviceObject', { args });
+              return this.estadoDocumentoHandler.handle(args);
+            },
+            EnvioCorreo: (args: any) => {
+              soapLogger.info('Invocando EnvioCorreo desde serviceObject', { 
+                args,
+                argsType: typeof args,
+                argsKeys: args ? Object.keys(args) : 'null'
+              });
+              return this.envioCorreoHandler.handle(args);
+            },
+            DescargaPDF: (args: any) => {
+              soapLogger.info('Invocando DescargaPDF desde serviceObject', { args });
+              return this.descargaPdfHandler.handle(args);
+            },
             CargarAdjuntos: async (args: any) => {
               soapLogger.info('Invocando CargarAdjuntos desde serviceObject');
               return this.adjuntosSoapService.cargarAdjuntos(args);
@@ -88,6 +127,7 @@ export class DianSoapService implements OnModuleInit {
             reject(err);
             return;
           }
+          soapLogger.info('Servidor SOAP configurado correctamente');
           resolve();
         });
       });
