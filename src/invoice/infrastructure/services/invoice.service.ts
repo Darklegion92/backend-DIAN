@@ -211,7 +211,7 @@ export class InvoiceService {
         const dataTaxes:string[] = taxes.split("\%02G");
         const taxesData: TaxTotalData[] = await this.createInvoiceTaxes(dataTaxes);
 
-        const dataDetail:string[] = detail.split("0.00\¬03");
+        const dataDetail:string[] = detail.split("¬03");
         const invoiceLineData: InvoiceLineData[] = await this.createInvoiceLineData(dataDetail);
 
         const dataPago:string[] = payment.split("\|");  
