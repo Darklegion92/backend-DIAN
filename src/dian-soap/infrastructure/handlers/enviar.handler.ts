@@ -183,7 +183,8 @@ export class EnviarHandler {
           mensaje: error.message,
           mensajesValidacion: [{
             codigo: '500',
-            mensaje: error.message
+            mensaje: error.message,
+            estado: "Error"
           }],
           nombre: 'ERROR_PROCESAMIENTO',
           qr: '',
