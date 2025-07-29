@@ -1,6 +1,7 @@
 export interface MensajeValidacion {
   codigo: string;
   mensaje: string;
+  estado: string;
 }
 
 export interface ReglaValidacion {

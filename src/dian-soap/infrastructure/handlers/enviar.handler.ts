@@ -101,13 +101,15 @@ export class EnviarHandler {
         if (body?.SendBillSyncResponse?.SendBillSyncResult.ErrorMessage?.string) {
           mensajesValidacion.push({
             codigo: "401",
-            mensaje: body?.SendBillSyncResponse?.SendBillSyncResult.ErrorMessage?.string
+            mensaje: body?.SendBillSyncResponse?.SendBillSyncResult.ErrorMessage?.string,
+            estado: "Error"
           });
         } else if (body?.SendBillSyncResponse?.SendBillSyncResult.ErrorMessage?.strings) {
           body?.SendBillSyncResponse?.SendBillSyncResult.ErrorMessage?.strings.forEach(mensaje => {
             mensajesValidacion.push({
               codigo: "401",
-              mensaje: mensaje
+              mensaje: mensaje,
+              estado: "Error"
             });
           });
         }
@@ -122,7 +124,7 @@ export class EnviarHandler {
           mensajesValidacion,
           nombre: 'DOCUMENTO_PROCESADO_ERROR',
           reglasNotificacionDIAN: [],
-          reglasValidacionDIAN: [],
+          reglasValidacionDIAN: mensajesValidacion,
           resultado: 'Error',
         });
         return { EnviarResult: response };
