@@ -12,8 +12,6 @@ export class CreditNoteTransformerService implements DocumentTransformer<CreditN
   constructor(private readonly generateDataService: GenerateDataService, private readonly catalogService: CatalogService) { }
   async transform(factura: FacturaGeneralDto): Promise<CreditNoteRequestDto> {
 
-    console.log("factura", factura.documentosReferenciados);
-
     const prefix = factura.rangoNumeracion.split('-')[0];
     const number = factura.consecutivoDocumento.replace(prefix, '');
     const date = factura.fechaEmision.split(' ')[0];

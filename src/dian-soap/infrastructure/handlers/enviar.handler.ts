@@ -64,7 +64,7 @@ export class EnviarHandler {
           throw new Error(`Tipo de documento no soportado: ${factura.tipoDocumento}`);
       }
 
-      console.log(responseDian.ResponseDian.Envelope.Body.SendBillSyncResponse.SendBillSyncResult.ErrorMessage);
+      console.log(responseDian);
 
       if (responseDian.ResponseDian) {
         const body = responseDian.ResponseDian.Envelope.Body;
