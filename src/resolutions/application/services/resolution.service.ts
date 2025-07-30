@@ -118,7 +118,7 @@ export class ResolutionService {
       let matchingRange: NumberRangeResponse | null = null;
 
       if(Array.isArray(numberRangeResponses)) {
-      const matchingRange = numberRangeResponses.find(
+        matchingRange = numberRangeResponses.find(
         (range) =>
           range.ResolutionNumber === resolution && range.Prefix === prefix,
       );
