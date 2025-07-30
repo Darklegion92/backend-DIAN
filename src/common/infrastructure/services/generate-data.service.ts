@@ -1,6 +1,8 @@
 import { Injectable } from "@nestjs/common";
 import { DatabaseUtilsService } from "./database-utils.service";
-import { PaymentFormDto, SellerOrCustomerDto, TaxTotalDto } from "@/common/domain/interfaces/document-common.interface";
+import { AllowanceChargeDto, PaymentFormDto, SellerOrCustomerDto, TaxTotalDto } from "@/common/domain/interfaces/document-common.interface";
+import { ClienteDto, FacturaImpuestosDto } from "@/dian-soap/presentation/dtos/request/factura-general.dto";
+import { CatalogService } from "@/catalog/application/services/catalog.service";
 
 @Injectable()
 export class GenerateDataService {
@@ -222,6 +224,125 @@ export class GenerateDataService {
     let number = match ? Number(match[0]) : 0;
     const prefix = text.replace(number.toString(), "");
     return { number, prefix };
+  }
+
+    /**
+   * Genera el cliente de la factura
+   * @param cliente - Cliente de la factura
+   * @returns SellerOrCustomerDto - Cliente de la factura
+   */
+    async generateCustomer(cliente: ClienteDto, catalogService: CatalogService): Promise<SellerOrCustomerDto> {
+      const typeDocumentIdentificationId = await catalogService.getDocumentTypeIdByCode(cliente.tipoIdentificacion);
+      const municipalityId = await catalogService.getMunicipalityIdByCode(cliente.direccionCliente.municipio);
+      const typeLiabilityId = await catalogService.getLiabilityTypeIdByCode(cliente.responsabilidadesRut.Obligaciones.obligaciones);
+      const typeRegimeId = await catalogService.getRegimeTypeIdByCode(cliente.responsabilidadesRut.Obligaciones.regimen);
+  
+      return {
+        identification_number: cliente.numeroDocumento,
+        dv: cliente.numeroIdentificacionDV,
+        name: cliente.nombreRazonSocial,
+        phone: cliente.telefono,
+        email: cliente.email,
+        merchant_registration: cliente.informacionLegalCliente.numeroMatriculaMercantil,
+        type_document_identification_id: typeDocumentIdentificationId,
+        type_organization_id: Number(cliente.tipoPersona),
+        municipality_id: municipalityId,
+        type_liability_id: typeLiabilityId,
+        type_regime_id: typeRegimeId,
+        postal_zone_code: cliente.direccionCliente.zonaPostal,
+        address: cliente.direccionCliente.direccion,
+  
+      };
+    }
+
+     /**
+   * Genera los impuestos de la factura
+   * @param impuestos - Impuestos de la factura
+   * @returns TaxTotalDto[] - Impuestos de la factura
+   */
+  async generateTaxtotals(impuestos: FacturaImpuestosDto | FacturaImpuestosDto[], catalogService: CatalogService): Promise<{ taxes: TaxTotalDto[], allowance_charges: AllowanceChargeDto[], with_holding_taxes: TaxTotalDto[] }> {
+    const taxTotals: TaxTotalDto[] = [];
+    const allowance_charges: AllowanceChargeDto[] = [];
+    const withholding_taxes: TaxTotalDto[] = [];
+    if (typeof impuestos === "string") {
+      return { taxes: taxTotals, allowance_charges: allowance_charges, with_holding_taxes: withholding_taxes };
+    }
+
+    if (Array.isArray(impuestos)) {
+      for (const impuesto of impuestos) {
+        const taxtId = await catalogService.getTaxIdByCode(impuesto.codigoTOTALImp);
+        const unitMeasureId = await catalogService.getUnitMeasureIdByCode(impuesto.unidadMedida);
+        if (taxtId === 10) {
+          taxTotals.push({
+            tax_id: taxtId,
+            unit_measure_id: 70,
+            tax_amount: Number(impuesto.valorTOTALImp),
+            taxable_amount: 0,
+            percent: 0,
+            per_unit_amount: Number(impuesto.valorTributoUnidad),
+            base_unit_measure: 1,
+          });
+
+          allowance_charges.push({
+            charge_indicator: false,
+            allowance_charge_reason: "DESCUENTO GENERAL",
+            amount: 0,
+            base_amount: Number(impuesto.valorTOTALImp),
+          });
+
+        } else if ([5, 6, 7].includes(taxtId)) {
+          withholding_taxes.push({
+            tax_id: taxtId,
+            tax_amount: Number(impuesto.valorTOTALImp),
+            percent: Number(impuesto.porcentajeTOTALImp),
+            taxable_amount: Number(impuesto.baseImponibleTOTALImp),
+            unit_measure_id: unitMeasureId,
+          });
+
+        } else {
+          taxTotals.push({
+            tax_id: taxtId,
+            tax_amount: Number(impuesto.valorTOTALImp),
+            percent: Number(impuesto.porcentajeTOTALImp),
+            taxable_amount: Number(impuesto.baseImponibleTOTALImp),
+            unit_measure_id: unitMeasureId,
+          });
+        }
+
+
+      }
+    } else {
+      const taxtId = await catalogService.getTaxIdByCode(impuestos.codigoTOTALImp);
+      const unitMeasureId = await catalogService.getUnitMeasureIdByCode(impuestos.unidadMedida);
+      if (taxtId === 10) {
+        taxTotals.push({
+          tax_id: taxtId,
+          unit_measure_id: 70,
+          tax_amount: Number(impuestos.valorTOTALImp),
+          taxable_amount: 0,
+          percent: 0,
+          per_unit_amount: Number(impuestos.valorTributoUnidad),
+          base_unit_measure: 1,
+        });
+
+        allowance_charges.push({
+          charge_indicator: false,
+          allowance_charge_reason: "DESCUENTO GENERAL",
+          amount: 0,
+          base_amount: Number(impuestos.baseImponibleTOTALImp),
+        });
+
+      } else {
+        taxTotals.push({
+          tax_id: taxtId,
+          tax_amount: Number(impuestos.valorTOTALImp),
+          percent: Number(impuestos.porcentajeTOTALImp),
+          taxable_amount: Number(impuestos.baseImponibleTOTALImp),
+          unit_measure_id: unitMeasureId,
+        });
+      }
+    }
+    return { taxes: taxTotals, allowance_charges: allowance_charges, with_holding_taxes: withholding_taxes };
   }
 
 }

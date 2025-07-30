@@ -42,12 +42,12 @@ export class InvoiceTransformerService implements DocumentTransformer<InvoiceReq
       charge_total_amount: Number(factura.totalCargosAplicados),
     };
 
-    const customer = await this.generateCustomer(factura.cliente);
+    const customer = await this.generateDataService.generateCustomer(factura.cliente, this.catalogService);
     const invoiceLines = await this.generateInvoiceLines(factura.detalleDeFactura.FacturaDetalle);
 
     const paymentForm = await this.generatePaymentForms(factura.mediosDePago.MediosDePago);
 
-    const { taxes, with_holding_taxes } = await this.generateTaxtotals(factura.impuestosGenerales.FacturaImpuestos);
+    const { taxes, with_holding_taxes } = await this.generateDataService.generateTaxtotals(factura.impuestosGenerales.FacturaImpuestos, this.catalogService);
 
 
     return {
@@ -70,34 +70,7 @@ export class InvoiceTransformerService implements DocumentTransformer<InvoiceReq
   }
 
 
-  /**
-   * Genera el cliente de la factura
-   * @param cliente - Cliente de la factura
-   * @returns SellerOrCustomerDto - Cliente de la factura
-   */
-  async generateCustomer(cliente: ClienteDto): Promise<SellerOrCustomerDto> {
-    const typeDocumentIdentificationId = await this.catalogService.getDocumentTypeIdByCode(cliente.tipoIdentificacion);
-    const municipalityId = await this.catalogService.getMunicipalityIdByCode(cliente.direccionCliente.municipio);
-    const typeLiabilityId = await this.catalogService.getLiabilityTypeIdByCode(cliente.responsabilidadesRut.Obligaciones.obligaciones);
-    const typeRegimeId = await this.catalogService.getRegimeTypeIdByCode(cliente.responsabilidadesRut.Obligaciones.regimen);
 
-    return {
-      identification_number: cliente.numeroDocumento,
-      dv: cliente.numeroIdentificacionDV,
-      name: cliente.nombreRazonSocial,
-      phone: cliente.telefono,
-      email: cliente.email,
-      merchant_registration: cliente.informacionLegalCliente.numeroMatriculaMercantil,
-      type_document_identification_id: typeDocumentIdentificationId,
-      type_organization_id: Number(cliente.tipoPersona),
-      municipality_id: municipalityId,
-      type_liability_id: typeLiabilityId,
-      type_regime_id: typeRegimeId,
-      postal_zone_code: cliente.direccionCliente.zonaPostal,
-      address: cliente.direccionCliente.direccion,
-
-    };
-  }
 
 
   /**
@@ -118,7 +91,7 @@ export class InvoiceTransformerService implements DocumentTransformer<InvoiceReq
       for (const detalle of facturaDetalle) {
         const unitMeasureId = await this.catalogService.getUnitMeasureIdByCode(detalle.unidadMedida);
         const typeItemIdentificationId = await this.catalogService.getTypeItemIdentificationIdByCode(detalle.estandarCodigoProducto);
-        const { taxes, allowance_charges } = await this.generateTaxtotals(detalle.impuestosDetalles.FacturaImpuestos);
+        const { taxes, allowance_charges } = await this.generateDataService.generateTaxtotals(detalle.impuestosDetalles.FacturaImpuestos, this.catalogService);
 
         const allowanceChargesGeneral: AllowanceChargeDto[] = this.generateAllowanceCharges(detalle.cargosDescuentos?.CargosDescuentos);
 
@@ -143,7 +116,7 @@ export class InvoiceTransformerService implements DocumentTransformer<InvoiceReq
 
       const unitMeasureId = await this.catalogService.getUnitMeasureIdByCode(facturaDetalle.unidadMedida);
       const typeItemIdentificationId = await this.catalogService.getTypeItemIdentificationIdByCode(facturaDetalle.estandarCodigoProducto);
-      const { taxes, allowance_charges } = await this.generateTaxtotals(facturaDetalle.impuestosDetalles.FacturaImpuestos);
+      const { taxes, allowance_charges } = await this.generateDataService.generateTaxtotals(facturaDetalle.impuestosDetalles.FacturaImpuestos, this.catalogService);
 
       console.log(facturaDetalle.cargosDescuentos);
       
@@ -169,97 +142,6 @@ export class InvoiceTransformerService implements DocumentTransformer<InvoiceReq
 
     return invoiceLines;
   }
-
-  /**
-   * Genera los impuestos de la factura
-   * @param impuestos - Impuestos de la factura
-   * @returns TaxTotalDto[] - Impuestos de la factura
-   */
-  async generateTaxtotals(impuestos: FacturaImpuestosDto | FacturaImpuestosDto[]): Promise<{ taxes: TaxTotalDto[], allowance_charges: AllowanceChargeDto[], with_holding_taxes: TaxTotalDto[] }> {
-    const taxTotals: TaxTotalDto[] = [];
-    const allowance_charges: AllowanceChargeDto[] = [];
-    const withholding_taxes: TaxTotalDto[] = [];
-    if (typeof impuestos === "string") {
-      return { taxes: taxTotals, allowance_charges: allowance_charges, with_holding_taxes: withholding_taxes };
-    }
-
-    if (Array.isArray(impuestos)) {
-      for (const impuesto of impuestos) {
-        const taxtId = await this.catalogService.getTaxIdByCode(impuesto.codigoTOTALImp);
-        const unitMeasureId = await this.catalogService.getUnitMeasureIdByCode(impuesto.unidadMedida);
-        if (taxtId === 10) {
-          taxTotals.push({
-            tax_id: taxtId,
-            unit_measure_id: 70,
-            tax_amount: Number(impuesto.valorTOTALImp),
-            taxable_amount: 0,
-            percent: 0,
-            per_unit_amount: Number(impuesto.valorTributoUnidad),
-            base_unit_measure: 1,
-          });
-
-          allowance_charges.push({
-            charge_indicator: false,
-            allowance_charge_reason: "DESCUENTO GENERAL",
-            amount: 0,
-            base_amount: Number(impuesto.valorTOTALImp),
-          });
-
-        } else if ([5, 6, 7].includes(taxtId)) {
-          withholding_taxes.push({
-            tax_id: taxtId,
-            tax_amount: Number(impuesto.valorTOTALImp),
-            percent: Number(impuesto.porcentajeTOTALImp),
-            taxable_amount: Number(impuesto.baseImponibleTOTALImp),
-            unit_measure_id: unitMeasureId,
-          });
-
-        } else {
-          taxTotals.push({
-            tax_id: taxtId,
-            tax_amount: Number(impuesto.valorTOTALImp),
-            percent: Number(impuesto.porcentajeTOTALImp),
-            taxable_amount: Number(impuesto.baseImponibleTOTALImp),
-            unit_measure_id: unitMeasureId,
-          });
-        }
-
-
-      }
-    } else {
-      const taxtId = await this.catalogService.getTaxIdByCode(impuestos.codigoTOTALImp);
-      const unitMeasureId = await this.catalogService.getUnitMeasureIdByCode(impuestos.unidadMedida);
-      if (taxtId === 10) {
-        taxTotals.push({
-          tax_id: taxtId,
-          unit_measure_id: 70,
-          tax_amount: Number(impuestos.valorTOTALImp),
-          taxable_amount: 0,
-          percent: 0,
-          per_unit_amount: Number(impuestos.valorTributoUnidad),
-          base_unit_measure: 1,
-        });
-
-        allowance_charges.push({
-          charge_indicator: false,
-          allowance_charge_reason: "DESCUENTO GENERAL",
-          amount: 0,
-          base_amount: Number(impuestos.baseImponibleTOTALImp),
-        });
-
-      } else {
-        taxTotals.push({
-          tax_id: taxtId,
-          tax_amount: Number(impuestos.valorTOTALImp),
-          percent: Number(impuestos.porcentajeTOTALImp),
-          taxable_amount: Number(impuestos.baseImponibleTOTALImp),
-          unit_measure_id: unitMeasureId,
-        });
-      }
-    }
-    return { taxes: taxTotals, allowance_charges: allowance_charges, with_holding_taxes: withholding_taxes };
-  }
-
 
   /**
    * Genera los medios de pago de la factura

@@ -6,12 +6,14 @@ import { ProcessInvoiceUseCase } from '@/invoice/application/use-cases/process-i
 import { EnviarResponseDto, MensajeValidacion } from '@/dian-soap/presentation/dtos/response/enviar-response.dto';
 import { DocumentTransformerFactory } from '../services/transformers/document-transformer.factory';
 import { soapLogger } from '../services/logger.service';
+import { ProcessCreditNoteUseCase } from '@/credit-note/application/use-cases/process-credit-note.use-case';
 
 @Injectable()
 export class EnviarHandler {
   constructor(
     private readonly documentTransformerFactory: DocumentTransformerFactory,
     private readonly processInvoiceUseCase: ProcessInvoiceUseCase,
+    private readonly processCreditNoteUseCase: ProcessCreditNoteUseCase,
     private readonly companyService: CompanyService,
     private readonly documentService: DocumentService,
   ) {}
@@ -49,29 +51,43 @@ export class EnviarHandler {
       if (documentoTransformado.prefix === "SETP") {
         documentoTransformado.number = 990080000 + documentoTransformado.number;
       }
+      let responseDian
 
-      const responseInvoice = await this.processInvoiceUseCase.sendInvoiceToDian(documentoTransformado, company.tokenDian);
 
-      if (responseInvoice.ResponseDian) {
-        const body = responseInvoice.ResponseDian.Envelope.Body;
+
+      switch (factura.tipoDocumento) {
+        case "01":
+          responseDian = await this.processInvoiceUseCase.sendInvoiceToDian(documentoTransformado, company.tokenDian);
+          break;
+        case "91":
+          responseDian = await this.processCreditNoteUseCase.sendCreditNoteToDian(documentoTransformado, company.tokenDian);
+          break;
+        default:
+          throw new Error(`Tipo de documento no soportado: ${factura.tipoDocumento}`);
+      }
+
+      console.log(responseDian);
+
+      if (responseDian.ResponseDian) {
+        const body = responseDian.ResponseDian.Envelope.Body;
         if (body.SendBillSyncResponse.SendBillSyncResult.IsValid === "true") {
-          const cufe = responseInvoice.cufe;
+          const cufe = responseDian.cufe;
           const response = new EnviarResponseDto({
             codigo: 200,
             consecutivoDocumento: factura.consecutivoDocumento || `PRUE${Date.now()}`,
             cufe,
             esValidoDian: true,
             fechaAceptacionDIAN: new Date().toISOString().slice(0, 19).replace('T', ' '),
-            hash: createHash('sha384').update(responseInvoice.attacheddocument).digest('hex'),
+            hash: createHash('sha384').update(responseDian.attacheddocument).digest('hex'),
             mensaje: 'Documento procesado correctamente',
             mensajesValidacion: [],
             nombre: 'DOCUMENTO_PROCESADO',
-            qr: responseInvoice.QRStr,
+            qr: responseDian.QRStr,
             reglasNotificacionDIAN: [],
             reglasValidacionDIAN: [],
             resultado: 'Procesado',
             tipoCufe: 'CUFE-SHA384',
-            xml: Buffer.from(responseInvoice.attacheddocument).toString('base64')
+            xml: Buffer.from(responseDian.attacheddocument).toString('base64')
           });
           return { EnviarResult: response };
         }
@@ -82,16 +98,16 @@ export class EnviarHandler {
             consecutivoDocumento: factura.consecutivoDocumento || `PRUE${Date.now()}`,
             esValidoDian: true,
             fechaAceptacionDIAN: new Date().toISOString().slice(0, 19).replace('T', ' '),
-            hash: createHash('sha384').update(responseInvoice.attacheddocument).digest('hex'),
+            hash: createHash('sha384').update(responseDian.attacheddocument).digest('hex'),
             mensaje: 'Documento ha sido enviado con otro proveedor electrónico',
             mensajesValidacion: [],
             nombre: 'DOCUMENTO_PROCESADO',
-            qr: responseInvoice.QRStr,
+            qr: responseDian.QRStr,
             reglasNotificacionDIAN: [],
             reglasValidacionDIAN: [],
             resultado: 'Error',
             tipoCufe: 'CUFE-SHA384',
-            xml: Buffer.from(responseInvoice.attacheddocument).toString('base64')
+            xml: Buffer.from(responseDian.attacheddocument).toString('base64')
           });
           return { EnviarResult: response };
         }
@@ -119,7 +135,7 @@ export class EnviarHandler {
           consecutivoDocumento: factura.consecutivoDocumento || `PRUE${Date.now()}`,
           esValidoDian: false,
           fechaAceptacionDIAN: new Date().toISOString().slice(0, 19).replace('T', ' '),
-          hash: createHash('sha384').update(responseInvoice.attacheddocument).digest('hex'),
+          hash: createHash('sha384').update(responseDian.attacheddocument).digest('hex'),
           mensaje: 'Documento no valido',
           mensajesValidacion,
           nombre: 'DOCUMENTO_PROCESADO_ERROR',
@@ -130,7 +146,7 @@ export class EnviarHandler {
         return { EnviarResult: response };
 
       } else {
-        if (responseInvoice.message.includes("Este documento ya fue enviado anteriormente, se registra en la base de datos.")) {
+        if (responseDian.message.includes("Este documento ya fue enviado anteriormente, se registra en la base de datos.")) {
           const responseDocument = await this.documentService.getDocument(documentoTransformado.prefix, documentoTransformado.number, company.identificationNumber);
           if (responseDocument) {
             const qrString = "";

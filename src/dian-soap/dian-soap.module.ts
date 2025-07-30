@@ -12,6 +12,7 @@ import { CatalogModule } from '@/catalog/catalog.module';
 import { ResolutionsModule } from '@/resolutions/resolutions.module';
 import { InvoiceModule } from '@/invoice/invoice.module';
 import { CommonModule } from '@/common/common.module';
+import { CreditNoteModule } from '@/credit-note/credit-note.module';
 
 import { EnviarHandler } from './infrastructure/handlers/enviar.handler';
 import { EstadoDocumentoHandler } from './infrastructure/handlers/estado-documento.handler';
@@ -26,6 +27,7 @@ import { CompaniesModule } from '@/company/companies.module';
     CatalogModule,
     ResolutionsModule,
     InvoiceModule,
+    CreditNoteModule,
     forwardRef(() => DocumentModule),
     CommonModule,
   ],

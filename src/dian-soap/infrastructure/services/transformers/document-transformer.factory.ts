@@ -16,7 +16,7 @@ export class DocumentTransformerFactory {
     switch (tipoDocumento) {
       case '01':
         return this.invoiceTransformer;
-      case 'creditnote':
+      case '91':
         return this.creditNoteTransformer;
       case 'debitnote':
         throw new Error('Transformador para nota débito pendiente por implementar');

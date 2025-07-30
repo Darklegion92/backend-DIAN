@@ -224,7 +224,7 @@ export class ProcessCreditNoteUseCase implements DocumentProcessorPort {
   * @param transformedData - Datos transformados para la nota crédito
   * @returns Respuesta de la nota crédito
   */
-  private async sendCreditNoteToDian(transformedData: CreditNoteRequestDto, token: string): Promise<SuccessResponseDto> {
+  public async sendCreditNoteToDian(transformedData: CreditNoteRequestDto, token: string): Promise<SuccessResponseDto> {
     try {
       this.logger.log('Enviando nota crédito de documento soporte al servicio PHP');
       this.logger.debug('URL del servicio externo:', `${this.externalApiUrl}/sd-credit-note`);

@@ -22,6 +22,7 @@ export interface FacturaGeneralDto {
   totalMonto: string;
   totalProductos: string;
   totalSinImpuestos: number;
+  documentosReferenciados?: DocumentosReferenciadosDto;
 }
 
 export interface ClienteDto {
@@ -225,4 +226,23 @@ export interface MedioDePagoDto {
   numeroDeReferencia: string | null;
   numeroDias: string;
   numeroTransferencia: string | null;
+}
+
+export interface DocumentosReferenciadosDto {
+  DocumentoReferenciado: DocumentoReferenciadoDto | DocumentoReferenciadoDto[];
+}
+
+export interface DocumentoReferenciadoDto {
+    codigoEstatusDocumento: string;
+    codigoInterno: string;
+    cufeDocReferenciado: string;
+    descripcion: string;
+    fecha: string;
+    fechaFinValidez: string;
+    fechaInicioValidez: string;
+    numeroDocumento: string;
+    numeroIdentificacion: string | null;
+    tipoCUFE: string;
+    tipoDocumento: string;
+    tipoDocumentoCodigo: string;
 }

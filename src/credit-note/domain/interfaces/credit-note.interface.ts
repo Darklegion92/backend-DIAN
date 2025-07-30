@@ -20,7 +20,7 @@ export interface CreditNoteRequestDto {
   establishment_department?: string;
   establishment_country?: string;
   establishment_postal_code?: string;
-  billing_reference: BillingReferenceDto;
+  billing_reference?: BillingReferenceDto;
   payment_exchange_rate?: PaymentExchangeRateDto;
   allowance_charges?: AllowanceChargeDto[];
   tax_totals?: TaxTotalDto[];
