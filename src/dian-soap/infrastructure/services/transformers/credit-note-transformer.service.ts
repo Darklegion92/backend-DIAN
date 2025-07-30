@@ -121,8 +121,6 @@ export class CreditNoteTransformerService implements DocumentTransformer<CreditN
    */
   async generateBillingReference(documentosReferenciados: DocumentoReferenciadoDto | DocumentoReferenciadoDto[]): Promise<BillingReferenceDto> {
 
-    console.log("documentosReferenciados", documentosReferenciados);
-
     if (Array.isArray(documentosReferenciados)) {
       return {
         number: documentosReferenciados[0].numeroDocumento,
