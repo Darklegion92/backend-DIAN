@@ -146,6 +146,8 @@ export class DescargaPdfHandler {
 
     let urlDocument = `${urlMain}/invoice/${company_identification_number}/FES-${prefix}${number}.pdf`
 
+    console.log(type_document);
+
     if(type_document === 4) {
       urlDocument = `${urlMain}/credit-note/${company_identification_number}/NCS-${prefix}${number}.pdf`
     }
