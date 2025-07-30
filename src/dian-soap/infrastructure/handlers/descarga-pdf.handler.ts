@@ -144,19 +144,17 @@ export class DescargaPdfHandler {
 
     const urlMain = this.externalApiUrl.replace('/ubl2.1', '');
 
-    let urlDocument = `${urlMain}/invoice/${company_identification_number}/FES-${prefix}${number}.pdf`
+    let prefixDocument = "FES";
 
-    console.log(type_document);
-
-    if(type_document === 4) {
-      urlDocument = `${urlMain}/credit-note/${company_identification_number}/NCS-${prefix}${number}.pdf`
+    if(type_document == 4) {
+      prefixDocument = "NCS";
     }
 
-    console.log(urlDocument);
-
+    console.log(prefixDocument);
+    console.log(type_document);
 
     const response = await firstValueFrom(
-      this.httpService.get(urlDocument, {
+      this.httpService.get(`${urlMain}/invoice/${company_identification_number}/${prefixDocument}-${prefix}${number}.pdf`, {
         headers: {
           'Accept': 'application/pdf',
         },
