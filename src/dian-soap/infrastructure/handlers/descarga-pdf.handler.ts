@@ -89,7 +89,7 @@ export class DescargaPdfHandler {
         };
       }
 
-      const pdf = await this.getDocument(prefix, number.toString(), company.identificationNumber);
+      const pdf = await this.getDocument(prefix, number.toString(), company.identificationNumber, doc.typeDocumentId);
 
       // Validar que el PDF no esté vacío
       if (!pdf || pdf.length === 0) {
@@ -140,11 +140,19 @@ export class DescargaPdfHandler {
     }
   }
 
-  async getDocument(prefix: string, number: string, company_identification_number: string): Promise<any> {
+  async getDocument(prefix: string, number: string, company_identification_number: string, type_document: number): Promise<any> {
 
     const urlMain = this.externalApiUrl.replace('/ubl2.1', '');
+
+    let prefixDocument = "FES";
+
+    if(type_document === 4) {
+      prefixDocument = "NCS";
+    }
+
+
     const response = await firstValueFrom(
-      this.httpService.get(`${urlMain}/invoice/${company_identification_number}/FES-${prefix}${number}.pdf`, {
+      this.httpService.get(`${urlMain}/invoice/${company_identification_number}/${prefixDocument}-${prefix}${number}.pdf`, {
         headers: {
           'Accept': 'application/pdf',
         },

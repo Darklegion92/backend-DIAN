@@ -24,7 +24,7 @@ export class EnviarResponseDto {
   nombre: string;
   qr: string;
   reglasNotificacionDIAN: ReglaValidacion[];
-  reglasValidacionDIAN: ReglaValidacion[];
+  reglasValidacionDIAN: string[];
   resultado: 'Procesado' | 'Error';
   tipoCufe: 'CUFE-SHA384' | 'CUDE-SHA384';
   xml: string;

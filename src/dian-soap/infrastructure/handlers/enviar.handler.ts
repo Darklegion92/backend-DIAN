@@ -53,8 +53,6 @@ export class EnviarHandler {
       }
       let responseDian
 
-
-
       switch (factura.tipoDocumento) {
         case "01":
           responseDian = await this.processInvoiceUseCase.sendInvoiceToDian(documentoTransformado, company.tokenDian);
@@ -66,7 +64,7 @@ export class EnviarHandler {
           throw new Error(`Tipo de documento no soportado: ${factura.tipoDocumento}`);
       }
 
-      console.log(responseDian);
+      console.log(responseDian.ResponseDian.Envelope.Body.SendBillSyncResponse.SendBillSyncResult.ErrorMessage);
 
       if (responseDian.ResponseDian) {
         const body = responseDian.ResponseDian.Envelope.Body;
@@ -112,21 +110,13 @@ export class EnviarHandler {
           return { EnviarResult: response };
         }
 
-        const mensajesValidacion: MensajeValidacion[] = [];
+        const mensajesValidacion: string[] = [];
 
         if (body?.SendBillSyncResponse?.SendBillSyncResult.ErrorMessage?.string) {
-          mensajesValidacion.push({
-            codigo: "401",
-            mensaje: body?.SendBillSyncResponse?.SendBillSyncResult.ErrorMessage?.string,
-            estado: "Error"
-          });
+          mensajesValidacion.push(body?.SendBillSyncResponse?.SendBillSyncResult.ErrorMessage?.string);
         } else if (body?.SendBillSyncResponse?.SendBillSyncResult.ErrorMessage?.strings) {
           body?.SendBillSyncResponse?.SendBillSyncResult.ErrorMessage?.strings.forEach(mensaje => {
-            mensajesValidacion.push({
-              codigo: "401",
-              mensaje: mensaje,
-              estado: "Error"
-            });
+            mensajesValidacion.push(mensaje);
           });
         }
 
@@ -137,12 +127,14 @@ export class EnviarHandler {
           fechaAceptacionDIAN: new Date().toISOString().slice(0, 19).replace('T', ' '),
           hash: createHash('sha384').update(responseDian.attacheddocument).digest('hex'),
           mensaje: 'Documento no valido',
-          mensajesValidacion,
           nombre: 'DOCUMENTO_PROCESADO_ERROR',
           reglasNotificacionDIAN: [],
           reglasValidacionDIAN: mensajesValidacion,
           resultado: 'Error',
         });
+
+        console.log(response);
+
         return { EnviarResult: response };
 
       } else {
