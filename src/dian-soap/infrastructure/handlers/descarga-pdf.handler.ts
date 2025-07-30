@@ -150,9 +150,6 @@ export class DescargaPdfHandler {
       prefixDocument = "NCS";
     }
 
-    console.log(prefixDocument);
-    console.log(type_document);
-
     const response = await firstValueFrom(
       this.httpService.get(`${urlMain}/invoice/${company_identification_number}/${prefixDocument}-${prefix}${number}.pdf`, {
         headers: {
