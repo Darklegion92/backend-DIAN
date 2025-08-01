@@ -544,10 +544,6 @@ export class CatalogService {
       select: ['id', 'name', 'code']
     });
 
-    if (!paymentMethod) {
-      throw new Error(`Método de pago con código '${code}' no encontrado`);
-    }
-
     return paymentMethod;
   }
 
@@ -556,7 +552,7 @@ export class CatalogService {
    */
   async getPaymentMethodIdByCode(code: string): Promise<number> {
     const paymentMethod = await this.getPaymentMethodByCode(code);
-    return paymentMethod.id;
+    return paymentMethod?.id || 75;
   }
 
   /**
