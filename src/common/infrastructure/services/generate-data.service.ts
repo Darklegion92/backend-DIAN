@@ -236,6 +236,14 @@ export class GenerateDataService {
       const municipalityId = await catalogService.getMunicipalityIdByCode(cliente.direccionCliente.municipio);
       const typeLiabilityId = await catalogService.getLiabilityTypeIdByCode(cliente.responsabilidadesRut.Obligaciones.obligaciones);
       const typeRegimeId = await catalogService.getRegimeTypeIdByCode(cliente.responsabilidadesRut.Obligaciones.regimen);
+
+
+      try{
+        parseInt(cliente.numeroIdentificacionDV);
+      }catch(error){
+        throw new Error(`El digito de verificación ${cliente.numeroIdentificacionDV} no es un número`);
+      }
+      
   
       return {
         identification_number: cliente.numeroDocumento,
