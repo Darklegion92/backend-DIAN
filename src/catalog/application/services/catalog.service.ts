@@ -157,7 +157,7 @@ export class CatalogService {
    */
   async getOrganizationTypeIdByCode(code: string): Promise<number> {
     const organizationType = await this.getOrganizationTypeByCode(code);
-    return organizationType.id || 2;
+    return organizationType?.id || 2;
   }
 
   /**
@@ -182,11 +182,7 @@ export class CatalogService {
       where: { code: code.trim() },
       select: ['id', 'name', 'code']
     });
-
-    if (!regimeType) {
-      throw new Error(`Tipo de régimen con código '${code}' no encontrado`);
-    }
-
+    
     return regimeType;
   }
 
@@ -195,7 +191,7 @@ export class CatalogService {
    */
   async getRegimeTypeIdByCode(code: string): Promise<number> {
     const regimeType = await this.getRegimeTypeByCode(code);
-    return regimeType.id || 2;
+    return regimeType?.id;
   }
 
   /**
