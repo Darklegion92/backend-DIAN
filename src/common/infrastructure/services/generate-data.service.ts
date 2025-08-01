@@ -275,9 +275,6 @@ export class GenerateDataService {
     if (typeof impuestos === "string") {
       return { taxes: taxTotals, allowance_charges: allowance_charges, with_holding_taxes: withholding_taxes };
     }
-    console.log(impuestos);
-    console.log(quantity);
-
     if (Array.isArray(impuestos)) {
       for (const impuesto of impuestos) {
         const taxtId = await catalogService.getTaxIdByCode(impuesto.codigoTOTALImp);

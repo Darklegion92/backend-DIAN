@@ -92,7 +92,6 @@ export class InvoiceTransformerService implements DocumentTransformer<InvoiceReq
         const unitMeasureId = await this.catalogService.getUnitMeasureIdByCode(detalle.unidadMedida);
         const typeItemIdentificationId = await this.catalogService.getTypeItemIdentificationIdByCode(detalle.estandarCodigoProducto);
 
-        console.log("OJO>>>>",detalle.cantidadUnidades);
         const { taxes, allowance_charges } = await this.generateDataService.generateTaxtotals(detalle.impuestosDetalles.FacturaImpuestos, this.catalogService, Number(detalle.cantidadUnidades));
 
         const allowanceChargesGeneral: AllowanceChargeDto[] = this.generateAllowanceCharges(detalle.cargosDescuentos?.CargosDescuentos);
