@@ -53,6 +53,8 @@ export class EnviarHandler {
       }
       let responseDian
 
+      console.log(documentoTransformado);
+
       switch (factura.tipoDocumento) {
         case "01":
           responseDian = await this.processInvoiceUseCase.sendInvoiceToDian(documentoTransformado, company.tokenDian);

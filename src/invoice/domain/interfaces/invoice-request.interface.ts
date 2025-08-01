@@ -85,6 +85,8 @@ export interface InvoiceRequestDto {
 
   // Email CC
   email_cc_list?: EmailCcDto[];
+
+  seze?: string;
 }
 
 ///**

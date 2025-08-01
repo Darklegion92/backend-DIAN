@@ -23,6 +23,7 @@ export interface FacturaGeneralDto {
   totalProductos: string;
   totalSinImpuestos: number;
   documentosReferenciados?: DocumentosReferenciadosDto;
+  informacionAdicional?: string;
 }
 
 export interface ClienteDto {
