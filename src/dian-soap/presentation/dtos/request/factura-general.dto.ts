@@ -30,6 +30,8 @@ export interface InformacionAdicionalDto {
   string: string;
 }
 
+
+
 export interface ClienteDto {
   actividadEconomicaCIIU: string | null;
   apellido: string;

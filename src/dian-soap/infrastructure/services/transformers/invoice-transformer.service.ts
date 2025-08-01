@@ -47,7 +47,7 @@ export class InvoiceTransformerService implements DocumentTransformer<InvoiceReq
 
     const paymentForm = await this.generatePaymentForms(factura.mediosDePago.MediosDePago);
 
-    const { taxes, with_holding_taxes } = await this.generateDataService.generateTaxtotals(factura.impuestosGenerales.FacturaImpuestos, this.catalogService);
+    const { taxes, with_holding_taxes } = await this.generateDataService.generateTaxtotals(factura.impuestosGenerales?.FacturaImpuestos || [], this.catalogService);
 
     return {
       number: parseInt(number),
