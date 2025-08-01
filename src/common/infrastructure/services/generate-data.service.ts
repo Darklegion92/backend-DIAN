@@ -268,7 +268,7 @@ export class GenerateDataService {
    * @param impuestos - Impuestos de la factura
    * @returns TaxTotalDto[] - Impuestos de la factura
    */
-  async generateTaxtotals(impuestos: FacturaImpuestosDto | FacturaImpuestosDto[], catalogService: CatalogService): Promise<{ taxes: TaxTotalDto[], allowance_charges: AllowanceChargeDto[], with_holding_taxes: TaxTotalDto[] }> {
+  async generateTaxtotals(impuestos: FacturaImpuestosDto | FacturaImpuestosDto[], catalogService: CatalogService, quantity?: number): Promise<{ taxes: TaxTotalDto[], allowance_charges: AllowanceChargeDto[], with_holding_taxes: TaxTotalDto[] }> {
     const taxTotals: TaxTotalDto[] = [];
     const allowance_charges: AllowanceChargeDto[] = [];
     const withholding_taxes: TaxTotalDto[] = [];
@@ -307,7 +307,18 @@ export class GenerateDataService {
             unit_measure_id: unitMeasureId,
           });
 
-        } else {
+        } else if(taxtId === 2){
+          taxTotals.push({
+            tax_id: taxtId,
+            tax_amount: Number(impuesto.valorTOTALImp),
+            percent: Number(impuesto.porcentajeTOTALImp),
+            taxable_amount: quantity ? Number(impuesto.valorTOTALImp) : Number(impuesto.baseImponibleTOTALImp),
+            unit_measure_id: unitMeasureId,
+            per_unit_amount: quantity ? Number(impuesto.valorTributoUnidad) : undefined,
+            base_unit_measure: quantity,
+          });
+
+        }else{
           taxTotals.push({
             tax_id: taxtId,
             tax_amount: Number(impuesto.valorTOTALImp),

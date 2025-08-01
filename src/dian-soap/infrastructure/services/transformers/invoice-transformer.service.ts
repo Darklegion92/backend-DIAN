@@ -49,7 +49,6 @@ export class InvoiceTransformerService implements DocumentTransformer<InvoiceReq
 
     const { taxes, with_holding_taxes } = await this.generateDataService.generateTaxtotals(factura.impuestosGenerales.FacturaImpuestos, this.catalogService);
 
-
     return {
       number: parseInt(number),
       prefix,
@@ -92,7 +91,7 @@ export class InvoiceTransformerService implements DocumentTransformer<InvoiceReq
       for (const detalle of facturaDetalle) {
         const unitMeasureId = await this.catalogService.getUnitMeasureIdByCode(detalle.unidadMedida);
         const typeItemIdentificationId = await this.catalogService.getTypeItemIdentificationIdByCode(detalle.estandarCodigoProducto);
-        const { taxes, allowance_charges } = await this.generateDataService.generateTaxtotals(detalle.impuestosDetalles.FacturaImpuestos, this.catalogService);
+        const { taxes, allowance_charges } = await this.generateDataService.generateTaxtotals(detalle.impuestosDetalles.FacturaImpuestos, this.catalogService, Number(detalle.cantidadUnidades));
 
         const allowanceChargesGeneral: AllowanceChargeDto[] = this.generateAllowanceCharges(detalle.cargosDescuentos?.CargosDescuentos);
 
@@ -118,9 +117,6 @@ export class InvoiceTransformerService implements DocumentTransformer<InvoiceReq
       const unitMeasureId = await this.catalogService.getUnitMeasureIdByCode(facturaDetalle.unidadMedida);
       const typeItemIdentificationId = await this.catalogService.getTypeItemIdentificationIdByCode(facturaDetalle.estandarCodigoProducto);
       const { taxes, allowance_charges } = await this.generateDataService.generateTaxtotals(facturaDetalle.impuestosDetalles.FacturaImpuestos, this.catalogService);
-
-      console.log(facturaDetalle.cargosDescuentos);
-      
 
       const allowanceChargesGeneral: AllowanceChargeDto[] = this.generateAllowanceCharges(facturaDetalle?.cargosDescuentos?.CargosDescuentos);
 
