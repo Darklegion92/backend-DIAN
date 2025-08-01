@@ -275,6 +275,8 @@ export class GenerateDataService {
     if (typeof impuestos === "string") {
       return { taxes: taxTotals, allowance_charges: allowance_charges, with_holding_taxes: withholding_taxes };
     }
+    console.log(impuestos);
+    console.log(quantity);
 
     if (Array.isArray(impuestos)) {
       for (const impuesto of impuestos) {
@@ -351,7 +353,18 @@ export class GenerateDataService {
           base_amount: Number(impuestos.baseImponibleTOTALImp),
         });
 
-      } else {
+      } else if(taxtId === 2){
+        taxTotals.push({
+          tax_id: taxtId,
+          tax_amount: Number(impuestos.valorTOTALImp),
+          percent: Number(impuestos.porcentajeTOTALImp),
+          taxable_amount: quantity ? Number(impuestos.valorTOTALImp) : Number(impuestos.baseImponibleTOTALImp),
+          unit_measure_id: unitMeasureId,
+          per_unit_amount: quantity ? Number(impuestos.valorTributoUnidad) : undefined,
+          base_unit_measure: quantity,
+        });
+
+      }else{
         taxTotals.push({
           tax_id: taxtId,
           tax_amount: Number(impuestos.valorTOTALImp),
