@@ -53,7 +53,7 @@ export class EnviarHandler {
       }
       let responseDian
 
-      console.log(documentoTransformado);
+      console.log(JSON.stringify(documentoTransformado));
 
       switch (factura.tipoDocumento) {
         case "01":
