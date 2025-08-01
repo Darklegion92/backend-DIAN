@@ -314,7 +314,7 @@ export class GenerateDataService {
             tax_id: taxtId,
             tax_amount: Number(impuesto.valorTOTALImp),
             percent: Number(impuesto.porcentajeTOTALImp),
-            taxable_amount: quantity ? Number(impuesto.valorTOTALImp) : Number(impuesto.baseImponibleTOTALImp),
+            taxable_amount: quantity ? Number(impuesto.baseImponibleTOTALImp) : Number(impuesto.valorTOTALImp),
             unit_measure_id: unitMeasureId,
             per_unit_amount: quantity ? Number(impuesto.valorTributoUnidad) : undefined,
             base_unit_measure: quantity,
