@@ -225,7 +225,7 @@ export class CatalogService {
    */
   async getLiabilityTypeIdByCode(code: string): Promise<number> {
     const liabilityType = await this.getLiabilityTypeByCode(code);
-    return liabilityType.id || 117;
+    return liabilityType?.id || 117;
   }
 
   // ========================================================================
