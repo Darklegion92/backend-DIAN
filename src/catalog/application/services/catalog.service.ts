@@ -217,10 +217,6 @@ export class CatalogService {
       select: ['id', 'name', 'code']
     });
 
-    if (!liabilityType) {
-      throw new Error(`Tipo de responsabilidad con código '${code}' no encontrado`);
-    }
-
     return liabilityType;
   }
 
