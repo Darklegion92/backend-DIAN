@@ -39,7 +39,7 @@ export class SupportDocumentTransformerService implements DocumentTransformer<Su
 
     const { taxes, with_holding_taxes } = await this.generateDataService.generateTaxtotals(factura.impuestosGenerales?.FacturaImpuestos || [], this.catalogService);
 
-    const invoiceLines = await this.generateInvoiceLines(factura.detalleDeFactura.FacturaDetalle);
+    const invoiceLines = await this.generateInvoiceLines(factura.detalleDeFactura.FacturaDetalle, date);
 
    return {
         number: Number(number),
@@ -106,7 +106,7 @@ export class SupportDocumentTransformerService implements DocumentTransformer<Su
    * @param facturaDetalle - Detalle de la factura
    * @returns LineDto[] - Líneas de la factura
    */
-   async generateInvoiceLines(facturaDetalle: FacturaDetalleDto | FacturaDetalleDto[]): Promise<LineDto[]> {
+   async generateInvoiceLines(facturaDetalle: FacturaDetalleDto | FacturaDetalleDto[], date: string): Promise<LineDto[]> {
     const invoiceLines: LineDto[] = [];
 
     if (typeof facturaDetalle === "string") {
@@ -139,7 +139,7 @@ export class SupportDocumentTransformerService implements DocumentTransformer<Su
           free_of_charge_indicator: false,
           allowance_charges: allowanceCharges.length > 0 ? allowanceCharges : undefined,
           type_generation_transmition_id: 1,
-          start_date:""
+          start_date:date
 
         });
       }
