@@ -139,7 +139,7 @@ export class SupportDocumentTransformerService implements DocumentTransformer<Su
           free_of_charge_indicator: false,
           allowance_charges: allowanceCharges.length > 0 ? allowanceCharges : undefined,
           type_generation_transmition_id: 1,
-          start_date:"2025-08-02"
+          start_date:date
 
         });
       }
@@ -166,7 +166,7 @@ export class SupportDocumentTransformerService implements DocumentTransformer<Su
         free_of_charge_indicator: false,
         allowance_charges: allowanceCharges.length > 0 ? allowanceCharges : undefined,
         type_generation_transmition_id: 1,
-        start_date:""
+        start_date:date
       });
     }
 
