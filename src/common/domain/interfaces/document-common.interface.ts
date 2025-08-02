@@ -414,6 +414,8 @@ export interface LineDto{
   type_item_identification_id: number;
   price_amount: number;
   base_quantity: number;
+  type_generation_transmition_id?: number;
+  start_date?: string;
 }
 
 /**

@@ -144,10 +144,19 @@ export class DescargaPdfHandler {
 
     const urlMain = this.externalApiUrl.replace('/ubl2.1', '');
 
+
     let prefixDocument = "FES";
 
-    if(type_document == 4) {
-      prefixDocument = "NCS";
+    switch(type_document){
+      case 1:
+        prefixDocument = "FES";
+        break;
+      case 4:
+        prefixDocument = "NCS";
+        break;
+      case 11:
+        prefixDocument = "DSS";
+        break;
     }
 
     const response = await firstValueFrom(

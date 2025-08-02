@@ -3,10 +3,11 @@ import { createHash } from 'crypto';
 import { CompanyService } from '@/company/application/services/company.service';
 import { DocumentService } from '@/document/infrastructure/services/document.service';
 import { ProcessInvoiceUseCase } from '@/invoice/application/use-cases/process-invoice.use-case';
-import { EnviarResponseDto, MensajeValidacion } from '@/dian-soap/presentation/dtos/response/enviar-response.dto';
+import { EnviarResponseDto } from '@/dian-soap/presentation/dtos/response/enviar-response.dto';
 import { DocumentTransformerFactory } from '../services/transformers/document-transformer.factory';
 import { soapLogger } from '../services/logger.service';
 import { ProcessCreditNoteUseCase } from '@/credit-note/application/use-cases/process-credit-note.use-case';
+import { ProcessSupportDocumentUseCase } from '@/support-document/application/use-cases/process-support-document.use-case';
 
 @Injectable()
 export class EnviarHandler {
@@ -14,6 +15,7 @@ export class EnviarHandler {
     private readonly documentTransformerFactory: DocumentTransformerFactory,
     private readonly processInvoiceUseCase: ProcessInvoiceUseCase,
     private readonly processCreditNoteUseCase: ProcessCreditNoteUseCase,
+    private readonly processSupportDocumentUseCase: ProcessSupportDocumentUseCase,
     private readonly companyService: CompanyService,
     private readonly documentService: DocumentService,
   ) {}
@@ -61,6 +63,8 @@ export class EnviarHandler {
           break;
         case "91":
           responseDian = await this.processCreditNoteUseCase.sendCreditNoteToDian(documentoTransformado, company.tokenDian);
+        case '05':
+          responseDian = await this.processSupportDocumentUseCase.sendSupportDocumentToDian(documentoTransformado, company.tokenDian);
           break;
         default:
           throw new Error(`Tipo de documento no soportado: ${factura.tipoDocumento}`);
@@ -69,7 +73,7 @@ export class EnviarHandler {
       if (responseDian.ResponseDian) {
         const body = responseDian.ResponseDian.Envelope.Body;
         if (body.SendBillSyncResponse.SendBillSyncResult.IsValid === "true") {
-          const cufe = responseDian.cufe;
+          const cufe = responseDian.cufe  || responseDian.cude;
           const response = new EnviarResponseDto({
             codigo: 200,
             consecutivoDocumento: factura.consecutivoDocumento || `PRUE${Date.now()}`,
@@ -146,7 +150,7 @@ export class EnviarHandler {
             const response = new EnviarResponseDto({
               codigo: 200,
               consecutivoDocumento: factura.consecutivoDocumento || `PRUE${Date.now()}`,
-              cufe: responseDocument.cufe,
+              cufe: responseDocument.cufe || responseDocument.cude,
               esValidoDian: true,
               fechaAceptacionDIAN: responseDocument.dateIssue.toISOString().slice(0, 19).replace('T', ' '),
               hash: createHash('sha384').update(attachedDocument).digest('hex'),
