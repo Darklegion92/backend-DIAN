@@ -150,7 +150,7 @@ export class EnviarHandler {
             const response = new EnviarResponseDto({
               codigo: 200,
               consecutivoDocumento: factura.consecutivoDocumento || `PRUE${Date.now()}`,
-              cufe: responseDocument.cufe || responseDocument.cude,
+              cufe: responseDocument.cufe,
               esValidoDian: true,
               fechaAceptacionDIAN: responseDocument.dateIssue.toISOString().slice(0, 19).replace('T', ' '),
               hash: createHash('sha384').update(attachedDocument).digest('hex'),

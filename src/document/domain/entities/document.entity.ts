@@ -39,8 +39,6 @@ export class Document {
   @Column({ name: 'cufe', type: 'varchar', length: 191, nullable: true })
   cufe: string;
 
-  @Column({ name: 'cude', type: 'varchar', length: 191, nullable: true })
-  cude: string;
 
   @Column({ name: 'type_invoice_id', type: 'int', unsigned: true, nullable: true })
   typeInvoiceId: number;
