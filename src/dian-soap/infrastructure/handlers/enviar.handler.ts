@@ -96,18 +96,19 @@ export class EnviarHandler {
 
         if (body?.SendBillSyncResponse?.SendBillSyncResult.ErrorMessage?.string?.includes("Regla: 90")) {
           const response = new EnviarResponseDto({
-            codigo: 400,
+            codigo: 200,
             consecutivoDocumento: factura.consecutivoDocumento || `PRUE${Date.now()}`,
+            cufe: body?.SendBillSyncResponse?.SendBillSyncResult?.XmlDocumentKey,
             esValidoDian: true,
             fechaAceptacionDIAN: new Date().toISOString().slice(0, 19).replace('T', ' '),
             hash: createHash('sha384').update(responseDian.attacheddocument).digest('hex'),
-            mensaje: 'Documento ha sido enviado con otro proveedor electrónico',
+            mensaje: 'Documento procesado correctamente',
             mensajesValidacion: [],
             nombre: 'DOCUMENTO_PROCESADO',
             qr: responseDian.QRStr,
             reglasNotificacionDIAN: [],
             reglasValidacionDIAN: [],
-            resultado: 'Error',
+            resultado: 'Procesado',
             tipoCufe: 'CUFE-SHA384',
             xml: Buffer.from(responseDian.attacheddocument).toString('base64')
           });
