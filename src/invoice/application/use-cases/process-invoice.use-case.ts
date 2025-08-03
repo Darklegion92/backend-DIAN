@@ -371,6 +371,15 @@ export class ProcessInvoiceUseCase implements DocumentProcessorPort {
               },
               HttpStatus.REQUEST_TIMEOUT
             );
+          case 422:
+            throw new HttpException(
+              {
+                message: 'Datos de factura inválidos, valida el dv del cliente',
+                details: error.response.data
+              },
+              HttpStatus.UNPROCESSABLE_ENTITY
+            );
+
           case 500:
             throw new HttpException(
               {
