@@ -63,6 +63,7 @@ export class EnviarHandler {
           break;
         case "91":
           responseDian = await this.processCreditNoteUseCase.sendCreditNoteToDian(documentoTransformado, company.tokenDian);
+          break;
         case '05':
           responseDian = await this.processSupportDocumentUseCase.sendSupportDocumentToDian(documentoTransformado, company.tokenDian);
           break;
