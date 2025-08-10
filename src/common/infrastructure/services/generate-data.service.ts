@@ -3,10 +3,16 @@ import { DatabaseUtilsService } from "./database-utils.service";
 import { AllowanceChargeDto, PaymentFormDto, SellerOrCustomerDto, TaxTotalDto } from "@/common/domain/interfaces/document-common.interface";
 import { ClienteDto, FacturaImpuestosDto } from "@/dian-soap/presentation/dtos/request/factura-general.dto";
 import { CatalogService } from "@/catalog/application/services/catalog.service";
+import { firstValueFrom } from "rxjs";
+import { HttpService } from "@nestjs/axios";
+import { ConfigService } from "@nestjs/config";
 
 @Injectable()
 export class GenerateDataService {
-  constructor(private readonly databaseUtils: DatabaseUtilsService) { }
+  private readonly externalApiUrl: string;
+  constructor(private readonly databaseUtils: DatabaseUtilsService, private readonly httpService: HttpService, private readonly configService: ConfigService) { 
+    this.externalApiUrl = this.configService.get('API_URL');
+  }
 
   /**
     * Obtiene y construye datos de vendedor o cliente
@@ -374,4 +380,40 @@ export class GenerateDataService {
     return { taxes: taxTotals, allowance_charges: allowance_charges, with_holding_taxes: withholding_taxes };
   }
 
+
+  async getDocument(prefix: string, number: string, company_identification_number: string, type_document: number): Promise<any> {
+
+    const urlMain = this.externalApiUrl.replace('/ubl2.1', '');
+
+
+    let prefixDocument = "FES";
+
+    switch(type_document){
+      case 1:
+        prefixDocument = "FES";
+        break;
+      case 4:
+        prefixDocument = "NCS";
+        break;
+      case 11:
+        prefixDocument = "DSS";
+        break;
+    }
+
+    const response = await firstValueFrom(
+      this.httpService.get(`${urlMain}/invoice/${company_identification_number}/${prefixDocument}-${prefix}${number}.pdf`, {
+        headers: {
+          'Accept': 'application/pdf',
+        },
+        responseType: 'arraybuffer', // Importante: especificar que esperamos datos binarios
+      })
+    );
+
+    // Si la respuesta no es un Buffer, intentar convertirla
+    if (!Buffer.isBuffer(response.data)) {
+      return Buffer.from(response.data);
+    }
+    
+    return response.data;
+  }
 }

@@ -89,7 +89,7 @@ export class DescargaPdfHandler {
         };
       }
 
-      const pdf = await this.getDocument(prefix, number.toString(), company.identificationNumber, doc.typeDocumentId);
+      const pdf = await this.generateDataService.getDocument(prefix, number.toString(), company.identificationNumber, doc.typeDocumentId);
 
       // Validar que el PDF no esté vacío
       if (!pdf || pdf.length === 0) {
@@ -138,41 +138,5 @@ export class DescargaPdfHandler {
         },
       };
     }
-  }
-
-  async getDocument(prefix: string, number: string, company_identification_number: string, type_document: number): Promise<any> {
-
-    const urlMain = this.externalApiUrl.replace('/ubl2.1', '');
-
-
-    let prefixDocument = "FES";
-
-    switch(type_document){
-      case 1:
-        prefixDocument = "FES";
-        break;
-      case 4:
-        prefixDocument = "NCS";
-        break;
-      case 11:
-        prefixDocument = "DSS";
-        break;
-    }
-
-    const response = await firstValueFrom(
-      this.httpService.get(`${urlMain}/invoice/${company_identification_number}/${prefixDocument}-${prefix}${number}.pdf`, {
-        headers: {
-          'Accept': 'application/pdf',
-        },
-        responseType: 'arraybuffer', // Importante: especificar que esperamos datos binarios
-      })
-    );
-
-    // Si la respuesta no es un Buffer, intentar convertirla
-    if (!Buffer.isBuffer(response.data)) {
-      return Buffer.from(response.data);
-    }
-    
-    return response.data;
   }
 } 

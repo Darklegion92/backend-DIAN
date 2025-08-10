@@ -4,7 +4,7 @@ import { ApiTags, ApiOperation, ApiResponse, ApiQuery, ApiBearerAuth, ApiBody } 
 import { User } from '@/auth/domain/entities/user.entity';
 import { CurrentUser } from '@/auth/presentation/decorators/current-user.decorator';
 import { JwtAuthGuard } from '@/auth/presentation/guards/jwt-auth.guard';
-import { DocumentListQueryDto, SendDocumentElectronicDto, SendEmailDto } from '../dtos/document.dto';
+import { DocumentListQueryDto, DownloadPDFDto, SendDocumentElectronicDto, SendEmailDto } from '../dtos/document.dto';
 import { DocumentListResponse, SendDocumentElectronicResponse } from '@/document/domain/interfaces/document.interface';
 import { DocumentService } from '@/document/infrastructure/services/document.service';
 import { Role } from '@/auth/domain/enums/role.enum';
@@ -424,5 +424,43 @@ export class DocumentController {
     
     return this.documentService.sendEmail(sendEmailDto, currentUser);
  }
+
+  @Get('download-pdf')
+  @ApiOperation({
+    summary: 'Descargar documento PDF',
+    description: 'Este endpoint permite descargar el documento PDF de un documento electrónico.'
+  })
+  @ApiQuery({
+    name: 'number',
+    required: true,
+    description: 'Número del documento',
+    example: '001'
+  })
+  @ApiQuery({
+    name: 'prefix',
+    required: true,
+    description: 'Prefijo del documento', 
+    example: 'FE'
+  })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Documento PDF descargado exitosamente',
+    content: {
+      'application/pdf': {
+        example: 'JVBERi0xLjcKCjEgMCBvYmoKPDwKL1R5cGUgL0NhdGFsb2cKL1BhZ2VzIDI...'
+      }
+    }
+  })
+
+  async downloadPDF(
+    @Query() queryParams: DownloadPDFDto,
+    @CurrentUser() currentUser: User,
+  ): Promise<any> {
+    this.logger.log('Iniciando descarga de documento PDF');
+    this.logger.debug('Parámetros de consulta:', JSON.stringify(queryParams, null, 2));
+    this.logger.debug('Usuario autenticado:', currentUser.id);
+
+    return this.documentService.downloadPDF(queryParams, currentUser);
+  }
 
 } 

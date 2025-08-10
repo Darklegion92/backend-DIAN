@@ -3,11 +3,12 @@ import { DocumentListRequest, SendDocumentElectronicResponse } from '@/document/
 import { Injectable, Logger, HttpException, HttpStatus } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { SendDocumentElectronicDto, SendEmailDto } from '../../presentation/dtos/document.dto';
+import { DownloadPDFDto, SendDocumentElectronicDto, SendEmailDto } from '../../presentation/dtos/document.dto';
 import { DocumentProcessorFactory } from '../../application/services/document-processor.factory';
 import { MailService } from '@/common/infrastructure/services/mail.service';
 import { User } from '@/auth/domain/entities/user.entity';
 import { CompanyService } from '@/company/application/services/company.service';
+import { GenerateDataService } from '@/common/infrastructure/services/generate-data.service';
 
 @Injectable()
 export class DocumentService {
@@ -19,6 +20,7 @@ export class DocumentService {
     private readonly documentProcessorFactory: DocumentProcessorFactory,
     private readonly mailService: MailService,
     private readonly companyService: CompanyService,
+    private readonly generateDataService: GenerateDataService,
   ) {}
 
   /**
@@ -241,5 +243,30 @@ export class DocumentService {
     }
   }
 
+
+  async downloadPDF({prefix, number}: DownloadPDFDto, user: User): Promise<any> {
+
+    console.log("prefix", prefix);
+    console.log("number", number);
+    console.log("user", user);
+
+    const company = await this.companyService.getCompanyByNit(user.company_document);
+    const document = await this.getDocument(prefix, number.toString(), user.company_document);
+
+    const pdf = await this.generateDataService.getDocument(prefix, number.toString(), company.identificationNumber, document.typeDocumentId);
+
+    if (!pdf || pdf.length === 0) {
+      throw new HttpException({
+        success: false,
+        message: 'No se pudo obtener el documento PDF',
+      }, HttpStatus.NOT_FOUND);
+    }
+    return {
+      success: true,
+      message: 'Documento PDF obtenido exitosamente',
+      data: pdf,
+    };
+
+  }
 
 } 
