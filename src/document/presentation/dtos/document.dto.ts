@@ -287,5 +287,13 @@ export class DownloadPDFDto {
   })
   @IsString()
   @IsNotEmpty()
-  prefix: string;s
+  prefix: string;
+
+  @ApiProperty({ 
+    description: 'NIT de la empresa', 
+    example: '900123456' 
+  })
+  @IsString()
+  @IsNotEmpty()
+  company_document: string;
 } 

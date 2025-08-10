@@ -454,15 +454,13 @@ export class DocumentController {
 
   async downloadPDF(
     @Query() queryParams: DownloadPDFDto,
-    @CurrentUser() currentUser: User,
     @Res() res: any
   ): Promise<void> {
     this.logger.log('Iniciando descarga de documento PDF');
     this.logger.debug('Parámetros de consulta:', JSON.stringify(queryParams, null, 2));
-    this.logger.debug('Usuario autenticado:', currentUser.id);
 
     try {
-      const pdfBuffer = await this.documentService.downloadPDF(queryParams, currentUser);
+      const pdfBuffer = await this.documentService.downloadPDF(queryParams);
       
       // Configurar headers para descarga de PDF
       res.set({

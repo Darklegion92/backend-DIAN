@@ -244,14 +244,9 @@ export class DocumentService {
   }
 
 
-  async downloadPDF({prefix, number}: DownloadPDFDto, user: User): Promise<Buffer> {
-
-    console.log("prefix", prefix);
-    console.log("number", number);
-    console.log("user", user);
-
-    const company = await this.companyService.getCompanyByNit(user.company_document);
-    const document = await this.getDocument(prefix, number.toString(), user.company_document);
+  async downloadPDF({prefix, number, company_document}: DownloadPDFDto): Promise<Buffer> {
+    const company = await this.companyService.getCompanyByNit(company_document);
+    const document = await this.getDocument(prefix, number.toString(), company_document);
 
     const pdf = await this.generateDataService.getDocument(prefix, number.toString(), company.identificationNumber, document.typeDocumentId);
 
