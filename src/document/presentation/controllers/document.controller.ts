@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Query, Body, HttpStatus, Logger, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Query, Body, HttpStatus, Logger, UseGuards, Res } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiQuery, ApiBearerAuth, ApiBody } from '@nestjs/swagger';
 
 import { User } from '@/auth/domain/entities/user.entity';
@@ -455,12 +455,31 @@ export class DocumentController {
   async downloadPDF(
     @Query() queryParams: DownloadPDFDto,
     @CurrentUser() currentUser: User,
-  ): Promise<any> {
+    @Res() res: any
+  ): Promise<void> {
     this.logger.log('Iniciando descarga de documento PDF');
     this.logger.debug('Parámetros de consulta:', JSON.stringify(queryParams, null, 2));
     this.logger.debug('Usuario autenticado:', currentUser.id);
 
-    return this.documentService.downloadPDF(queryParams, currentUser);
+    try {
+      const pdfBuffer = await this.documentService.downloadPDF(queryParams, currentUser);
+      
+      // Configurar headers para descarga de PDF
+      res.set({
+        'Content-Type': 'application/pdf',
+        'Content-Disposition': `attachment; filename="documento_${queryParams.prefix}_${queryParams.number}.pdf"`,
+        'Content-Length': pdfBuffer.length,
+      });
+      
+      // Enviar el buffer directamente
+      res.send(pdfBuffer);
+    } catch (error) {
+      this.logger.error('Error al descargar PDF:', error);
+      res.status(HttpStatus.NOT_FOUND).json({
+        success: false,
+        message: error.message || 'Error al descargar el documento PDF'
+      });
+    }
   }
 
 } 

@@ -244,7 +244,7 @@ export class DocumentService {
   }
 
 
-  async downloadPDF({prefix, number}: DownloadPDFDto, user: User): Promise<any> {
+  async downloadPDF({prefix, number}: DownloadPDFDto, user: User): Promise<Buffer> {
 
     console.log("prefix", prefix);
     console.log("number", number);
@@ -261,12 +261,8 @@ export class DocumentService {
         message: 'No se pudo obtener el documento PDF',
       }, HttpStatus.NOT_FOUND);
     }
-    return {
-      success: true,
-      message: 'Documento PDF obtenido exitosamente',
-      data: pdf,
-    };
-
+    
+    return pdf;
   }
 
 } 
