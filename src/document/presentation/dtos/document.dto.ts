@@ -271,3 +271,21 @@ export class SendEmailDto {
   @IsNotEmpty()
   correo: string;
 }
+
+export class DownloadPDFDto {
+  @ApiProperty({ 
+    description: 'Número del documento', 
+    example: '001' 
+  })
+  @IsString()
+  @IsNotEmpty()
+  number: string;
+
+  @ApiProperty({ 
+    description: 'Prefijo del documento', 
+    example: 'FE' 
+  })
+  @IsString()
+  @IsNotEmpty()
+  prefix: string;s
+} 

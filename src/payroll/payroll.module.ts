@@ -9,6 +9,8 @@ import { ProcessPayrollService } from './application/services/process-payroll.se
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { TypeWorker } from '@/catalog/domain/entities/type-worker.entity';
 import { TypeContract } from '@/catalog/domain/entities/type-contract.entity';
+import { SubTypeWorker } from '@/catalog/domain/entities/sub-type-worker.entity';
+import { PaymentMethod } from '@/catalog/domain/entities/payment-method.entity';
 import { ConfigModule } from '@nestjs/config';
 
 /**
@@ -23,7 +25,7 @@ import { ConfigModule } from '@nestjs/config';
     CatalogModule,
     CompaniesModule,
     ConfigModule,
-    TypeOrmModule.forFeature([TypeWorker, TypeContract]),
+    TypeOrmModule.forFeature([TypeWorker, TypeContract, SubTypeWorker, PaymentMethod]),
     forwardRef(() => DocumentModule)
   ],
   controllers: [

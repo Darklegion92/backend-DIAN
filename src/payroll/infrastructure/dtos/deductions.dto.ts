@@ -326,4 +326,8 @@ export class DeductionsDto {
       this.parseDouble(this.deductions_total) + this.parseDouble(value[0].getOtherDeduction())
     );
   }
+
+  setDeductionsTotal(value: string): void {
+    this.deductions_total = value;
+  }
 } 

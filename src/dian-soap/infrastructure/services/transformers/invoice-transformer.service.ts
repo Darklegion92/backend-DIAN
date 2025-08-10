@@ -42,12 +42,12 @@ export class InvoiceTransformerService implements DocumentTransformer<InvoiceReq
       charge_total_amount: Number(factura.totalCargosAplicados),
     };
 
+    const { taxes, with_holding_taxes } = await this.generateDataService.generateTaxtotals(factura.impuestosGenerales?.FacturaImpuestos || [], this.catalogService);
     const customer = await this.generateDataService.generateCustomer(factura.cliente, this.catalogService);
-    const invoiceLines = await this.generateInvoiceLines(factura.detalleDeFactura.FacturaDetalle);
+    const invoiceLines = await this.generateInvoiceLines(factura.detalleDeFactura.FacturaDetalle, taxes);
 
     const paymentForm = await this.generatePaymentForms(factura.mediosDePago.MediosDePago);
 
-    const { taxes, with_holding_taxes } = await this.generateDataService.generateTaxtotals(factura.impuestosGenerales?.FacturaImpuestos || [], this.catalogService);
 
     return {
       number: parseInt(number),
@@ -78,12 +78,13 @@ export class InvoiceTransformerService implements DocumentTransformer<InvoiceReq
    * @param facturaDetalle - Detalle de la factura
    * @returns LineDto[] - Líneas de la factura
    */
-  async generateInvoiceLines(facturaDetalle: FacturaDetalleDto | FacturaDetalleDto[]): Promise<LineDto[]> {
+  async generateInvoiceLines(facturaDetalle: FacturaDetalleDto | FacturaDetalleDto[], taxes: TaxTotalDto[]): Promise<LineDto[]> {
     const invoiceLines: LineDto[] = [];
 
     if (typeof facturaDetalle === "string") {
       return invoiceLines;
     }
+    let haveExcents = false;
 
 
     if (Array.isArray(facturaDetalle)) {
@@ -97,6 +98,8 @@ export class InvoiceTransformerService implements DocumentTransformer<InvoiceReq
         const allowanceChargesGeneral: AllowanceChargeDto[] = this.generateAllowanceCharges(detalle.cargosDescuentos?.CargosDescuentos);
 
         const allowanceCharges: AllowanceChargeDto[] = allowance_charges.concat(allowanceChargesGeneral);
+
+        //TODO: buscar si existe el
 
         invoiceLines.push({
           unit_measure_id: unitMeasureId,
@@ -136,6 +139,11 @@ export class InvoiceTransformerService implements DocumentTransformer<InvoiceReq
         free_of_charge_indicator: false,
         allowance_charges: allowanceCharges.length > 0 ? allowanceCharges : undefined,
       });
+    }
+
+
+    if(haveExcents){
+//TODO: debemos agregar a todos allowance_charge con el valor del impuesto
     }
 
     return invoiceLines;

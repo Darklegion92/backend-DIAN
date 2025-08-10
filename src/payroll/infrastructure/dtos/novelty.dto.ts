@@ -5,8 +5,8 @@ export class NoveltyDto {
   private readonly novelty: boolean;
   private readonly uuidnov: string;
 
-  constructor() {
-    this.novelty = false;
+  constructor(novelty: boolean = false) {
+    this.novelty = novelty;
     this.uuidnov = "";
   }
 
@@ -17,4 +17,5 @@ export class NoveltyDto {
   getUuidnov(): string {
     return this.uuidnov;
   }
+  
 } 

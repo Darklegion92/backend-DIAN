@@ -145,7 +145,7 @@ export class EnviarHandler {
 
       } else {
         if (responseDian.message.includes("Este documento ya fue enviado anteriormente, se registra en la base de datos.")) {
-          const responseDocument = await this.documentService.getDocument(documentoTransformado.prefix, documentoTransformado.number, company.identificationNumber);
+          const responseDocument: any = await this.documentService.getDocument(documentoTransformado.prefix, documentoTransformado.number, company.identificationNumber);
           if (responseDocument) {
             const qrString = "";
             const attachedDocument = responseDocument.xml;

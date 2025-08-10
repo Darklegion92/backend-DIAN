@@ -74,6 +74,8 @@ export class EstadoDocumentoHandler {
         };
       }
 
+      const customer = JSON.parse(document?.client || '{}');
+
       return {
         EstadoDocumentoResult: {
           aceptacionFisica: true,
@@ -83,7 +85,7 @@ export class EstadoDocumentoHandler {
           acuseRespuesta: '1',
           ambiente: '1',
           cadenaCodigoQR: 'mnvbghjkghjkgjkh',
-          cadenaCufe: 'Cadena de ejemplo para el CUFE',
+          cadenaCufe: document.cufe,
           Codigo: 200,
           consecutivo: documento,
           cufe: document.cufe,
@@ -95,7 +97,11 @@ export class EstadoDocumentoHandler {
           eventos: [],
           fechaAceptacionDIAN: document.dateIssue.toISOString().slice(0, 19).replace('T', ' '),
           fechaDocumento: document.createdAt.toISOString().slice(0, 19).replace('T', ' '),
-          historialDeEntregas: [],
+          historialDeEntregas: [{
+            entregaEstatus: document.stateDocumentId === 1 ? '200': '0',
+            email: [customer.email],
+            recepcionEmailEstatus: document.sendEmailSuccess ? '1': '2',
+          }],
           mensaje: 'Documento encontrado',
           mensajeDocumento: '',
           poseeAdjuntos: false,

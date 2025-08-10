@@ -4,7 +4,7 @@
 export class WorkerDto {
   // NOEL_TIPOVINC
   private readonly type_worker_id: string;
-  private readonly sub_type_worker_id: string;
+  private sub_type_worker_id: string;
   // NOEL_TIPOID
   private readonly payroll_type_document_identification_id: string;
   // NOEL_CIU
@@ -123,5 +123,9 @@ export class WorkerDto {
 
   getEmail(): string {
     return this.email;
+  }
+
+  setSubTypeWorkerId(subTypeWorkerId: string) {
+    this.sub_type_worker_id = subTypeWorkerId;
   }
 } 

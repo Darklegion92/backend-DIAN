@@ -2,8 +2,8 @@
  * DTO para la respuesta de sanciones del servicio externo
  */
 export class SanctionDto {
-  private readonly public_sanction: string;
-  private readonly private_sanction: string;
+  private public_sanction: string;
+  private private_sanction: string;
 
   constructor(privateSanction: string) {
     this.private_sanction = privateSanction;
@@ -16,4 +16,9 @@ export class SanctionDto {
   getPrivateSanction(): string {
     return this.private_sanction;
   }
+
+  setPublicSanction(value: string): void {
+    this.public_sanction = value;
+  }
 } 
+

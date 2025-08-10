@@ -468,4 +468,8 @@ export class AccruedDto {
       );
     }
   }
+
+  setAccruedTotal(value: string): void {
+    this.accrued_total = value;
+  }
 } 

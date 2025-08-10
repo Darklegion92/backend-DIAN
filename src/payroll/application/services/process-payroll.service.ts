@@ -37,6 +37,10 @@ import { firstValueFrom } from 'rxjs';
 import { HttpService } from '@nestjs/axios';
 import { ConfigService } from '@nestjs/config';
 import { CompanyService } from '@/company/application/services/company.service';
+import { DevengadosDto, EnviarPayrollRequestDto, EnviarPayrollResponseDto } from '@/payroll/presentation/dtos/enviar-payroll.dto';
+import { SubTypeWorker } from '@/catalog/domain/entities/sub-type-worker.entity';
+import { PaymentMethod } from '@/catalog/domain/entities/payment-method.entity';
+import { LaborUnionDto } from '@/payroll/infrastructure/dtos/labor-union.dto';
 
 
 /**
@@ -53,6 +57,10 @@ export class ProcessPayrollService {
     private readonly typeWorkerRepository: Repository<TypeWorker>,
     @InjectRepository(TypeContract)
     private readonly typeContractRepository: Repository<TypeContract>,
+    @InjectRepository(SubTypeWorker)
+    private readonly subTypeWorkerRepository: Repository<SubTypeWorker>,
+    @InjectRepository(PaymentMethod)
+    private readonly paymentMethodRepository: Repository<PaymentMethod>,
     private readonly catalogService: CatalogService,
     private readonly generateDataService: GenerateDataService,
     private readonly httpService: HttpService,
@@ -512,9 +520,9 @@ export class ProcessPayrollService {
         success: true,
         statusCode: 200,
         message: 'Nómina enviada correctamente',
-        data:{
-         cufe: response.cune,
-         date: this.generateDataService.formatDate(new Date()),
+        data: {
+          cufe: response.cune,
+          date: this.generateDataService.formatDate(new Date()),
         }
       }
 
@@ -530,7 +538,7 @@ export class ProcessPayrollService {
 
       let url = `${this.externalApiUrl}/payroll`;
 
-      if(payroll.getPredecessor() != null) {
+      if (payroll.getPredecessor() != null) {
         url = `${this.externalApiUrl}/payroll-adjust-note`;
       }
       this.logger.log('Enviando solicitud de nómina al servicio externo');
@@ -557,14 +565,14 @@ export class ProcessPayrollService {
 
       return response.data;
     } catch (error) {
-      this.logger.error('Error al consumir el servicio externo de facturas', {error});
-      
+      this.logger.error('Error al consumir el servicio externo de facturas', { error });
+
       if (error.response) {
         const status = error.response.status;
         const message = error.response.data?.message || 'Error en el servicio externo';
-        
+
         this.logger.error(`Error HTTP ${status}: ${message}`);
-        
+
         switch (status) {
           case 400:
             throw new HttpException(
@@ -663,6 +671,472 @@ export class ProcessPayrollService {
   }
 
 
+  /**
+   * Envia una nómina electrónica a la DIAN
+   * @param payroll - La nómina electrónica a enviar
+   * @returns La respuesta de la DIAN
+   */
+  async enviarPayroll({ objNomina, tokenEnterprise, tokenPassword }: EnviarPayrollRequestDto): Promise<EnviarPayrollResponseDto> {
+
+    console.log(objNomina);
+
+    const { trabajador, periodos, pagos, novedad, consecutivoDocumentoNom, deducciones, devengados, totalDevengados, totalDeducciones } = objNomina;
+
+    if (tokenEnterprise == null || tokenPassword == null) {
+      throw new HttpException(
+        {
+          message: 'Token de autenticación inválido',
+          details: 'Verifica que los token no sean nulos'
+        },
+        HttpStatus.UNAUTHORIZED
+      );
+    }
+
+    const company = await this.companyService.getCompanyByTokenEmpresa(tokenEnterprise);
+
+    if (company == null) {
+      throw new HttpException(
+        {
+          message: 'Token de autenticación inválido',
+          details: 'Verifica que el token sea válido'
+        },
+        HttpStatus.UNAUTHORIZED
+      );
+    }
+
+    if (tokenPassword !== company.tokenPassword) {
+      throw new HttpException(
+        {
+          message: 'Token de autenticación inválido',
+          details: 'Verifica que el token password sea válido'
+        },
+        HttpStatus.UNAUTHORIZED
+      );
+    }
+
+    const prefix = consecutivoDocumentoNom.split(".")[0];
+    const number = consecutivoDocumentoNom.split(".")[1];
+
+    const novelty = new NoveltyDto(
+      novedad.split("|")[1] === "1"
+    );
+
+    const period = new PeriodDto(
+      periodos[0].fechaIngreso,
+      periodos[0].fechaLiquidacionInicio,
+      periodos[0].fechaLiquidacionFin,
+      periodos[0].tiempoLaborado,
+      periodos[0].fechaRetiro,
+    );
+
+    const typeWorkerId = await this.getWorkedIdByCode(trabajador.tipoTrabajador);
+
+    const subTypeWorkerId = await this.getSubTypeWorkerIdByCode(trabajador.tipoTrabajador);
+
+
+    const payrollTypeDocumentIdentificationId = await this.catalogService.getDocumentTypeIdByCode(trabajador.tipoIdentificacion);
+
+    const municipality = await this.catalogService.getMunicipalityByCode(trabajador.lugarTrabajoMunicipioCiudad);
+
+    const typeContractId = await this.getTypeContractIdByCode(trabajador.tipoContrato);
+
+
+    const worker = new WorkerDto(
+      typeWorkerId.toString(),
+      payrollTypeDocumentIdentificationId.toString(),
+      municipality.id.toString(),
+      typeContractId.toString(),
+      trabajador.altoRiesgoPension === "1",
+      trabajador.numeroDocumento,
+      trabajador.primerApellido,
+      trabajador.segundoApellido,
+      trabajador.primerNombre,
+      trabajador.otrosNombres,
+      trabajador.lugarTrabajoDireccion,
+      trabajador.salarioIntegral === "1",
+      trabajador.sueldo,
+      trabajador.email,
+    );
+    worker.setSubTypeWorkerId(subTypeWorkerId);
+
+    const paymentDates: PaymentDateDto[] = [];
+    let payment: PaymentDto;
+
+    for (const pago of pagos) {
+
+      const paymentMethodId = await this.getPaymentMethodIdByCode(pago.metodoDePago);
+
+      payment = new PaymentDto(
+        paymentMethodId
+      );
+
+      payment.setBankName(pago.nombreBanco);
+      payment.setAccountType(pago.tipoCuenta);
+      payment.setAccountNumber(pago.numeroCuenta);
+
+
+
+      pago.fechasPagos.forEach(fecha => {
+        const paymentDate = new PaymentDateDto(fecha.fechapagonomina);
+        paymentDates.push(paymentDate);
+      });
+    }
+
+    const accrued = await this.getAccrued(devengados, totalDevengados, periodos[0].tiempoLaborado, trabajador.sueldo);
+
+    const epsTypeLawDeductionsId = await this.obtenerIdLawDeduction(true, deducciones.salud[0]?.porcentaje);
+    const pensionTypeLawDeductionsId = await this.obtenerIdLawDeduction(false, deducciones.fondosPensiones[0]?.porcentaje);
+
+    const deductions = new DeductionsDto(
+      epsTypeLawDeductionsId,
+      deducciones.salud[0]?.deduccion,
+      pensionTypeLawDeductionsId,
+      deducciones.fondosPensiones[0]?.deduccion,
+    );
+
+    deductions.setDeductionsTotal(totalDeducciones);
+
+    deductions.setFondosspTypeLawDeductionsId("9");
+    deductions.setFondospDeductionSP(deducciones.fondosSP[0]?.deduccionSP);
+
+    deductions.setFondosspSubTypeLawDeductionsId("9");
+    deductions.setFondospDeductionSub(deducciones.fondosSP[0]?.deduccionSubrogada);
+
+    const laborUnion = [];
+
+    deducciones.sindicatos.forEach(sindicato => {
+      laborUnion.push(new LaborUnionDto(
+        sindicato.porcentaje,
+        sindicato.deduccion,
+      ));
+    });
+
+    deductions.setLaborUnion(laborUnion);
+
+    const sanctions = [];
+
+    deducciones.sanciones.forEach(sancion => {
+
+      const sanction = new SanctionDto(
+        sancion.sancionPriv,
+      );
+
+      sanction.setPublicSanction(sancion.sancionPublic);
+
+      sanctions.push(sanction);
+
+    });
+
+    deductions.setSanctions(sanctions);
+
+    const payroll = new PayrollDto(
+      novelty,
+      period,
+      objNomina.trabajador.codigoTrabajador,
+      prefix,
+      number,
+      worker,
+      payment,
+      paymentDates,
+      accrued,
+      deductions,
+
+    );
+    console.log(JSON.stringify(payroll, null, 2));
+
+    const response = await this.sendPayrollToService(payroll, company.tokenDian);
+
+    console.log(response);
+
+    return null;
+  }
+
+
+  async getAccrued(devengados: DevengadosDto, totalDevengados: string, tiempoLaborado: string, sueldo: string): Promise<AccruedDto> {
+    const accrued = new AccruedDto(
+      tiempoLaborado,
+      sueldo,
+    );
+
+
+
+
+    devengados.transporte.forEach(transporte => {
+      accrued.setTransportationAllowance(accrued.getTransportationAllowance() + transporte.auxilioTransporte);
+    });
+
+    accrued.setAccruedTotal(totalDevengados);
+    //accrued.setSalaryViatics(devengados.);
+    //accrued.setNonSalaryViatics(devengados.viaticos[0].viaticos);
+
+    devengados.horaExtras.forEach(horaExtra => {
+
+      switch (horaExtra.tipoHorasExtra) {
+        case "0":
+          accrued.setHEDs([new HDto(
+            horaExtra.horaInicio,
+            horaExtra.horaFin,
+            Number(horaExtra.cantidad),
+            Number(horaExtra.porcentaje),
+            horaExtra.pago
+          )]);
+          break;
+        case "1":
+          accrued.setHENs([new HDto(
+            horaExtra.horaInicio,
+            horaExtra.horaFin,
+            Number(horaExtra.cantidad),
+            Number(horaExtra.porcentaje),
+            horaExtra.pago
+          )]);
+          break;
+        case "2":
+          accrued.setHRNs([new HDto(
+            horaExtra.horaInicio,
+            horaExtra.horaFin,
+            Number(horaExtra.cantidad),
+            Number(horaExtra.porcentaje),
+            horaExtra.pago
+          )]);
+          break;
+        case "3":
+          accrued.setHEDDFs([new HDto(
+            horaExtra.horaInicio,
+            horaExtra.horaFin,
+            Number(horaExtra.cantidad),
+            Number(horaExtra.porcentaje),
+            horaExtra.pago
+          )]);
+          break;
+        case "4":
+          accrued.setHRDDFs([new HDto(
+            horaExtra.horaInicio,
+            horaExtra.horaFin,
+            Number(horaExtra.cantidad),
+            Number(horaExtra.porcentaje),
+            horaExtra.pago
+          )]);
+          break;
+        case "5":
+          accrued.setHENDFs([new HDto(
+            horaExtra.horaInicio,
+            horaExtra.horaFin,
+            Number(horaExtra.cantidad),
+            Number(horaExtra.porcentaje),
+            horaExtra.pago
+          )]);
+          break;
+        case "6":
+          accrued.setHRNDFs([new HDto(
+            horaExtra.horaInicio,
+            horaExtra.horaFin,
+            Number(horaExtra.cantidad),
+            Number(horaExtra.porcentaje),
+            horaExtra.pago
+          )]);
+          break;
+      }
+    });
+
+
+    const commonVacations = [];
+    devengados.vacaciones.vacacionesComunes.forEach(vacacion => {
+      commonVacations.push(new CommonVacationDto(
+        vacacion.fechaInicio,
+        vacacion.fechaFin,
+        Number(vacacion.cantidad),
+        vacacion.pago
+      ));
+
+    });
+
+    accrued.setCommonVacation(commonVacations);
+
+
+
+
+    const paidVacations = [];
+    devengados.vacaciones.vacacionesCompensadas.forEach(vacacion => {
+      paidVacations.push(new PaidVacationDto(
+        Number(vacacion.cantidad),
+        vacacion.pago
+      ));
+    });
+
+    accrued.setPaidVacation(paidVacations);
+
+    const serviceBonuses = [];
+    devengados.primas.forEach(prima => {
+      serviceBonuses.push(new ServiceBonusDto(
+        Number(prima.cantidad),
+        prima.pago,
+        prima.pagoNs
+      ));
+    });
+
+    accrued.setSeverance([new SeveranceDto(
+      devengados.cesantias[0]?.pago,
+      devengados.cesantias[0]?.porcentaje,
+      devengados.cesantias[0]?.pagoIntereses
+    )]);
+
+
+    const workDisabilities = [];
+    devengados.incapacidades.forEach(incapacidad => {
+      workDisabilities.push(new WorkDisabilitiesDto(
+        incapacidad.fechaInicio,
+        incapacidad.fechaFin,
+        Number(incapacidad.cantidad),
+        incapacidad.pago,
+        Number(incapacidad.tipo)
+      ));
+    });
+
+    accrued.setWorkDisabilities(workDisabilities);
+
+    const maternityLeaves = [];
+
+    devengados.licencias.licenciaMP.forEach(licencia => {
+      maternityLeaves.push(new CommonVacationDto(
+        licencia.fechaInicio,
+        licencia.fechaFin,
+        Number(licencia.cantidad),
+        licencia.pago
+      ));
+    });
+
+    accrued.setMaternityLeave(maternityLeaves);
+
+    const paidLeaves = [];
+
+    devengados.licencias.licenciaR.forEach(licencia => {
+      paidLeaves.push(new CommonVacationDto(
+        licencia.fechaInicio,
+        licencia.fechaFin,
+        Number(licencia.cantidad),
+        licencia.pago
+      ));
+    });
+
+    accrued.setPaidLeave(paidLeaves);
+
+    const nonPaidLeaves = [];
+
+    devengados.licencias.licenciaNR.forEach(licencia => {
+      nonPaidLeaves.push(new NonPaidLeaveDto(
+        licencia.fechaInicio,
+        licencia.fechaFin,
+        licencia.cantidad,
+      ));
+    });
+
+    accrued.setNonPaidLeave(nonPaidLeaves);
+
+
+    const bonuses = [];
+
+    devengados.bonificaciones.forEach(bonificacion => {
+      bonuses.push(new BonusDto(
+        bonificacion.bonificacionS,
+        bonificacion.bonificacionNS
+      ));
+    });
+
+    accrued.setBonuses(bonuses);
+
+    const aids = [];
+
+    devengados.auxilios.forEach(auxilio => {
+      aids.push(new AidDto(auxilio.auxilioS, auxilio.auxilioNS));
+    });
+
+    accrued.setAid(aids);
+
+    const legalStrikes = [];
+
+    devengados.huelgaLegales.forEach(huelga => {
+      legalStrikes.push(new NonPaidLeaveDto(
+        huelga.fechaInicio,
+        huelga.fechaFin,
+        huelga.cantidad
+      ));
+    });
+
+    accrued.setLegalStrike(legalStrikes);
+
+    const otherConcepts = [];
+
+    devengados.otrosConceptos.forEach(concepto => {
+
+      otherConcepts.push(new OtherConceptDto(
+        concepto.conceptoS,
+        concepto.conceptoNS,
+        concepto.descripcionConcepto
+      ));
+    });
+
+    accrued.setOtherConcepts(otherConcepts);
+
+    const compensations = [];
+
+    devengados.compensaciones.forEach(compensacion => {
+      compensations.push(new CompensationDto(compensacion.compensacionO, compensacion.compensacionE));
+    });
+
+    accrued.setCompensations(compensations);
+
+    const epctvBonuses = [];
+
+    devengados.bonoEPCTV.forEach(bono => {
+      epctvBonuses.push(new EpctvBonusDto(
+        bono.pagoAlimentacionS,
+        bono.pagoAlimentacionNS,
+      ));
+    });
+
+    accrued.setEpctvBonuses(epctvBonuses);
+
+    const commissions = [];
+
+    devengados.comisiones.forEach(comision => {
+      commissions.push(new CommissionDto(comision.montoComision));
+    });
+
+    accrued.setCommissions(commissions);
+
+    const thirdPartyPayments = [];
+
+    devengados.pagosTerceros.forEach(pago => {
+      thirdPartyPayments.push(new ThirdPartyPaymentDto(pago.pagoTercero));
+    });
+
+    accrued.setThirdPartyPayments(thirdPartyPayments);
+
+    const advances = [];
+
+    devengados.anticiposNom.forEach(anticipo => {
+      advances.push(new AdvanceDto(
+        anticipo.montoanticipo
+      ));
+    });
+
+    accrued.setAdvances(advances);
+
+    accrued.setEndowment(devengados.apoyoSost);
+
+    accrued.setSustenanceSupport(devengados.dotacion);
+
+    accrued.setTelecommuting(devengados.teletrabajo);
+
+    accrued.setWithdrawalBonus(devengados.bonifRetiro);
+
+    accrued.setCompensation(devengados.indemnizacion);
+
+
+    return accrued;
+  }
+
+
 
   async getTypeWorkerByCode(code: string) {
     if (!code || code.trim() === '') {
@@ -700,5 +1174,23 @@ export class ProcessPayrollService {
   async getTypeContractIdByCode(code: string) {
     const typeContract = await this.getTypeContractByCode(code);
     return typeContract.id;
+  }
+
+  async getSubTypeWorkerIdByCode(code: string) {
+    const subTypeWorker = await this.subTypeWorkerRepository.findOne({
+      where: { code: code.trim() },
+      select: ['id', 'name', 'code']
+    });
+
+    return subTypeWorker?.id?.toString();
+  }
+
+  async getPaymentMethodIdByCode(code: string) {
+    const paymentMethod = await this.paymentMethodRepository.findOne({
+      where: { code: code.trim() },
+      select: ['id', 'name', 'code']
+    });
+
+    return paymentMethod.id.toString();
   }
 } 
