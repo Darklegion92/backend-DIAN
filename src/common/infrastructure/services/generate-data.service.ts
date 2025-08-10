@@ -11,7 +11,7 @@ import { ConfigService } from "@nestjs/config";
 export class GenerateDataService {
   private readonly externalApiUrl: string;
   constructor(private readonly databaseUtils: DatabaseUtilsService, private readonly httpService: HttpService, private readonly configService: ConfigService) { 
-    this.externalApiUrl = this.configService.get('API_URL');
+    this.externalApiUrl = this.configService.get('EXTERNAL_SERVER_URL');
   }
 
   /**
