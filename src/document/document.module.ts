@@ -7,6 +7,7 @@ import { CatalogModule } from '@/catalog/catalog.module';
 import { InvoiceModule } from '@/invoice/invoice.module';
 import { CreditNoteModule } from '@/credit-note/credit-note.module';
 import { SupportDocumentModule } from '@/support-document/support-document.module';
+import { CompaniesModule } from '@/company/companies.module';
 
 import { DocumentController } from './presentation/controllers/document.controller';
 import { DocumentService } from './infrastructure/services/document.service';
@@ -28,7 +29,8 @@ import { DocumentProcessorRegistryService } from './application/services/documen
     // Usar forwardRef() solo para InvoiceModule que tiene dependencia circular
     forwardRef(() => InvoiceModule),
     CreditNoteModule,
-    SupportDocumentModule
+    SupportDocumentModule,
+    CompaniesModule
   ],
   controllers: [DocumentController],
   providers: [

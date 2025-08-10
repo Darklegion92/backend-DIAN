@@ -3,8 +3,11 @@ import { DocumentListRequest, SendDocumentElectronicResponse } from '@/document/
 import { Injectable, Logger, HttpException, HttpStatus } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { SendDocumentElectronicDto } from '../../presentation/dtos/document.dto';
+import { SendDocumentElectronicDto, SendEmailDto } from '../../presentation/dtos/document.dto';
 import { DocumentProcessorFactory } from '../../application/services/document-processor.factory';
+import { MailService } from '@/common/infrastructure/services/mail.service';
+import { User } from '@/auth/domain/entities/user.entity';
+import { CompanyService } from '@/company/application/services/company.service';
 
 @Injectable()
 export class DocumentService {
@@ -14,6 +17,8 @@ export class DocumentService {
     @InjectRepository(Document)
     private readonly documentRepository: Repository<Document>,
     private readonly documentProcessorFactory: DocumentProcessorFactory,
+    private readonly mailService: MailService,
+    private readonly companyService: CompanyService,
   ) {}
 
   /**
@@ -60,9 +65,6 @@ export class DocumentService {
         .take(perPage);
 
       const [documents, total] = await queryBuilder.getManyAndCount();
-
-      this.logger.log(`Documentos encontrados: ${total}`);
-      this.logger.debug('Primeros documentos:', JSON.stringify(documents.slice(0, 2), null, 2));
 
       // Respuesta simple con los datos tal como están en la BD
       const response = {
@@ -163,6 +165,80 @@ export class DocumentService {
         stateDocumentId: 1
       }
     });
+  }
+
+  async sendEmail({number, prefix, correo}: SendEmailDto, user:User): Promise<any> {
+
+    try {
+
+      const company = await this.companyService.getCompanyByNit(user.company_document);
+
+      const document = await this.getDocument(prefix, number.toString(), user.company_document);
+
+      if(!document){
+        throw new HttpException({
+          success: false,
+          message: 'Documento no encontrado',
+        }, HttpStatus.NOT_FOUND);
+      }
+
+      const body = `
+      <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 20px auto; border: 1px solid #ddd; border-radius: 10px; overflow: hidden;">
+        <div style="background-color: #e75c0b; color: white; padding: 20px; text-align: center;">
+          <h1 style="margin: 0;">Notificación de Documento Electrónico</h1>
+        </div>
+        <div style="padding: 25px; background-color: #f9f9f9;">
+          <p>Estimado(a) cliente,</p>
+          <p>Le informamos que se ha generado un nuevo documento electrónico asociado a su cuenta.</p>
+          <div style="background-color: #ffffff; padding: 20px; border-left: 5px solid #f67615; margin: 20px 0;">
+            <h3 style="margin-top: 0; color: #f67615;">Detalles del Documento</h3>
+            <p><strong>Documento No:</strong> ${document.prefix}${document.number}</p>
+            <p><strong>Generado por:</strong> ${user.name}</p>
+            <p><strong>Fecha de Emisión:</strong> ${new Date(document.dateIssue).toLocaleDateString('es-CO')}</p>
+          </div>
+          <p>Encontrará el archivo adjunto a este correo, el cual contiene la representación gráfica del documento en formato PDF y el archivo XML correspondiente.</p>
+          <p>Gracias por su confianza.</p>
+          <p>Atentamente,<br/><strong>El equipo de SOLTEC - Tecnología y Desarrollo.</strong></p>
+        </div>
+        <div style="background-color: #f2f2f2; color: #666; padding: 15px; text-align: center; font-size: 12px;">
+          <p>Este es un correo electrónico generado automáticamente. Por favor, no responda a este mensaje.</p>
+          <p>&copy; ${new Date().getFullYear()} SOLTEC - Tecnología y Desarrollo. Todos los derechos reservados.</p>
+        </div>
+      </div>
+    `;
+
+    const email_cc_list = !!correo ? [{email: correo}] : null;
+
+      const sendEmail = await this.mailService.sendMailWithCompanyConfig({
+        prefix,
+        number: number.toString(),
+        token: company.tokenDian,
+        email_cc_list,
+        html_body: body,  
+      });
+
+
+      if (sendEmail.success) {
+        return {
+          codigo: 200,
+          mensaje: 'Correo enviado correctamente.',
+          resultado: 'Procesado',
+        };
+      }
+
+      return {
+        codigo: 400,
+        mensaje: sendEmail.message,
+        resultado: 'Error',
+      };
+    } catch (error) {
+      console.log("error", error);
+      return {
+        codigo: 500,
+        mensaje: error.message,
+        resultado: 'Error',
+      };
+    }
   }
 
 

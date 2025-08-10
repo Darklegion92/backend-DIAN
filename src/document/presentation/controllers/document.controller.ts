@@ -4,10 +4,11 @@ import { ApiTags, ApiOperation, ApiResponse, ApiQuery, ApiBearerAuth, ApiBody } 
 import { User } from '@/auth/domain/entities/user.entity';
 import { CurrentUser } from '@/auth/presentation/decorators/current-user.decorator';
 import { JwtAuthGuard } from '@/auth/presentation/guards/jwt-auth.guard';
-import { DocumentListQueryDto, SendDocumentElectronicDto } from '../dtos/document.dto';
+import { DocumentListQueryDto, SendDocumentElectronicDto, SendEmailDto } from '../dtos/document.dto';
 import { DocumentListResponse, SendDocumentElectronicResponse } from '@/document/domain/interfaces/document.interface';
 import { DocumentService } from '@/document/infrastructure/services/document.service';
 import { Role } from '@/auth/domain/enums/role.enum';
+import { EnviarCorreoResponseDto } from '@/payroll/presentation/dtos/enviar-correo.dto';
 
 
 @ApiTags('Documentos')
@@ -365,4 +366,63 @@ export class DocumentController {
     this.logger.log('Documento electrónico enviado exitosamente');
     return result;
   }
+
+
+  @Post('send-email')
+  @ApiOperation({
+    summary: 'Enviar documento electrónico a un email',
+    description: `
+    **Envío de Documentos Electrónicos a un email**
+    
+    Este endpoint permite enviar documentos electrónicos (facturas, notas crédito, notas débito) 
+    para su procesamiento y autorización ante la DIAN.`
+  })
+
+  @ApiBody({ type: SendEmailDto })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Documento enviado exitosamente',
+    content: {
+      'application/json': {
+        example: {
+          success: true,
+          message: "Documento electrónico enviado exitosamente",
+          data: {
+            codigo: 200,
+            mensaje: "Correo enviado correctamente.",
+            resultado: "Procesado"
+          }
+        }
+      }
+    }
+  })
+  @ApiResponse({
+    status: HttpStatus.BAD_REQUEST,
+    description: 'Datos de entrada inválidos',
+    content: {
+      'application/json': {
+        example: {
+          success: false,
+          message: "Error en los datos del documento",
+          errors: {
+            number: ["El número del documento es requerido"],
+            prefix: ["El prefijo del documento es requerido"],
+            correo: ["El correo electrónico es requerido"]
+          }
+        }
+      }
+    }
+  })
+  sendEmail(@Body() sendEmailDto: SendEmailDto, @CurrentUser() currentUser: User): Promise<EnviarCorreoResponseDto> {
+
+    this.logger.log('Iniciando envío de documento electrónico a un email');
+    this.logger.debug('Datos del documento:', {
+      number: sendEmailDto.number,
+      prefix: sendEmailDto.prefix,
+      correo: sendEmailDto.correo
+    });
+    
+    return this.documentService.sendEmail(sendEmailDto, currentUser);
+ }
+
 } 

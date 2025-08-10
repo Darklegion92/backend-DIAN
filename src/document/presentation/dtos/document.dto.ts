@@ -244,3 +244,30 @@ export class SendDocumentElectronicResponseDto {
   })
   document: string;
 }
+
+export class SendEmailDto {
+
+  @ApiProperty({ 
+    description: 'Número del documento', 
+    example: '001' 
+  })
+  @IsString()
+  @IsNotEmpty()
+  number: string;
+
+  @ApiProperty({ 
+    description: 'Prefijo del documento', 
+    example: 'FE' 
+  })
+  @IsString()
+  @IsNotEmpty()
+  prefix: string;
+
+  @ApiProperty({ 
+    description: 'Correo electrónico del destinatario', 
+    example: 'example@example.com' 
+  })
+  @IsString()
+  @IsNotEmpty()
+  correo: string;
+}
