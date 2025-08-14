@@ -52,25 +52,13 @@ export class ProcessInvoiceUseCase implements DocumentProcessorPort {
     const transformedData = await this.transformInvoiceData(dto);
     try {
 
-      
+
       console.log("PDF Document", transformedData);
       const company: CompanyWithCertificateDto = await this.companyService.getCompanyByNit(dto.nit);
 
       const dianResponse = await this.sendInvoiceToDian(transformedData, company.tokenDian);
 
-      if(dianResponse?.ResponseDian?.Envelope?.Body?.SendBillSyncResponse?.SendBillSyncResult?.IsValid === 'true'){
-        const pdfDocument = await this.generateInvoicePdf(dto.nit, dianResponse.urlinvoicepdf, `${transformedData.prefix}${transformedData.number}.pdf`);
-       return{
-          success: true,
-          message: 'Factura electrónica procesada correctamente',
-          data: {
-            cufe: dianResponse.cufe,
-            date: this.generateDataService.formatDateAndTime(new Date()),
-            document: pdfDocument
-          }
-        };
-      }else
-       if(dianResponse.message === "Este documento ya fue enviado anteriormente, se registra en la base de datos."){
+      if (dianResponse?.ResponseDian?.Envelope?.Body?.SendBillSyncResponse?.SendBillSyncResult?.IsValid === 'true') {
         const pdfDocument = await this.generateInvoicePdf(dto.nit, dianResponse.urlinvoicepdf, `${transformedData.prefix}${transformedData.number}.pdf`);
         return {
           success: true,
@@ -81,36 +69,48 @@ export class ProcessInvoiceUseCase implements DocumentProcessorPort {
             document: pdfDocument
           }
         };
-      }else{
-        const errorMessage = dianResponse.ResponseDian.Envelope.Body.SendBillSyncResponse.SendBillSyncResult.ErrorMessage;
-        if(errorMessage?.string){
+      } else
+        if (dianResponse.message === "Este documento ya fue enviado anteriormente, se registra en la base de datos.") {
+          const pdfDocument = await this.generateInvoicePdf(dto.nit, dianResponse.urlinvoicepdf, `${transformedData.prefix}${transformedData.number}.pdf`);
           return {
-            success: false,
-            message: errorMessage.string,
+            success: true,
+            message: 'Factura electrónica procesada correctamente',
             data: {
-              cufe: '',
-              date: '',
-              document: ''
+              cufe: dianResponse.cufe,
+              date: this.generateDataService.formatDateAndTime(new Date()),
+              document: pdfDocument
             }
-          }
-        }else{
-          return {
-            success: false,
-            message: errorMessage.strings.join(', '),
-            data: {
-              cufe: '',
-              date: '',
-              document: ''
+          };
+        } else {
+          const errorMessage = dianResponse.ResponseDian.Envelope.Body.SendBillSyncResponse.SendBillSyncResult.ErrorMessage;
+          if (errorMessage?.string) {
+            return {
+              success: false,
+              message: errorMessage.string,
+              data: {
+                cufe: '',
+                date: '',
+                document: ''
+              }
+            }
+          } else {
+            return {
+              success: false,
+              message: errorMessage.strings.join(', '),
+              data: {
+                cufe: '',
+                date: '',
+                document: ''
+              }
             }
           }
         }
-      }
 
     } catch (error) {
       this.logger.error('Error al procesar factura electrónica', error);
       return {
         success: false,
-        message:  `Error al procesar factura electrónica: ${error.message}	${transformedData}`,
+        message: `Error al procesar factura electrónica: ${error.message}	${transformedData}`,
         data: {
           cufe: '',
           date: '',
@@ -125,14 +125,14 @@ export class ProcessInvoiceUseCase implements DocumentProcessorPort {
    * @param dto - Datos de la factura electrónica
    * @returns Datos transformados de la factura
    */
-  private async transformInvoiceData({header, resolutionNumber, number, customer, taxes, detail, payment}: SendDocumentElectronicDto): Promise<any> {
+  private async transformInvoiceData({ header, resolutionNumber, number, customer, taxes, detail, payment }: SendDocumentElectronicDto): Promise<any> {
 
     const dataHead: string[] = header.split('|');
 
     const prefix: string = dataHead[3].split('-')[0];
 
 
-    if(resolutionNumber === '18760000001'){
+    if (resolutionNumber === '18760000001') {
       number = "99" + number.toString().padStart(7, '0');
 
     }
@@ -168,13 +168,13 @@ export class ProcessInvoiceUseCase implements DocumentProcessorPort {
 
     const customerDto: SellerOrCustomerDto = await this.generateDataService.getSellerOrCustomerData(dataCustomer);
 
-    if(customerDto.email.includes(';')){
+    if (customerDto.email.includes(';')) {
       const dataEmail: string[] = customerDto.email.split(';');
       customerDto.email = dataEmail[0];
 
       const emailCc: EmailCcDto[] = [];
-      for(let i = 1; i < dataEmail.length; i++){
-        emailCc.push({email: dataEmail[i]});
+      for (let i = 1; i < dataEmail.length; i++) {
+        emailCc.push({ email: dataEmail[i] });
       }
 
       transformedData.email_cc_list = emailCc;
@@ -185,18 +185,38 @@ export class ProcessInvoiceUseCase implements DocumentProcessorPort {
 
     const paymentForm: PaymentFormDto = await this.generateDataService.getPaymentFormData(dataPaymentCondition);
 
+    //TODO: validamos si el iva de 0% que manda
+
+    const totalTaxes: number = taxTotals.reduce((acc, tax) => acc + (tax.percent === 0 ? tax.taxable_amount : 0), 0);
+    const totalTaxesDetail: number = invoiceLines.reduce((acc, line) => acc + (line.tax_totals.reduce((acc, tax) => acc + (tax.percent === 0 && tax.tax_id === 1 ? tax.taxable_amount : 0), 0)), 0);
+
+    if (totalTaxes !== totalTaxesDetail) {
+      const diff = totalTaxesDetail - totalTaxes;
+
+      //TODO: buscar producto con el valor de taxable_amount y agregar el valor de diff a la linea de detalle y eliminar la linea taxes
+      const index = invoiceLines.findIndex(line => line.tax_totals.some(tax => tax.percent === 0 && tax.tax_id === 1 && tax.taxable_amount === diff));
+
+      if (index !== -1) {
+        delete invoiceLines[index].tax_totals;
+        legalMonetaryTotals.tax_exclusive_amount = legalMonetaryTotals.tax_exclusive_amount - diff;
+      }
+
+
+    }
+
+
     transformedData.legal_monetary_totals = legalMonetaryTotals;
     transformedData.customer = customerDto;
     transformedData.invoice_lines = invoiceLines;
     transformedData.payment_form = [paymentForm];
-    
-    
-    const withHoldingTaxTotal: TaxTotalDto[] = taxTotals.filter(tax => [7,5,6].includes(tax.tax_id));
 
-    if(withHoldingTaxTotal.length > 0){
+
+    const withHoldingTaxTotal: TaxTotalDto[] = taxTotals.filter(tax => [7, 5, 6].includes(tax.tax_id));
+
+    if (withHoldingTaxTotal.length > 0) {
       transformedData.with_holding_tax_total = withHoldingTaxTotal;
-      transformedData.tax_totals = taxTotals.filter(tax => ![7,5,6].includes(tax.tax_id));
-    }else{
+      transformedData.tax_totals = taxTotals.filter(tax => ![7, 5, 6].includes(tax.tax_id));
+    } else {
       transformedData.tax_totals = taxTotals;
     }
 
@@ -220,7 +240,7 @@ export class ProcessInvoiceUseCase implements DocumentProcessorPort {
       const taxTotals: TaxTotalDto[] = [];
       const allowanceCharges: AllowanceChargeDto[] = [];
 
-      if(dataLine[45] !== "DESCUENTO ITEM"){
+      if (dataLine[45] !== "DESCUENTO ITEM") {
         const taxId: number = await this.databaseUtils.findIdByCode(dataLine[45], 'taxes');
         const taxTotal: TaxTotalDto = {
           tax_id: taxId,
@@ -229,7 +249,7 @@ export class ProcessInvoiceUseCase implements DocumentProcessorPort {
           taxable_amount: Number(dataLine[44])
         };
         taxTotals.push(taxTotal);
-      }else{
+      } else {
         const discountId: number = await this.databaseUtils.findIdByCode(dataLine[44], 'discounts');
 
         const allowanceCharge: AllowanceChargeDto = {
@@ -258,8 +278,8 @@ export class ProcessInvoiceUseCase implements DocumentProcessorPort {
         free_of_charge_indicator: false
       }
 
-      if(dataLine.length > 59 ){
-        if(dataLine[58] === '02'){
+      if (dataLine.length > 59) {
+        if (dataLine[58] === '02') {
           const taxTotal2: TaxTotalDto = {
             tax_id: 15,
             tax_amount: Number(dataLine[63]),
@@ -268,42 +288,42 @@ export class ProcessInvoiceUseCase implements DocumentProcessorPort {
             tax_name: "Impuesto al tabaco"
           };
           taxTotals.push(taxTotal2);
+        }
+
+        if (dataLine[58] === '22') {
+          const taxTotal2: TaxTotalDto = {
+            tax_id: 10,
+            tax_amount: Number(dataLine[63]),
+            percent: 0,
+            taxable_amount: 0,
+            base_unit_measure: 1,
+            per_unit_amount: Number(dataLine[62]),
+            unit_measure_id: 70,
+          };
+          taxTotals.push(taxTotal2);
+
+          const allowanceCharges: AllowanceChargeDto[] = [];
+
+          const allowanceCharge: AllowanceChargeDto = {
+            charge_indicator: false,
+            allowance_charge_reason: "DESCUENTO GENERAL",
+            amount: 0,
+            base_amount: Number(dataLine[26]),
+          };
+
+          allowanceCharges.push(allowanceCharge);
+
+          invoiceLine.allowance_charges = allowanceCharges;
+          invoiceLine.free_of_charge_indicator = true;
+          invoiceLine.reference_price_id = 3;
+          invoiceLine.tax_totals = taxTotals;
+          invoiceLine.base_quantity = 1;
+
+        }
+
       }
-
-      if(dataLine[58] === '22'){
-        const taxTotal2: TaxTotalDto = {
-          tax_id: 10,
-          tax_amount: Number(dataLine[63]),
-          percent: 0,
-          taxable_amount: 0,
-          base_unit_measure: 1,
-          per_unit_amount: Number(dataLine[62]),
-          unit_measure_id: 70,
-        };
-        taxTotals.push(taxTotal2);
-        
-        const allowanceCharges: AllowanceChargeDto[] = [];
-
-        const allowanceCharge: AllowanceChargeDto = {
-          charge_indicator: false,
-          allowance_charge_reason: "DESCUENTO GENERAL",
-          amount: 0,
-          base_amount: Number(dataLine[26]),
-        };
-
-        allowanceCharges.push(allowanceCharge);
-
-        invoiceLine.allowance_charges = allowanceCharges;
-        invoiceLine.free_of_charge_indicator = true;
-        invoiceLine.reference_price_id= 3;
-        invoiceLine.tax_totals = taxTotals;
-        invoiceLine.base_quantity = 1;
-
-      }
-      
+      invoiceLines.push(invoiceLine);
     }
-    invoiceLines.push(invoiceLine);
-  }
 
     return invoiceLines;
   }
@@ -338,14 +358,14 @@ export class ProcessInvoiceUseCase implements DocumentProcessorPort {
 
       return response.data;
     } catch (error) {
-      this.logger.error('Error al consumir el servicio externo de facturas', {error});
-      
+      this.logger.error('Error al consumir el servicio externo de facturas', { error });
+
       if (error.response) {
         const status = error.response.status;
         const message = error.response.data?.message || 'Error en el servicio externo';
-        
+
         this.logger.error(`Error HTTP ${status}: ${message}`);
-        
+
         switch (status) {
           case 400:
             throw new HttpException(
@@ -439,11 +459,11 @@ export class ProcessInvoiceUseCase implements DocumentProcessorPort {
    * @param companyDocument - Documento de la empresa
    * @returns PDF en base64
    */
-  private async generateInvoicePdf(companyDocument: string, urlinvoicepd:string, name: string): Promise<string> {
+  private async generateInvoicePdf(companyDocument: string, urlinvoicepd: string, name: string): Promise<string> {
     try {
       const documentName = this.generateDataService.buildDocumentName('invoice', urlinvoicepd, name);
       const pdfUrl = `${this.externalApiUrl}/invoice/${companyDocument}/${documentName}`;
-      
+
       this.logger.debug('Solicitando PDF desde:', pdfUrl);
 
       const response = await firstValueFrom(
@@ -466,8 +486,8 @@ export class ProcessInvoiceUseCase implements DocumentProcessorPort {
 
     } catch (error) {
       this.logger.error('Error al obtener PDF:', error);
-      
-     return null;
+
+      return null;
     }
   }
 } 
