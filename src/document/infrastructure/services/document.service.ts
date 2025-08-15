@@ -219,6 +219,8 @@ export class DocumentService {
         html_body: body,  
       });
 
+      console.log("sendEmail", sendEmail);
+
 
       if (sendEmail.success) {
         return {
