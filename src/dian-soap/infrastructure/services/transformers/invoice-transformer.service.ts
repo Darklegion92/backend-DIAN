@@ -48,6 +48,27 @@ export class InvoiceTransformerService implements DocumentTransformer<InvoiceReq
 
     const paymentForm = await this.generatePaymentForms(factura.mediosDePago.MediosDePago);
 
+    //TODO: validamos si el iva de 0% que manda
+
+    const totalTaxes: number = taxes.reduce((acc, tax) => acc + (tax.percent === 0 ? tax.taxable_amount : 0), 0);
+    const totalTaxesDetail: number = invoiceLines.reduce((acc, line) => acc + (line.tax_totals.reduce((acc, tax) => acc + (tax.percent === 0 && tax.tax_id === 1 ? tax.taxable_amount : 0), 0)), 0);
+
+
+    if (totalTaxes !== totalTaxesDetail) {
+      const diff = totalTaxesDetail - totalTaxes;
+
+      //TODO: buscar producto con el valor de taxable_amount y agregar el valor de diff a la linea de detalle y eliminar la linea taxes
+      const index = invoiceLines.findIndex(line => line.tax_totals.some(tax => tax.percent === 0 && tax.tax_id === 1 && tax.taxable_amount === diff));
+
+
+      if (index !== -1) {
+        delete invoiceLines[index].tax_totals;
+        legalMonetaryTotals.tax_exclusive_amount = legalMonetaryTotals.tax_exclusive_amount - diff;
+      }
+
+
+    }
+
 
     return {
       number: parseInt(number),
@@ -142,8 +163,8 @@ export class InvoiceTransformerService implements DocumentTransformer<InvoiceReq
     }
 
 
-    if(haveExcents){
-//TODO: debemos agregar a todos allowance_charge con el valor del impuesto
+    if (haveExcents) {
+      //TODO: debemos agregar a todos allowance_charge con el valor del impuesto
     }
 
     return invoiceLines;

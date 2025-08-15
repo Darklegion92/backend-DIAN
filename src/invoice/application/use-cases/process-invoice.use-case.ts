@@ -185,32 +185,6 @@ export class ProcessInvoiceUseCase implements DocumentProcessorPort {
 
     const paymentForm: PaymentFormDto = await this.generateDataService.getPaymentFormData(dataPaymentCondition);
 
-    //TODO: validamos si el iva de 0% que manda
-
-    const totalTaxes: number = taxTotals.reduce((acc, tax) => acc + (tax.percent === 0 ? tax.taxable_amount : 0), 0);
-    const totalTaxesDetail: number = invoiceLines.reduce((acc, line) => acc + (line.tax_totals.reduce((acc, tax) => acc + (tax.percent === 0 && tax.tax_id === 1 ? tax.taxable_amount : 0), 0)), 0);
-
-    console.log("totalTaxes", totalTaxes);
-    console.log("totalTaxesDetail", totalTaxesDetail);
-
-    if (totalTaxes !== totalTaxesDetail) {
-      const diff = totalTaxesDetail - totalTaxes;
-      console.log("diff", diff);
-
-      //TODO: buscar producto con el valor de taxable_amount y agregar el valor de diff a la linea de detalle y eliminar la linea taxes
-      const index = invoiceLines.findIndex(line => line.tax_totals.some(tax => tax.percent === 0 && tax.tax_id === 1 && tax.taxable_amount === diff));
-
-      console.log("index", index);
-
-      if (index !== -1) {
-        delete invoiceLines[index].tax_totals;
-        legalMonetaryTotals.tax_exclusive_amount = legalMonetaryTotals.tax_exclusive_amount - diff;
-      }
-
-
-    }
-
-
     transformedData.legal_monetary_totals = legalMonetaryTotals;
     transformedData.customer = customerDto;
     transformedData.invoice_lines = invoiceLines;
