@@ -195,7 +195,7 @@ export class DocumentService {
           <div style="background-color: #ffffff; padding: 20px; border-left: 5px solid #f67615; margin: 20px 0;">
             <h3 style="margin-top: 0; color: #f67615;">Detalles del Documento</h3>
             <p><strong>Documento No:</strong> ${document.prefix}${document.number}</p>
-            <p><strong>Generado por:</strong> ${user.name}</p>
+            <p><strong>Generado por:</strong> ${company.mailFromName}</p>
             <p><strong>Fecha de Emisión:</strong> ${new Date(document.dateIssue).toLocaleDateString('es-CO')}</p>
           </div>
           <p>Encontrará el archivo adjunto a este correo, el cual contiene la representación gráfica del documento en formato PDF y el archivo XML correspondiente.</p>
