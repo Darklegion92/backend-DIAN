@@ -169,13 +169,13 @@ export class DocumentService {
     });
   }
 
-  async sendEmail({number, prefix, correo}: SendEmailDto, user:User): Promise<any> {
+  async sendEmail({number, prefix, correo, document_company}: SendEmailDto, user:User): Promise<any> {
 
     try {
 
-      const company = await this.companyService.getCompanyByNit(user.company_document);
+      const company = await this.companyService.getCompanyByNit(document_company);
 
-      const document = await this.getDocument(prefix, number.toString(), user.company_document);
+      const document = await this.getDocument(prefix, number.toString(), document_company);
 
       if(!document){
         throw new HttpException({

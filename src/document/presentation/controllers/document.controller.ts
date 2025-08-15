@@ -419,7 +419,8 @@ export class DocumentController {
     this.logger.debug('Datos del documento:', {
       number: sendEmailDto.number,
       prefix: sendEmailDto.prefix,
-      correo: sendEmailDto.correo
+      correo: sendEmailDto.correo,
+      document_company: sendEmailDto.document_company
     });
     
     return this.documentService.sendEmail(sendEmailDto, currentUser);

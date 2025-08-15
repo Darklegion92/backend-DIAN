@@ -270,6 +270,14 @@ export class SendEmailDto {
   @IsString()
   @IsNotEmpty()
   correo: string;
+
+  @ApiProperty({ 
+    description: 'NIT de la empresa', 
+    example: '900123456' 
+  })
+  @IsString()
+  @IsNotEmpty()
+  document_company: string;
 }
 
 export class DownloadPDFDto {
