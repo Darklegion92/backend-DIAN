@@ -395,7 +395,10 @@ export class ResolutionService {
     const resolution = await this.resolutionRepository.findOne({
       where: {
         prefix,
-        companyId
+        companyId,
+      },
+      order: {
+        createdAt: 'DESC'
       }
     });
     return resolution.resolution;
