@@ -74,6 +74,27 @@ export class EnviarHandler {
       if (responseDian.ResponseDian) {
         const body = responseDian.ResponseDian.Envelope.Body;
         if (body.SendBillSyncResponse.SendBillSyncResult.IsValid === "true") {
+
+          if(!body.SendBillSyncResponse.SendBillSyncResult.StatusMessage.includes(`${documentoTransformado.prefix}${documentoTransformado.number}`)){
+
+          //borrar los registros del documento en la base de datos
+          await this.documentService.deleteDocument(documentoTransformado.prefix, documentoTransformado.number, company.identificationNumber);
+
+          const response = new EnviarResponseDto({
+            codigo: 401,
+            consecutivoDocumento: factura.consecutivoDocumento || `PRUE${Date.now()}`,
+            esValidoDian: false,
+            fechaAceptacionDIAN: new Date().toISOString().slice(0, 19).replace('T', ' '),
+            hash: createHash('sha384').update(responseDian.attacheddocument).digest('hex'),
+            mensaje: 'Documento no valido',
+            nombre: 'DOCUMENTO_PROCESADO_ERROR',
+            reglasNotificacionDIAN: [],
+            reglasValidacionDIAN: [],
+            resultado: 'Error',
+          });
+          return { EnviarResult: response };
+        }
+
           const cufe = responseDian.cufe  || responseDian.cude;
           const response = new EnviarResponseDto({
             codigo: 200,

@@ -262,4 +262,12 @@ export class DocumentService {
     return pdf;
   }
 
+  async deleteDocument(prefix:string, number:string, companyIdentification:string){
+    await this.documentRepository.delete({
+      prefix,
+      number,
+      identificationNumber: companyIdentification,
+    });
+  }
+
 } 
