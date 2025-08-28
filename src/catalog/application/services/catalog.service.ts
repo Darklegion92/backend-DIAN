@@ -115,7 +115,7 @@ export class CatalogService {
    */
   async getDocumentTypeIdByCode(code: string): Promise<number> {
     const documentType = await this.getDocumentTypeByCode(code);
-    return documentType.id;
+    return documentType.id || 3 ;
   }
 
   // ========================================================================
