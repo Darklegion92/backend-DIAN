@@ -77,10 +77,12 @@ export class EnviarHandler {
 
           if(!body.SendBillSyncResponse.SendBillSyncResult.StatusMessage.includes(`${documentoTransformado.prefix}${documentoTransformado.number}`)){
 
-          //borrar los registros del documento en la base de datos
-          await this.documentService.deleteDocument(documentoTransformado.prefix, documentoTransformado.number, company.identificationNumber);
+            console.log("Documento no valido");
 
-          const response = new EnviarResponseDto({
+          //borrar los registros del documento en la base de datos
+          //await this.documentService.deleteDocument(documentoTransformado.prefix, documentoTransformado.number, company.identificationNumber);
+
+          /*const response = new EnviarResponseDto({
             codigo: 401,
             consecutivoDocumento: factura.consecutivoDocumento || `PRUE${Date.now()}`,
             esValidoDian: false,
@@ -92,7 +94,7 @@ export class EnviarHandler {
             reglasValidacionDIAN: [],
             resultado: 'Error',
           });
-          return { EnviarResult: response };
+          return { EnviarResult: response };*/
         }
 
           const cufe = responseDian.cufe  || responseDian.cude;
