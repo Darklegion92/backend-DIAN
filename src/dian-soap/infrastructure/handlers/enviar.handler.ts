@@ -80,21 +80,21 @@ export class EnviarHandler {
             console.log("Documento no valido");
 
           //borrar los registros del documento en la base de datos
-          //await this.documentService.deleteDocument(documentoTransformado.prefix, documentoTransformado.number, company.identificationNumber);
+          await this.documentService.deleteDocument(documentoTransformado.prefix, documentoTransformado.number, company.identificationNumber);
 
-          /*const response = new EnviarResponseDto({
+          const response = new EnviarResponseDto({
             codigo: 401,
             consecutivoDocumento: factura.consecutivoDocumento || `PRUE${Date.now()}`,
             esValidoDian: false,
             fechaAceptacionDIAN: new Date().toISOString().slice(0, 19).replace('T', ' '),
             hash: createHash('sha384').update(responseDian.attacheddocument).digest('hex'),
             mensaje: 'Documento no valido',
-            nombre: 'DOCUMENTO_PROCESADO_ERROR',
+              nombre: 'DOCUMENTO_PROCESADO_ERROR',
             reglasNotificacionDIAN: [],
             reglasValidacionDIAN: [],
             resultado: 'Error',
           });
-          return { EnviarResult: response };*/
+          return { EnviarResult: response };
         }
 
           const cufe = responseDian.cufe  || responseDian.cude;
