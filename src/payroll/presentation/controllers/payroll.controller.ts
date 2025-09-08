@@ -693,8 +693,6 @@ export class PayrollController {
     @Body() enviarPayrollRequestDto: EnviarPayrollRequestDto,
   ): Promise<EnviarPayrollResponseDto> {
 
-    console.log(enviarPayrollRequestDto.objNomina.pagos);
-
     return await this.payrollService.enviarPayroll(enviarPayrollRequestDto);  
   }
 } 

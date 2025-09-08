@@ -680,7 +680,7 @@ export class ProcessPayrollService {
 
     console.log(objNomina);
 
-    const { trabajador, periodos, pagos, novedad, consecutivoDocumentoNom, deducciones, devengados, totalDevengados, totalDeducciones } = objNomina;
+    const { trabajador, periodos, pagos, novedad,fechaEmisionNom, rangoNumeracionNom,consecutivoDocumentoNom, deducciones, devengados, totalDevengados, totalDeducciones } = objNomina;
 
     if (tokenEnterprise == null || tokenPassword == null) {
       throw new HttpException(
@@ -714,8 +714,8 @@ export class ProcessPayrollService {
       );
     }
 
-    const prefix = consecutivoDocumentoNom.split(".")[0];
-    const number = consecutivoDocumentoNom.split(".")[1];
+    const prefix = rangoNumeracionNom.split("-")[0];
+    const number = consecutivoDocumentoNom.replaceAll(prefix, "");
 
     const novelty = new NoveltyDto(
       novedad.split("|")[1] === "1"
@@ -726,13 +726,12 @@ export class ProcessPayrollService {
       periodos[0].fechaLiquidacionInicio,
       periodos[0].fechaLiquidacionFin,
       periodos[0].tiempoLaborado,
-      periodos[0].fechaRetiro,
+      fechaEmisionNom.split(" ")[0],
     );
 
     const typeWorkerId = await this.getWorkedIdByCode(trabajador.tipoTrabajador);
 
-    const subTypeWorkerId = await this.getSubTypeWorkerIdByCode(trabajador.tipoTrabajador);
-
+    const subTypeWorkerId = await this.getSubTypeWorkerIdByCode(trabajador.tipoTrabajador || '01');
 
     const payrollTypeDocumentIdentificationId = await this.catalogService.getDocumentTypeIdByCode(trabajador.tipoIdentificacion);
 
@@ -757,6 +756,7 @@ export class ProcessPayrollService {
       trabajador.sueldo,
       trabajador.email,
     );
+
     worker.setSubTypeWorkerId(subTypeWorkerId);
 
     const paymentDates: PaymentDateDto[] = [];
@@ -782,7 +782,7 @@ export class ProcessPayrollService {
       });
     }
 
-    const accrued = await this.getAccrued(devengados, totalDevengados, periodos[0].tiempoLaborado, trabajador.sueldo);
+    const accrued = await this.getAccrued(devengados, totalDevengados, devengados.basico[0]?.diasTrabajados || '0', trabajador.sueldo);
 
     const epsTypeLawDeductionsId = await this.obtenerIdLawDeduction(true, deducciones.salud[0]?.porcentaje);
     const pensionTypeLawDeductionsId = await this.obtenerIdLawDeduction(false, deducciones.fondosPensiones[0]?.porcentaje);
@@ -797,14 +797,14 @@ export class ProcessPayrollService {
     deductions.setDeductionsTotal(totalDeducciones);
 
     deductions.setFondosspTypeLawDeductionsId("9");
-    deductions.setFondospDeductionSP(deducciones.fondosSP[0]?.deduccionSP);
+    deductions.setFondospDeductionSP(deducciones.fondosSP?.[0]?.deduccionSP);
 
     deductions.setFondosspSubTypeLawDeductionsId("9");
-    deductions.setFondospDeductionSub(deducciones.fondosSP[0]?.deduccionSubrogada);
+    deductions.setFondospDeductionSub(deducciones.fondosSP?.[0]?.deduccionSubrogada);
 
     const laborUnion = [];
 
-    deducciones.sindicatos.forEach(sindicato => {
+    deducciones.sindicatos?.forEach(sindicato => {
       laborUnion.push(new LaborUnionDto(
         sindicato.porcentaje,
         sindicato.deduccion,
@@ -815,7 +815,7 @@ export class ProcessPayrollService {
 
     const sanctions = [];
 
-    deducciones.sanciones.forEach(sancion => {
+    deducciones.sanciones?.forEach(sancion => {
 
       const sanction = new SanctionDto(
         sancion.sancionPriv,
@@ -858,18 +858,15 @@ export class ProcessPayrollService {
       sueldo,
     );
 
-
-
-
     devengados.transporte.forEach(transporte => {
-      accrued.setTransportationAllowance(accrued.getTransportationAllowance() + transporte.auxilioTransporte);
+      accrued.setTransportationAllowance( (parseFloat(accrued.getTransportationAllowance() || '0') + parseFloat(transporte?.auxilioTransporte || '0')).toString());
     });
 
     accrued.setAccruedTotal(totalDevengados);
     //accrued.setSalaryViatics(devengados.);
     //accrued.setNonSalaryViatics(devengados.viaticos[0].viaticos);
 
-    devengados.horaExtras.forEach(horaExtra => {
+    devengados?.horaExtras?.forEach(horaExtra => {
 
       switch (horaExtra.tipoHorasExtra) {
         case "0":
@@ -938,9 +935,8 @@ export class ProcessPayrollService {
       }
     });
 
-
     const commonVacations = [];
-    devengados.vacaciones.vacacionesComunes.forEach(vacacion => {
+    devengados?.vacaciones?.vacacionesComunes?.forEach(vacacion => {
       commonVacations.push(new CommonVacationDto(
         vacacion.fechaInicio,
         vacacion.fechaFin,
@@ -952,11 +948,8 @@ export class ProcessPayrollService {
 
     accrued.setCommonVacation(commonVacations);
 
-
-
-
     const paidVacations = [];
-    devengados.vacaciones.vacacionesCompensadas.forEach(vacacion => {
+    devengados?.vacaciones?.vacacionesCompensadas?.forEach(vacacion => {
       paidVacations.push(new PaidVacationDto(
         Number(vacacion.cantidad),
         vacacion.pago
@@ -966,7 +959,7 @@ export class ProcessPayrollService {
     accrued.setPaidVacation(paidVacations);
 
     const serviceBonuses = [];
-    devengados.primas.forEach(prima => {
+    devengados?.primas?.forEach(prima => {
       serviceBonuses.push(new ServiceBonusDto(
         Number(prima.cantidad),
         prima.pago,
@@ -975,14 +968,14 @@ export class ProcessPayrollService {
     });
 
     accrued.setSeverance([new SeveranceDto(
-      devengados.cesantias[0]?.pago,
-      devengados.cesantias[0]?.porcentaje,
-      devengados.cesantias[0]?.pagoIntereses
+      devengados.cesantias?.[0]?.pago,
+      devengados.cesantias?.[0]?.porcentaje,
+      devengados.cesantias?.[0]?.pagoIntereses
     )]);
 
 
     const workDisabilities = [];
-    devengados.incapacidades.forEach(incapacidad => {
+    devengados?.incapacidades?.forEach(incapacidad => {
       workDisabilities.push(new WorkDisabilitiesDto(
         incapacidad.fechaInicio,
         incapacidad.fechaFin,
@@ -996,7 +989,7 @@ export class ProcessPayrollService {
 
     const maternityLeaves = [];
 
-    devengados.licencias.licenciaMP.forEach(licencia => {
+    devengados?.licencias?.licenciaMP?.forEach(licencia => {
       maternityLeaves.push(new CommonVacationDto(
         licencia.fechaInicio,
         licencia.fechaFin,
@@ -1009,7 +1002,7 @@ export class ProcessPayrollService {
 
     const paidLeaves = [];
 
-    devengados.licencias.licenciaR.forEach(licencia => {
+    devengados?.licencias?.licenciaR?.forEach(licencia => {
       paidLeaves.push(new CommonVacationDto(
         licencia.fechaInicio,
         licencia.fechaFin,
@@ -1022,7 +1015,7 @@ export class ProcessPayrollService {
 
     const nonPaidLeaves = [];
 
-    devengados.licencias.licenciaNR.forEach(licencia => {
+    devengados?.licencias?.licenciaNR?.forEach(licencia => {
       nonPaidLeaves.push(new NonPaidLeaveDto(
         licencia.fechaInicio,
         licencia.fechaFin,
@@ -1035,7 +1028,7 @@ export class ProcessPayrollService {
 
     const bonuses = [];
 
-    devengados.bonificaciones.forEach(bonificacion => {
+    devengados?.bonificaciones?.forEach(bonificacion => {
       bonuses.push(new BonusDto(
         bonificacion.bonificacionS,
         bonificacion.bonificacionNS
@@ -1046,7 +1039,7 @@ export class ProcessPayrollService {
 
     const aids = [];
 
-    devengados.auxilios.forEach(auxilio => {
+    devengados?.auxilios?.forEach(auxilio => {
       aids.push(new AidDto(auxilio.auxilioS, auxilio.auxilioNS));
     });
 
@@ -1054,7 +1047,7 @@ export class ProcessPayrollService {
 
     const legalStrikes = [];
 
-    devengados.huelgaLegales.forEach(huelga => {
+    devengados?.huelgaLegales?.forEach(huelga => {
       legalStrikes.push(new NonPaidLeaveDto(
         huelga.fechaInicio,
         huelga.fechaFin,
@@ -1066,7 +1059,7 @@ export class ProcessPayrollService {
 
     const otherConcepts = [];
 
-    devengados.otrosConceptos.forEach(concepto => {
+    devengados?.otrosConceptos?.forEach(concepto => {
 
       otherConcepts.push(new OtherConceptDto(
         concepto.conceptoS,
@@ -1079,7 +1072,7 @@ export class ProcessPayrollService {
 
     const compensations = [];
 
-    devengados.compensaciones.forEach(compensacion => {
+    devengados?.compensaciones?.forEach(compensacion => {
       compensations.push(new CompensationDto(compensacion.compensacionO, compensacion.compensacionE));
     });
 
@@ -1087,7 +1080,7 @@ export class ProcessPayrollService {
 
     const epctvBonuses = [];
 
-    devengados.bonoEPCTV.forEach(bono => {
+    devengados?.bonoEPCTV?.forEach(bono => {
       epctvBonuses.push(new EpctvBonusDto(
         bono.pagoAlimentacionS,
         bono.pagoAlimentacionNS,
@@ -1098,7 +1091,7 @@ export class ProcessPayrollService {
 
     const commissions = [];
 
-    devengados.comisiones.forEach(comision => {
+    devengados?.comisiones?.forEach(comision => {
       commissions.push(new CommissionDto(comision.montoComision));
     });
 
@@ -1106,7 +1099,7 @@ export class ProcessPayrollService {
 
     const thirdPartyPayments = [];
 
-    devengados.pagosTerceros.forEach(pago => {
+    devengados?.pagosTerceros?.forEach(pago => {
       thirdPartyPayments.push(new ThirdPartyPaymentDto(pago.pagoTercero));
     });
 
@@ -1114,7 +1107,7 @@ export class ProcessPayrollService {
 
     const advances = [];
 
-    devengados.anticiposNom.forEach(anticipo => {
+    devengados?.anticiposNom?.forEach(anticipo => {
       advances.push(new AdvanceDto(
         anticipo.montoanticipo
       ));

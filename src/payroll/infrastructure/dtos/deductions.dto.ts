@@ -184,7 +184,7 @@ export class DeductionsDto {
     if (value !== '0.00') {
       this.fondosp_deduction_SP = value;
       this.deductions_total = this.formatNumber(
-        this.parseDouble(this.deductions_total) + this.parseDouble(value)
+        this.parseDouble(this.deductions_total) + this.parseDouble(value || '0')
       );
     }
   }
@@ -197,7 +197,7 @@ export class DeductionsDto {
     if (value !== '0.00') {
       this.fondosp_deduction_sub = value;
       this.deductions_total = this.formatNumber(
-        this.parseDouble(this.deductions_total) + this.parseDouble(value)
+        this.parseDouble(this.deductions_total) + this.parseDouble(value || '0')
       );
     }
   }
@@ -205,23 +205,23 @@ export class DeductionsDto {
   setLaborUnion(value: LaborUnionDto[]): void {
     this.labor_union = value;
     this.deductions_total = this.formatNumber(
-      this.parseDouble(this.deductions_total) + this.parseDouble(value[0].getDeduction())
+      this.parseDouble(this.deductions_total || '0') + this.parseDouble(value[0]?.getDeduction() || '0')
     );
   }
 
   setSanctions(value: SanctionDto[]): void {
     this.sanctions = value;
     this.deductions_total = this.formatNumber(
-      this.parseDouble(this.deductions_total) + 
-      this.parseDouble(value[0].getPrivateSanction()) +
-      this.parseDouble(value[0].getPublicSanction())
+      this.parseDouble(this.deductions_total) +
+      this.parseDouble(value[0]?.getPrivateSanction() || '0') +
+      this.parseDouble(value[0]?.getPublicSanction() || '0')
     );
   }
 
   setOrders(value: OrderDto[]): void {
     this.orders = value;
     this.deductions_total = this.formatNumber(
-      this.parseDouble(this.deductions_total) + this.parseDouble(value[0].getDeduction())
+      this.parseDouble(this.deductions_total) + this.parseDouble(value[0]?.getDeduction() || '0')
     );
   }
 
@@ -229,7 +229,7 @@ export class DeductionsDto {
     if (value !== '0.00') {
       this.voluntary_pension = value;
       this.deductions_total = this.formatNumber(
-        this.parseDouble(this.deductions_total) + this.parseDouble(value)
+        this.parseDouble(this.deductions_total) + this.parseDouble(value || '0')
       );
     }
   }
@@ -238,7 +238,7 @@ export class DeductionsDto {
     if (value !== '0.00') {
       this.withholding_at_source = value;
       this.deductions_total = this.formatNumber(
-        this.parseDouble(this.deductions_total) + this.parseDouble(value)
+        this.parseDouble(this.deductions_total) + this.parseDouble(value || '0')
       );
     }
   }
@@ -247,7 +247,7 @@ export class DeductionsDto {
     if (value !== '0.00') {
       this.afc = value;
       this.deductions_total = this.formatNumber(
-        this.parseDouble(this.deductions_total) + this.parseDouble(value)
+        this.parseDouble(this.deductions_total) + this.parseDouble(value || '0')
       );
     }
   }
@@ -256,7 +256,7 @@ export class DeductionsDto {
     if (value !== '0.00') {
       this.cooperative = value;
       this.deductions_total = this.formatNumber(
-        this.parseDouble(this.deductions_total) + this.parseDouble(value)
+        this.parseDouble(this.deductions_total) + this.parseDouble(value || '0')
       );
     }
   }
@@ -265,7 +265,7 @@ export class DeductionsDto {
     if (value !== '0.00') {
       this.tax_liens = value;
       this.deductions_total = this.formatNumber(
-        this.parseDouble(this.deductions_total) + this.parseDouble(value)
+        this.parseDouble(this.deductions_total) + this.parseDouble(value || '0')
       );
     }
   }
@@ -274,7 +274,7 @@ export class DeductionsDto {
     if (value !== '0.00') {
       this.supplementary_plan = value;
       this.deductions_total = this.formatNumber(
-        this.parseDouble(this.deductions_total) + this.parseDouble(value)
+        this.parseDouble(this.deductions_total) + this.parseDouble(value || '0')
       );
     }
   }
@@ -283,7 +283,7 @@ export class DeductionsDto {
     if (value !== '0.00') {
       this.education = value;
       this.deductions_total = this.formatNumber(
-        this.parseDouble(this.deductions_total) + this.parseDouble(value)
+        this.parseDouble(this.deductions_total) + this.parseDouble(value || '0')
       );
     }
   }
@@ -292,7 +292,7 @@ export class DeductionsDto {
     if (value !== '0.00') {
       this.refund = value;
       this.deductions_total = this.formatNumber(
-        this.parseDouble(this.deductions_total) + this.parseDouble(value)
+        this.parseDouble(this.deductions_total) + this.parseDouble(value || '0')
       );
     }
   }
@@ -301,7 +301,7 @@ export class DeductionsDto {
     if (value !== '0.00') {
       this.debt = value;
       this.deductions_total = this.formatNumber(
-        this.parseDouble(this.deductions_total) + this.parseDouble(value)
+        this.parseDouble(this.deductions_total) + this.parseDouble(value || '0')
       );
     }
   }
@@ -309,21 +309,21 @@ export class DeductionsDto {
   setThirdPartyPayments(value: ThirdPartyPaymentDto[]): void {
     this.third_party_payments = value;
     this.deductions_total = this.formatNumber(
-      this.parseDouble(this.deductions_total) + this.parseDouble(value[0].getThirdPartyPayment())
+      this.parseDouble(this.deductions_total) + this.parseDouble(value[0]?.getThirdPartyPayment() || '0')
     );
   }
 
   setAdvances(value: AdvanceDto[]): void {
     this.advances = value;
     this.deductions_total = this.formatNumber(
-      this.parseDouble(this.deductions_total) + this.parseDouble(value[0].getAdvance())
+      this.parseDouble(this.deductions_total) + this.parseDouble(value[0]?.getAdvance() || '0')
     );
   }
 
   setOtherDeductions(value: OtherDeductionDto[]): void {
     this.other_deductions = value;
     this.deductions_total = this.formatNumber(
-      this.parseDouble(this.deductions_total) + this.parseDouble(value[0].getOtherDeduction())
+      this.parseDouble(this.deductions_total) + this.parseDouble(value[0]?.getOtherDeduction() || '0')
     );
   }
 

@@ -225,7 +225,7 @@ export class AccruedDto {
     if (value !== '0.00') {
       this.transportation_allowance = value;
       this.accrued_total = this.formatNumber(
-        this.parseDouble(this.accrued_total) + this.parseDouble(value)
+        this.parseDouble(this.accrued_total) + this.parseDouble(value || '0')
       );
     }
   }
@@ -234,7 +234,7 @@ export class AccruedDto {
     if (value !== '0.00') {
       this.salary_viatics = value;
       this.accrued_total = this.formatNumber(
-        this.parseDouble(this.accrued_total) + this.parseDouble(value)
+        this.parseDouble(this.accrued_total) + this.parseDouble(value || '0')
       );
     }
   }
@@ -243,7 +243,7 @@ export class AccruedDto {
     if (value !== '0.00') {
       this.non_salary_viatics = value;
       this.accrued_total = this.formatNumber(
-        this.parseDouble(this.accrued_total) + this.parseDouble(value)
+        this.parseDouble(this.accrued_total) + this.parseDouble(value || '0')
       );
     }
   }
@@ -251,70 +251,70 @@ export class AccruedDto {
   setHEDs(value: HDto[]): void {
     this.HEDs = value;
     this.accrued_total = this.formatNumber(
-      this.parseDouble(this.accrued_total) + this.parseDouble(value[0].getPayment())
+      this.parseDouble(this.accrued_total) + this.parseDouble(value[0]?.getPayment() || '0')
     );
   }
 
   setHENs(value: HDto[]): void {
     this.HENs = value;
     this.accrued_total = this.formatNumber(
-      this.parseDouble(this.accrued_total) + this.parseDouble(value[0].getPayment())
+      this.parseDouble(this.accrued_total) + this.parseDouble(value[0]?.getPayment() || '0')
     );
   }
 
   setHRNs(value: HDto[]): void {
     this.HRNs = value;
     this.accrued_total = this.formatNumber(
-      this.parseDouble(this.accrued_total) + this.parseDouble(value[0].getPayment())
+      this.parseDouble(this.accrued_total) + this.parseDouble(value[0]?.getPayment() || '0')
     );
   }
 
   setHEDDFs(value: HDto[]): void {
     this.HEDDFs = value;
     this.accrued_total = this.formatNumber(
-      this.parseDouble(this.accrued_total) + this.parseDouble(value[0].getPayment())
+      this.parseDouble(this.accrued_total) + this.parseDouble(value[0]?.getPayment() || '0')
     );
   }
 
   setHRDDFs(value: HDto[]): void {
     this.HRDDFs = value;
     this.accrued_total = this.formatNumber(
-      this.parseDouble(this.accrued_total) + this.parseDouble(value[0].getPayment())
+      this.parseDouble(this.accrued_total) + this.parseDouble(value[0]?.getPayment() || '0')
     );
   }
 
   setHENDFs(value: HDto[]): void {
     this.HENDFs = value;
     this.accrued_total = this.formatNumber(
-      this.parseDouble(this.accrued_total) + this.parseDouble(value[0].getPayment())
+      this.parseDouble(this.accrued_total) + this.parseDouble(value[0]?.getPayment() || '0')
     );
   }
 
   setHRNDFs(value: HDto[]): void {
     this.HRNDFs = value;
     this.accrued_total = this.formatNumber(
-      this.parseDouble(this.accrued_total) + this.parseDouble(value[0].getPayment())
+      this.parseDouble(this.accrued_total) + this.parseDouble(value[0]?.getPayment() || '0')
     );
   }
 
   setCommonVacation(value: CommonVacationDto[]): void {
     this.common_vacation = value;
     this.accrued_total = this.formatNumber(
-      this.parseDouble(this.accrued_total) + this.parseDouble(value[0].getPayment())
+      this.parseDouble(this.accrued_total) + this.parseDouble(value[0]?.getPayment() || '0')
     );
   }
 
   setPaidVacation(value: PaidVacationDto[]): void {
     this.paid_vacation = value;
     this.accrued_total = this.formatNumber(
-      this.parseDouble(this.accrued_total) + this.parseDouble(value[0].getPayment())
+      this.parseDouble(this.accrued_total) + this.parseDouble(value[0]?.getPayment() || '0')
     );
   }
 
   setServiceBonus(value: ServiceBonusDto[]): void {
     this.service_bonus = value;
     this.accrued_total = this.formatNumber(
-      this.parseDouble(this.accrued_total) + this.parseDouble(value[0].getPayment())
+      this.parseDouble(this.accrued_total) + this.parseDouble(value[0]?.getPayment() || '0')
     );
   }
 
@@ -322,29 +322,29 @@ export class AccruedDto {
     this.severance = value;
     this.accrued_total = this.formatNumber(
       this.parseDouble(this.accrued_total) + 
-      this.parseDouble(value[0].getPayment()) +
-      this.parseDouble(value[0].getInterestPayment())
+      this.parseDouble(value[0]?.getPayment() || '0') +
+      this.parseDouble(value[0]?.getInterestPayment() || '0')
     );
   }
 
   setWorkDisabilities(value: WorkDisabilitiesDto[]): void {
     this.work_disabilities = value;
     this.accrued_total = this.formatNumber(
-      this.parseDouble(this.accrued_total) + this.parseDouble(value[0].getPayment())
+      this.parseDouble(this.accrued_total) + this.parseDouble(value[0]?.getPayment() || '0')
     );
   }
 
   setMaternityLeave(value: CommonVacationDto[]): void {
     this.maternity_leave = value;
     this.accrued_total = this.formatNumber(
-      this.parseDouble(this.accrued_total) + this.parseDouble(value[0].getPayment())
+      this.parseDouble(this.accrued_total) + this.parseDouble(value[0]?.getPayment() || '0')
     );
   }
 
   setPaidLeave(value: CommonVacationDto[]): void {
     this.paid_leave = value;
     this.accrued_total = this.formatNumber(
-      this.parseDouble(this.accrued_total) + this.parseDouble(value[0].getPayment())
+      this.parseDouble(this.accrued_total) + this.parseDouble(value[0]?.getPayment() || '0')
     );
   }
 
@@ -356,8 +356,8 @@ export class AccruedDto {
     this.bonuses = value;
     this.accrued_total = this.formatNumber(
       this.parseDouble(this.accrued_total) + 
-      this.parseDouble(value[0].getNonSalaryBonus()) +
-      this.parseDouble(value[0].getSalaryBonus())
+      this.parseDouble(value[0]?.getNonSalaryBonus() || '0') +
+      this.parseDouble(value[0]?.getSalaryBonus() || '0')
     );
   }
 
@@ -365,8 +365,8 @@ export class AccruedDto {
     this.aid = value;
     this.accrued_total = this.formatNumber(
       this.parseDouble(this.accrued_total) + 
-      this.parseDouble(value[0].getNonSalaryAssistance()) +
-      this.parseDouble(value[0].getSalaryAssistance())
+      this.parseDouble(value[0]?.getNonSalaryAssistance() || '0') +
+      this.parseDouble(value[0]?.getSalaryAssistance() || '0')
     );
   }
 
@@ -378,8 +378,8 @@ export class AccruedDto {
     this.other_concepts = value;
     this.accrued_total = this.formatNumber(
       this.parseDouble(this.accrued_total) + 
-      this.parseDouble(value[0].getNonSalaryConcept()) +
-      this.parseDouble(value[0].getSalaryConcept())
+      this.parseDouble(value[0]?.getNonSalaryConcept() || '0') +
+      this.parseDouble(value[0]?.getSalaryConcept() || '0')
     );
   }
 
@@ -387,8 +387,8 @@ export class AccruedDto {
     this.compensations = value;
     this.accrued_total = this.formatNumber(
       this.parseDouble(this.accrued_total) + 
-      this.parseDouble(value[0].getExtraordinaryCompensation()) +
-      this.parseDouble(value[0].getOrdinaryCompensation())
+      this.parseDouble(value[0]?.getExtraordinaryCompensation() || '0') +
+      this.parseDouble(value[0]?.getOrdinaryCompensation() || '0')
     );
   }
 
@@ -396,31 +396,31 @@ export class AccruedDto {
     this.epctv_bonuses = value;
     this.accrued_total = this.formatNumber(
       this.parseDouble(this.accrued_total) + 
-      this.parseDouble(value[0].getNonSalaryFoodPayment()) +
-      this.parseDouble(value[0].getPaymentNS()) +
-      this.parseDouble(value[0].getPaymentS()) +
-      this.parseDouble(value[0].getSalaryFoodPayment())
+      this.parseDouble(value[0]?.getNonSalaryFoodPayment() || '0') +
+      this.parseDouble(value[0]?.getPaymentNS() || '0') +
+      this.parseDouble(value[0]?.getPaymentS() || '0') +
+      this.parseDouble(value[0]?.getSalaryFoodPayment() || '0')
     );
   }
 
   setCommissions(value: CommissionDto[]): void {
     this.commissions = value;
     this.accrued_total = this.formatNumber(
-      this.parseDouble(this.accrued_total) + this.parseDouble(value[0].getCommission())
+      this.parseDouble(this.accrued_total) + this.parseDouble(value[0]?.getCommission() || '0')
     );
   }
 
   setThirdPartyPayments(value: ThirdPartyPaymentDto[]): void {
     this.third_party_payments = value;
     this.accrued_total = this.formatNumber(
-      this.parseDouble(this.accrued_total) + this.parseDouble(value[0].getThirdPartyPayment())
+      this.parseDouble(this.accrued_total) + this.parseDouble(value[0]?.getThirdPartyPayment() || '0')
     );
   }
 
   setAdvances(value: AdvanceDto[]): void {
     this.advances = value;
     this.accrued_total = this.formatNumber(
-      this.parseDouble(this.accrued_total) + this.parseDouble(value[0].getAdvance())
+      this.parseDouble(this.accrued_total) + this.parseDouble(value[0]?.getAdvance() || '0')
     );
   }
 
@@ -428,7 +428,7 @@ export class AccruedDto {
     if (value !== '0.00') {
       this.endowment = value;
       this.accrued_total = this.formatNumber(
-        this.parseDouble(this.accrued_total) + this.parseDouble(value)
+        this.parseDouble(this.accrued_total) + this.parseDouble(value || '0')
       );
     }
   }
@@ -437,7 +437,7 @@ export class AccruedDto {
     if (value !== '0.00') {
       this.sustenance_support = value;
       this.accrued_total = this.formatNumber(
-        this.parseDouble(this.accrued_total) + this.parseDouble(value)
+        this.parseDouble(this.accrued_total) + this.parseDouble(value || '0')
       );
     }
   }
@@ -446,7 +446,7 @@ export class AccruedDto {
     if (value !== '0.00') {
       this.telecommuting = value;
       this.accrued_total = this.formatNumber(
-        this.parseDouble(this.accrued_total) + this.parseDouble(value)
+        this.parseDouble(this.accrued_total) + this.parseDouble(value || '0')
       );
     }
   }
@@ -455,7 +455,7 @@ export class AccruedDto {
     if (value !== '0.00') {
       this.withdrawal_bonus = value;
       this.accrued_total = this.formatNumber(
-        this.parseDouble(this.accrued_total) + this.parseDouble(value)
+        this.parseDouble(this.accrued_total) + this.parseDouble(value || '0')
       );
     }
   }
@@ -464,7 +464,7 @@ export class AccruedDto {
     if (value !== '0.00') {
       this.compensation = value;
       this.accrued_total = this.formatNumber(
-        this.parseDouble(this.accrued_total) + this.parseDouble(value)
+        this.parseDouble(this.accrued_total) + this.parseDouble(value || '0')
       );
     }
   }
