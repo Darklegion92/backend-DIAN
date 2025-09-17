@@ -237,7 +237,7 @@ export class GenerateDataService {
    * @param cliente - Cliente de la factura
    * @returns SellerOrCustomerDto - Cliente de la factura
    */
-    async generateCustomer(cliente: ClienteDto, catalogService: CatalogService): Promise<SellerOrCustomerDto> {
+    async generateCustomer(cliente: ClienteDto, catalogService: CatalogService, token: string): Promise<SellerOrCustomerDto> {
       const typeDocumentIdentificationId = await catalogService.getDocumentTypeIdByCode(cliente.tipoIdentificacion);
       const municipalityId = await catalogService.getMunicipalityIdByCode(cliente.direccionCliente.municipio);
       const typeLiabilityId = await catalogService.getLiabilityTypeIdByCode(cliente.responsabilidadesRut.Obligaciones.obligaciones);
@@ -250,7 +250,7 @@ export class GenerateDataService {
         throw new Error(`El digito de verificación ${cliente.numeroIdentificacionDV} no es un número`);
       }
       
-      const customerDian = await this.getCustomerDian(cliente.numeroDocumento);
+      const customerDian = await this.getCustomerDian(cliente.numeroDocumento, token);
   
       return {
         identification_number: cliente.numeroDocumento,
@@ -418,12 +418,15 @@ export class GenerateDataService {
     return response.data;
   }
 
-  async getCustomerDian(identification_number: string): Promise<CustomerDianDto> {
+  async getCustomerDian(identification_number: string, token: string): Promise<CustomerDianDto> {
     try{
     const response = await firstValueFrom(
       this.httpService.get(`${this.externalApiUrl}/query_rut`, {
         params: {
           identification_number,
+        },
+        headers: {
+          'Authorization': `Bearer ${token}`,
         },
       })
     );

@@ -10,14 +10,14 @@ import { LineDto } from '@/common/domain/interfaces/document-common.interface';
 @Injectable()
 export class CreditNoteTransformerService implements DocumentTransformer<CreditNoteRequestDto> {
   constructor(private readonly generateDataService: GenerateDataService, private readonly catalogService: CatalogService) { }
-  async transform(factura: FacturaGeneralDto): Promise<CreditNoteRequestDto> {
+  async transform(factura: FacturaGeneralDto, _: number, token: string): Promise<CreditNoteRequestDto> {
 
     const prefix = factura.rangoNumeracion.split('-')[0];
     const number = factura.consecutivoDocumento.replace(prefix, '');
     const date = factura.fechaEmision.split(' ')[0];
     const time = factura.fechaEmision.split(' ')[1];
 
-    const customer = await this.generateDataService.generateCustomer(factura.cliente, this.catalogService);
+    const customer = await this.generateDataService.generateCustomer(factura.cliente, this.catalogService, token);
 
     const creditNoteLines = await this.generateCreditNoteLines(factura.detalleDeFactura.FacturaDetalle);
 

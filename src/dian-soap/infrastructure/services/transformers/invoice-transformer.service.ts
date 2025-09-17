@@ -19,7 +19,7 @@ export class InvoiceTransformerService implements DocumentTransformer<InvoiceReq
    * @param companyId - ID de la empresa
    * @returns InvoiceRequestDto - Objeto transformado
    */
-  async transform(factura: FacturaGeneralDto, companyId: number, code?: string): Promise<InvoiceRequestDto> {
+  async transform(factura: FacturaGeneralDto, companyId: number, token: string, code?: string): Promise<InvoiceRequestDto> {
 
     if (!factura.cliente) {
       throw new Error('El cliente es requerido para la factura');
@@ -43,7 +43,7 @@ export class InvoiceTransformerService implements DocumentTransformer<InvoiceReq
     };
 
     const { taxes, with_holding_taxes } = await this.generateDataService.generateTaxtotals(factura.impuestosGenerales?.FacturaImpuestos || [], this.catalogService);
-    const customer = await this.generateDataService.generateCustomer(factura.cliente, this.catalogService);
+    const customer = await this.generateDataService.generateCustomer(factura.cliente, this.catalogService, token);
     const invoiceLines = await this.generateInvoiceLines(factura.detalleDeFactura.FacturaDetalle, taxes);
 
     const paymentForm = await this.generatePaymentForms(factura.mediosDePago.MediosDePago);
@@ -68,7 +68,6 @@ export class InvoiceTransformerService implements DocumentTransformer<InvoiceReq
 
 
     }
-
 
     return {
       number: parseInt(number),

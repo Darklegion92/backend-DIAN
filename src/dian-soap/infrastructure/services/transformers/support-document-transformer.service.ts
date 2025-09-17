@@ -15,14 +15,14 @@ export class SupportDocumentTransformerService implements DocumentTransformer<Su
         private readonly catalogService: CatalogService, 
         private readonly resolutionService: ResolutionService) { }
 
-  async transform(factura: FacturaGeneralDto, companyId: number): Promise<SupportDocumentRequestDto> {
+  async transform(factura: FacturaGeneralDto, companyId: number, token: string): Promise<SupportDocumentRequestDto> {
     
     const prefix = factura.rangoNumeracion.split('-')[0];
     const number = factura.consecutivoDocumento.replace(prefix, '');
     const date = factura.fechaEmision.split(' ')[0];
     const time = factura.fechaEmision.split(' ')[1];
 
-    const customer = await this.generateDataService.generateCustomer(factura.cliente, this.catalogService);
+    const customer = await this.generateDataService.generateCustomer(factura.cliente, this.catalogService, token);
 
     const resolutionNumber = await this.resolutionService.getResolutionNumber(prefix, companyId);
 
