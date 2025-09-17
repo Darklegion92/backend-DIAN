@@ -1,7 +1,7 @@
 import { Injectable } from "@nestjs/common";
 import { DatabaseUtilsService } from "./database-utils.service";
 import { AllowanceChargeDto, PaymentFormDto, SellerOrCustomerDto, TaxTotalDto } from "@/common/domain/interfaces/document-common.interface";
-import { ClienteDto, FacturaImpuestosDto } from "@/dian-soap/presentation/dtos/request/factura-general.dto";
+import { ClienteDto, CustomerDianDto, FacturaImpuestosDto } from "@/dian-soap/presentation/dtos/request/factura-general.dto";
 import { CatalogService } from "@/catalog/application/services/catalog.service";
 import { firstValueFrom } from "rxjs";
 import { HttpService } from "@nestjs/axios";
@@ -250,13 +250,14 @@ export class GenerateDataService {
         throw new Error(`El digito de verificación ${cliente.numeroIdentificacionDV} no es un número`);
       }
       
+      const customerDian = await this.getCustomerDian(cliente.numeroDocumento);
   
       return {
         identification_number: cliente.numeroDocumento,
-        dv: cliente.numeroIdentificacionDV,
-        name: cliente.nombreRazonSocial,
+        dv: customerDian.dv.toString(),
+        name: customerDian.business_name,
         phone: cliente.telefono || '5777777777',
-        email: cliente.email || 'sinemail@email.com',
+        email: cliente.email || customerDian.email,
         merchant_registration: cliente?.informacionLegalCliente?.numeroMatriculaMercantil || '00000-0',
         type_document_identification_id: typeDocumentIdentificationId,
         type_organization_id: Number(cliente.tipoPersona),
@@ -415,5 +416,19 @@ export class GenerateDataService {
     }
     
     return response.data;
+  }
+
+  async getCustomerDian(identification_number: string): Promise<CustomerDianDto> {
+    
+    const response = await firstValueFrom(
+      this.httpService.get(`${this.externalApiUrl}/query_rut`, {
+        params: {
+          identification_number,
+        },
+      })
+    );
+
+    return response.data;
+
   }
 }
