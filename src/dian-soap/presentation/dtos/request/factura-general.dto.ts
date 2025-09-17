@@ -253,3 +253,11 @@ export interface DocumentoReferenciadoDto {
     tipoDocumento: string;
     tipoDocumentoCodigo: string;
 }
+
+export interface CustomerDianDto {
+  identification_number: number;
+  dv: number;
+  business_name: string;
+  email: string;
+  consultation_date: string;
+}
