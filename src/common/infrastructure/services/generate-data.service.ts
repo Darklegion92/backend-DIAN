@@ -419,7 +419,7 @@ export class GenerateDataService {
   }
 
   async getCustomerDian(identification_number: string): Promise<CustomerDianDto> {
-    
+    try{
     const response = await firstValueFrom(
       this.httpService.get(`${this.externalApiUrl}/query_rut`, {
         params: {
@@ -428,7 +428,9 @@ export class GenerateDataService {
       })
     );
 
-    return response?.data;
-
+      return response?.data;
+    }catch(error){
+      return null;
+    }
   }
 }
