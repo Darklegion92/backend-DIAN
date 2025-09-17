@@ -254,10 +254,10 @@ export class GenerateDataService {
   
       return {
         identification_number: cliente.numeroDocumento,
-        dv: customerDian.dv.toString(),
-        name: customerDian.business_name,
+        dv: customerDian?.dv?.toString() || cliente.numeroIdentificacionDV,
+        name: customerDian?.business_name || cliente.nombreRazonSocial,
         phone: cliente.telefono || '5777777777',
-        email: cliente.email || customerDian.email,
+        email: cliente.email || customerDian?.email || 'sinemail@email.com',
         merchant_registration: cliente?.informacionLegalCliente?.numeroMatriculaMercantil || '00000-0',
         type_document_identification_id: typeDocumentIdentificationId,
         type_organization_id: Number(cliente.tipoPersona),
@@ -428,7 +428,7 @@ export class GenerateDataService {
       })
     );
 
-    return response.data;
+    return response?.data;
 
   }
 }
