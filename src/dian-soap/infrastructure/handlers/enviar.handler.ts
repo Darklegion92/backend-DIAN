@@ -34,6 +34,24 @@ export class EnviarHandler {
         throw new Error('Faltan datos requeridos: tokenEmpresa, tokenPassword o factura');
       }
 
+     
+    // Validar que la fecha de emisión no sea futura (solo comparar fecha, sin hora)
+    const fechaEmision = new Date(factura.fechaEmision.split(" ")[0]); // Solo la fecha "2025-09-17"
+    const fechaActual = new Date();
+    fechaActual.setHours(0, 0, 0, 0); // Resetear la hora a 00:00:00
+    
+    if (fechaEmision > fechaActual) {
+        return {
+          EnviarResult: new EnviarResponseDto({
+            codigo: 401,
+            consecutivoDocumento: factura.consecutivoDocumento || `PRUE${Date.now()}`,
+            esValidoDian: false,
+            mensaje: 'Fecha de emisión no válida - no puede ser futura',
+            mensajesValidacion: [],
+          })
+        };
+      }
+
       const company = await this.companyService.getCompanyByTokenEmpresa(tokenEmpresa);
 
       if (!company || company.tokenPassword !== tokenPassword) {
