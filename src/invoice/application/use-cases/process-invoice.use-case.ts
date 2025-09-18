@@ -71,14 +71,13 @@ export class ProcessInvoiceUseCase implements DocumentProcessorPort {
         };
       } else
         if (dianResponse.message === "Este documento ya fue enviado anteriormente, se registra en la base de datos.") {
-          const pdfDocument = await this.generateInvoicePdf(dto.nit, dianResponse.urlinvoicepdf, `${transformedData.prefix}${transformedData.number}.pdf`);
           return {
             success: true,
             message: 'Factura electrónica procesada correctamente',
             data: {
               cufe: dianResponse.cufe,
               date: this.generateDataService.formatDateAndTime(new Date()),
-              document: pdfDocument
+              document: ""
             }
           };
         } else {
