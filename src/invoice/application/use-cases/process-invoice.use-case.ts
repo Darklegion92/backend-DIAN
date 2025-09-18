@@ -214,7 +214,7 @@ export class ProcessInvoiceUseCase implements DocumentProcessorPort {
     for (const line of dataInvoiceLines) {
       const dataLine: string[] = line.split('|');
 
-      const unitMeasureId: number = await this.databaseUtils.findIdByCode(dataLine[3], 'unit_measures');
+      const unitMeasureId: number = await this.databaseUtils.findIdByCode(dataLine[3], 'unit_measures') || 70;
 
       const taxTotals: TaxTotalDto[] = [];
       const allowanceCharges: AllowanceChargeDto[] = [];
