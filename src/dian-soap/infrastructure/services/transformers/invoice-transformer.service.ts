@@ -62,18 +62,13 @@ export class InvoiceTransformerService implements DocumentTransformer<InvoiceReq
 
 
       if (index !== -1) {
-
-
-        let substrac = 0;
-
         if(invoiceLines[index].tax_totals.length > 1){
-          substrac = invoiceLines[index].tax_totals.find(tax => tax.tax_id === 1).taxable_amount;
           invoiceLines[index].tax_totals = invoiceLines[index].tax_totals.filter(tax => tax.tax_id !== 1);
         }else{
+          legalMonetaryTotals.tax_exclusive_amount = legalMonetaryTotals.tax_exclusive_amount - diff;
           delete invoiceLines[index].tax_totals;
         }
         invoiceLines[index].tax_totals;
-        legalMonetaryTotals.tax_exclusive_amount = legalMonetaryTotals.tax_exclusive_amount - substrac;
       }
 
 
