@@ -66,7 +66,7 @@ export class EnviarHandler {
         };
       }
 
-      const documentoTransformado = await this.documentTransformerFactory.transform(factura, company.id, adjuntos);
+      const documentoTransformado = await this.documentTransformerFactory.transform(factura, company.id,company.tokenDian, adjuntos);
 
       if (documentoTransformado.prefix === "SETP") {
         documentoTransformado.number = 990080000 + documentoTransformado.number;

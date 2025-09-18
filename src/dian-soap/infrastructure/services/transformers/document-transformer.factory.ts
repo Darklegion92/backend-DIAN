@@ -29,9 +29,9 @@ export class DocumentTransformerFactory {
     }
   }
 
-  transform(factura: FacturaGeneralDto, companyId: number, adjuntos?: string): any {
+  transform(factura: FacturaGeneralDto, companyId: number, tokenDian: string, adjuntos?: string): any {
     const transformer = this.getTransformer(factura.tipoDocumento);
     
-    return transformer.transform(factura, companyId, adjuntos);
+    return transformer.transform(factura, companyId, tokenDian, adjuntos);
   }
 } 
