@@ -57,10 +57,22 @@ export class InvoiceTransformerService implements DocumentTransformer<InvoiceReq
     if (totalTaxes !== totalTaxesDetail) {
       const diff = totalTaxesDetail - totalTaxes;
 
-      //TODO: buscar producto con el valor de taxable_amount y agregar el valor de diff a la linea de detalle y eliminar la linea taxes
+      const existTaxZero = taxes.some(tax => tax.percent === 0 && tax.tax_id === 1);
+      if(!existTaxZero){
+        for(const line of invoiceLines){
+          if(line.tax_totals.some(tax => tax.percent === 0 && tax.tax_id === 1)){
+            if(line.tax_totals.length > 1){
+              line.tax_totals = line.tax_totals.filter(tax => tax.tax_id !== 1);
+            }else{
+              legalMonetaryTotals.tax_exclusive_amount = legalMonetaryTotals.tax_exclusive_amount - line.tax_totals[0].taxable_amount;
+              delete line.tax_totals;
+            }
+          }
+        }
+      
+      }else{
+
       const index = invoiceLines.findIndex(line => line.tax_totals.some(tax => tax.percent === 0 && tax.tax_id === 1 && tax.taxable_amount === diff));
-
-
       if (index !== -1) {
         if(invoiceLines[index].tax_totals.length > 1){
           invoiceLines[index].tax_totals = invoiceLines[index].tax_totals.filter(tax => tax.tax_id !== 1);
@@ -68,9 +80,8 @@ export class InvoiceTransformerService implements DocumentTransformer<InvoiceReq
           legalMonetaryTotals.tax_exclusive_amount = legalMonetaryTotals.tax_exclusive_amount - diff;
           delete invoiceLines[index].tax_totals;
         }
-        invoiceLines[index].tax_totals;
       }
-
+    }
 
     }
 
