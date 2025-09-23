@@ -37,6 +37,45 @@ export class CreditNoteTransformerService implements DocumentTransformer<CreditN
       charge_total_amount: Number(factura.totalCargosAplicados),
     };
 
+    //TODO: validamos si el iva de 0% que manda
+
+    const totalTaxes: number = taxes.reduce((acc, tax) => acc + (tax.percent === 0 ? tax.taxable_amount : 0), 0);
+    const totalTaxesDetail: number = creditNoteLines.reduce((acc, line) => acc + (line.tax_totals.reduce((acc, tax) => acc + (tax.percent === 0 && tax.tax_id === 1 ? tax.taxable_amount : 0), 0)), 0);
+
+
+    if (totalTaxes !== totalTaxesDetail) {
+      const diff = totalTaxesDetail - totalTaxes;
+
+      const existTaxZero = taxes.some(tax => tax.percent === 0 && tax.tax_id === 1);
+      if(!existTaxZero){
+        for(const line of creditNoteLines){
+          if(line.tax_totals.some(tax => tax.percent === 0 && tax.tax_id === 1)){
+            if(line.tax_totals.length > 1){
+              line.tax_totals = line.tax_totals.filter(tax => tax.tax_id !== 1);
+            }else{
+              legalMonetaryTotals.tax_exclusive_amount = legalMonetaryTotals.tax_exclusive_amount - line.tax_totals[0].taxable_amount;
+              delete line.tax_totals;
+            }
+          }
+        }
+      
+      }else{
+
+      const index = creditNoteLines.findIndex(line => line.tax_totals.some(tax => tax.percent === 0 && tax.tax_id === 1 && tax.taxable_amount === diff));
+      if (index !== -1) {
+        if(creditNoteLines[index].tax_totals.length > 1){
+          creditNoteLines[index].tax_totals = creditNoteLines[index].tax_totals.filter(tax => tax.tax_id !== 1);
+        }else{
+          legalMonetaryTotals.tax_exclusive_amount = legalMonetaryTotals.tax_exclusive_amount - diff;
+          delete creditNoteLines[index].tax_totals;
+        }
+      }
+    }
+
+    }
+
+
+
     return {
       type_document_id: 4,
       discrepancyresponsecode: 1,
