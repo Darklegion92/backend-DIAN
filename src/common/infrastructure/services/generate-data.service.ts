@@ -250,7 +250,12 @@ export class GenerateDataService {
         throw new Error(`El digito de verificación ${cliente.numeroIdentificacionDV} no es un número`);
       }
       
-      const customerDian = await this.getCustomerDian(cliente.numeroDocumento, token);
+      let customerDian = null;
+
+      if(!cliente.numeroDocumento.includes("2222")){
+        customerDian = await this.getCustomerDian(cliente.numeroDocumento, token);
+      }
+
   
       return {
         identification_number: cliente.numeroDocumento,
