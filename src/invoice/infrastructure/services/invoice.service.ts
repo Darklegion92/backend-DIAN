@@ -430,8 +430,8 @@ export class InvoiceService {
       email = "sinemail@gmail.com";
   }
 
-  if (dv === "" || dv === " " || dv === null || dv === undefined) {
-      dv = "0";
+  if (dv === "" || dv === " " || dv === undefined || dataCustomer[5].includes("22222")) {
+      dv = null;
   }
 
     const customer: CustomerDataDto = {
