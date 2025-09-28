@@ -21,7 +21,7 @@ export class GenerateDataService {
     * @param data - Array de datos parseados del string
     * @returns SellerOrCustomerDto con los datos estructurados
     */
-  async getSellerOrCustomerData(data: string[]): Promise<SellerOrCustomerDto> {
+  async getSellerOrCustomerData(data: string[], token: string): Promise<SellerOrCustomerDto> {
     const typeDocumentIdentificationId: number = await this.databaseUtils.findIdByCode(data[6], 'type_document_identifications');
     const typeLiabilityId: number = await this.databaseUtils.findIdByCode(data[9], 'type_liabilities');
     const typeRegimeId: number = await this.databaseUtils.findIdByCode(data[13], 'type_regimes');
@@ -33,12 +33,19 @@ export class GenerateDataService {
 
     const municipalityId: number = await this.databaseUtils.findIdByCode(codeMunicipality, 'municipalities');
 
+
+    let customerDian = null;
+
+    if(!data[5].includes("2222")){
+      customerDian = await this.getCustomerDian( data[5], token);
+    }
+
     return {
       identification_number: data[5],
-      dv: data[14] || '0',
-      name: data[1],
-      phone: data[8] || '5777777777',
-      email: data[7] || 'sinemail@email.com',
+      dv: customerDian?.dv || data[14] || null,
+      name: customerDian?.business_name || data[1],
+      phone: data[8] || customerDian?.phone || '5777777777',
+      email: data[7] || customerDian?.email || 'sinemail@email.com',
       merchant_registration: data[41] || '00000-0',
       type_document_identification_id: typeDocumentIdentificationId,
       type_organization_id: parseInt(data[2]),

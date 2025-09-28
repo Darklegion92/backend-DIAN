@@ -48,13 +48,11 @@ export class ProcessInvoiceUseCase implements DocumentProcessorPort {
       nit: dto.nit,
       resolutionNumber: dto.resolutionNumber
     });
-
-    const transformedData = await this.transformInvoiceData(dto);
-    try {
-
-
-      console.log("PDF Document", transformedData);
-      const company: CompanyWithCertificateDto = await this.companyService.getCompanyByNit(dto.nit);
+    
+    const company: CompanyWithCertificateDto = await this.companyService.getCompanyByNit(dto.nit);
+    const transformedData = await this.transformInvoiceData(dto, company.tokenDian);
+    console.log("PDF Document", transformedData);
+    try {   
 
       const dianResponse = await this.sendInvoiceToDian(transformedData, company.tokenDian);
 
@@ -124,7 +122,7 @@ export class ProcessInvoiceUseCase implements DocumentProcessorPort {
    * @param dto - Datos de la factura electrónica
    * @returns Datos transformados de la factura
    */
-  private async transformInvoiceData({ header, resolutionNumber, number, customer, taxes, detail, payment }: SendDocumentElectronicDto): Promise<any> {
+  private async transformInvoiceData({ header, resolutionNumber, number, customer, taxes, detail, payment }: SendDocumentElectronicDto, tokenDian: string): Promise<any> {
 
     const dataHead: string[] = header.split('|');
 
@@ -165,7 +163,7 @@ export class ProcessInvoiceUseCase implements DocumentProcessorPort {
       payable_amount: Number(dataHead[10])
     };
 
-    const customerDto: SellerOrCustomerDto = await this.generateDataService.getSellerOrCustomerData(dataCustomer);
+    const customerDto: SellerOrCustomerDto = await this.generateDataService.getSellerOrCustomerData(dataCustomer, tokenDian);
 
     if (customerDto.email.includes(';')) {
       const dataEmail: string[] = customerDto.email.split(';');

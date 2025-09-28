@@ -436,7 +436,7 @@ export class InvoiceService {
 
     const customer: CustomerDataDto = {
       identification_number: dataCustomer[5],
-      dv: parseInt(dv),
+      dv: dv ? parseInt(dv) : null,
       name: dataCustomer[1],
       phone: phone,
       address: address,
