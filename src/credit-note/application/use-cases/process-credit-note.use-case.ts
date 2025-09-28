@@ -41,9 +41,9 @@ export class ProcessCreditNoteUseCase implements DocumentProcessorPort {
 
     try {
 
-      const transformedData = await this.transformCreditNoteData(dto);
-
       const company: CompanyWithCertificateDto = await this.companyService.getCompanyByNit(dto.nit);
+      const transformedData = await this.transformCreditNoteData(dto, company.tokenDian);
+
 
       const dianResponse: CreditNoteResponseDto = await this.sendCreditNoteToDian(transformedData, company.tokenDian);
 
@@ -83,7 +83,7 @@ export class ProcessCreditNoteUseCase implements DocumentProcessorPort {
    * @param dto - Datos de la nota crédito
    * @returns Datos transformados para la nota crédito
    */
-  private async transformCreditNoteData({ header, number, resolutionNumber, customer, taxes, detail, paymentCondition }: SendDocumentElectronicDto): Promise<CreditNoteRequestDto> {
+  private async transformCreditNoteData({ header, number, resolutionNumber, customer, taxes, detail, paymentCondition }: SendDocumentElectronicDto, tokenDian: string): Promise<CreditNoteRequestDto> {
 
     // Parsear header
     const dataHead: string[] = header.split('|');
@@ -109,7 +109,7 @@ export class ProcessCreditNoteUseCase implements DocumentProcessorPort {
     const dataCreditNoteLines: string[] = detail.split('0.00¬03');
     const dataPaymentCondition: string[] = paymentCondition.split('|');
 
-    const customerDto: SellerOrCustomerDto = await this.generateDataService.getSellerOrCustomerData(dataCustomer);
+    const customerDto: SellerOrCustomerDto = await this.generateDataService.getSellerOrCustomerData(dataCustomer, tokenDian);
 
     const taxTotals: TaxTotalDto[] = await this.generateDataService.getTaxTotalsData(dataTaxTotals);
 

@@ -44,9 +44,10 @@ export class ProcessCreditNoteDocumentSupportUseCase implements DocumentProcesso
 
     try {
 
-      const transformedData: SdCreditNoteRequestDto = await this.transformCreditNoteDocumentSupportData(dto);
-
       const company: CompanyWithCertificateDto = await this.companyService.getCompanyByNit(dto.nit);
+      
+      const transformedData: SdCreditNoteRequestDto = await this.transformCreditNoteDocumentSupportData(dto, company.tokenDian);
+
 
       const dianResponse: SdCreditNoteResponseDto = await this.sendCreditNoteDocumentSupportToDian(transformedData, company.tokenDian);
 
@@ -87,7 +88,7 @@ export class ProcessCreditNoteDocumentSupportUseCase implements DocumentProcesso
    * @param dto - Datos de la nota crédito de documento soporte
    * @returns Datos transformados para la nota crédito de documento soporte
    */
-  private async transformCreditNoteDocumentSupportData({ header, number, resolutionNumber, customer, taxes, detail, paymentCondition }: SendDocumentElectronicDto): Promise<SdCreditNoteRequestDto> {
+  private async transformCreditNoteDocumentSupportData({ header, number, resolutionNumber, customer, taxes, detail, paymentCondition }: SendDocumentElectronicDto, tokenDian: string): Promise<SdCreditNoteRequestDto> {
 
 
     // Parsear header
@@ -114,7 +115,7 @@ export class ProcessCreditNoteDocumentSupportUseCase implements DocumentProcesso
     const dataPaymentCondition: string[] = paymentCondition.split('|');
 
     //Prepared Seller
-    const seller: SellerOrCustomerDto = await this.generateDataService.getSellerOrCustomerData(dataSeller);
+    const seller: SellerOrCustomerDto = await this.generateDataService.getSellerOrCustomerData(dataSeller, tokenDian);
 
     const taxTotals: TaxTotalDto[] = await this.generateDataService.getTaxTotalsData(dataTaxTotals);
 
