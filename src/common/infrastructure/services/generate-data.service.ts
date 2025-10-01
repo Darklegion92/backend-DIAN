@@ -6,6 +6,7 @@ import { CatalogService } from "@/catalog/application/services/catalog.service";
 import { firstValueFrom } from "rxjs";
 import { HttpService } from "@nestjs/axios";
 import { ConfigService } from "@nestjs/config";
+import { cli } from "winston/lib/winston/config";
 
 @Injectable()
 export class GenerateDataService {
@@ -249,24 +250,19 @@ export class GenerateDataService {
       const municipalityId = await catalogService.getMunicipalityIdByCode(cliente.direccionCliente.municipio);
       const typeLiabilityId = await catalogService.getLiabilityTypeIdByCode(cliente.responsabilidadesRut.Obligaciones.obligaciones);
       const typeRegimeId = await catalogService.getRegimeTypeIdByCode(cliente.responsabilidadesRut.Obligaciones.regimen);
-
-
-      try{
-        parseInt(cliente.numeroIdentificacionDV);
-      }catch(error){
-        throw new Error(`El digito de verificación ${cliente.numeroIdentificacionDV} no es un número`);
-      }
       
       let customerDian = null;
+      let dv = cliente.numeroIdentificacionDV;
 
-      if(!cliente.numeroDocumento.includes("2222")){
+      if(cliente.tipoIdentificacion === "13"){
+        dv = null;
+      }else if(!cliente.numeroDocumento.includes("2222")){
         customerDian = await this.getCustomerDian(cliente.numeroDocumento, token);
       }
 
-  
-      return {
+        return {
         identification_number: cliente.numeroDocumento,
-        dv: customerDian?.dv?.toString() || cliente.numeroIdentificacionDV,
+        dv: customerDian?.dv?.toString() || dv,
         name: customerDian?.business_name || cliente.nombreRazonSocial,
         phone: cliente.telefono || '5777777777',
         email: cliente.email || customerDian?.email || 'sinemail@email.com',
