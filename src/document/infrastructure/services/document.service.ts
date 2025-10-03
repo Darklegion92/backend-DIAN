@@ -247,6 +247,7 @@ export class DocumentService {
 
 
   async downloadPDF({prefix, number, company_document}: DownloadPDFDto): Promise<Buffer> {
+    try{
     const company = await this.companyService.getCompanyByNit(company_document);
     const document = await this.getDocument(prefix, number.toString(), company_document);
 
@@ -260,6 +261,13 @@ export class DocumentService {
     }
     
     return pdf;
+    }catch(error){
+      console.log("error", error);
+      throw new HttpException({
+        success: false,
+        message: error.message,
+      }, HttpStatus.NOT_FOUND);
+    }
   }
 
   async deleteDocument(prefix:string, number:string, companyIdentification:string){

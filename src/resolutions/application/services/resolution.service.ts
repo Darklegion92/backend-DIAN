@@ -203,7 +203,7 @@ export class ResolutionService {
 
     if(createResolutionDto.prefix === 'SETP' && [1,3].includes(createResolutionDto.type_document_id)) {
       return {
-        type_document_id: 1,
+        type_document_id: createResolutionDto.type_document_id,
         prefix: 'SETP',
         resolution: '18760000001',
         resolution_date: '2019-01-19',
@@ -232,9 +232,20 @@ export class ResolutionService {
 
     if([4,5,9,10,13].includes(createResolutionDto.type_document_id)) {
       return {
-        type_document_id: 4,
+        type_document_id: createResolutionDto.type_document_id,
         prefix: createResolutionDto.prefix,
         resolution: '1',
+        from: '1',
+        to: '999999999',
+      }   
+
+    }
+
+    if([11].includes(createResolutionDto.type_document_id)) {
+      return {
+        type_document_id: createResolutionDto.type_document_id,
+        prefix: createResolutionDto.prefix,
+        resolution: createResolutionDto.resolution,
         from: '1',
         to: '999999999',
       }   
