@@ -394,7 +394,6 @@ export class GenerateDataService {
 
     const urlMain = this.externalApiUrl.replace('/ubl2.1', '');
 
-
     let prefixDocument = "FES";
 
     switch(type_document){
@@ -408,8 +407,6 @@ export class GenerateDataService {
         prefixDocument = "DSS";
         break;
     }
-
-    console.log("url>>>", `${urlMain}/invoice/${company_identification_number}/${prefixDocument}-${prefix}${number}.pdf`);
 
     const response = await firstValueFrom(
       this.httpService.get(`${urlMain}/invoice/${company_identification_number}/${prefixDocument}-${prefix}${number}.pdf`, {
