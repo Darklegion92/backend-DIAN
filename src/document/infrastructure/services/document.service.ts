@@ -251,9 +251,7 @@ export class DocumentService {
     const company = await this.companyService.getCompanyByNit(company_document);
     const document = await this.getDocument(prefix, number.toString(), company_document);
 
-    console.log("document>>>", document);
-
-    const pdf = await this.generateDataService.getDocument(prefix, number.toString(), company.identificationNumber, document.typeDocumentId);
+    const pdf = await this.generateDataService.getDocument(prefix, number.toString(), company.identificationNumber, parseInt(document.typeDocumentId.toString()));
 
     if (!pdf || pdf.length === 0) {
       throw new HttpException({
