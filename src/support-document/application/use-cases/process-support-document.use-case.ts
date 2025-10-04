@@ -92,7 +92,7 @@ export class ProcessSupportDocumentUseCase implements DocumentProcessorPort {
   public async sendSupportDocumentToDian(transformedData: SupportDocumentRequestDto, token: string): Promise<any> {
     try {
       this.logger.log('Enviando nota crédito de documento soporte al servicio PHP');
-      this.logger.debug('URL del servicio externo:', `${this.externalApiUrl}/sd-credit-note`);
+      this.logger.debug('URL del servicio externo:', `${this.externalApiUrl}/support-document`);
 
       const response = await firstValueFrom(
         this.httpService.post<SuccessResponseDto>(
