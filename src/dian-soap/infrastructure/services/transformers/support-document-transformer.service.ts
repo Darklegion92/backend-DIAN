@@ -37,7 +37,7 @@ export class SupportDocumentTransformerService implements DocumentTransformer<Su
         charge_total_amount: Number(factura.totalCargosAplicados),
       };
 
-    const { with_holding_taxes } = await this.generateDataService.generateTaxtotals(factura.impuestosGenerales?.FacturaImpuestos || [], this.catalogService);
+    const { taxes, with_holding_taxes } = await this.generateDataService.generateTaxtotals(factura.impuestosGenerales?.FacturaImpuestos || [], this.catalogService);
 
     const invoiceLines = await this.generateInvoiceLines(factura.detalleDeFactura.FacturaDetalle, date);
 
@@ -54,8 +54,8 @@ export class SupportDocumentTransformerService implements DocumentTransformer<Su
         seller: customer,
         payment_form: paymentForm,
         legal_monetary_totals: legalMonetaryTotals,
-        invoice_lines: invoiceLines.map((line) =>({...line, tax_totals: null})),
-        tax_totals: null,
+        invoice_lines: invoiceLines,
+        tax_totals: taxes,
         withholding_tax_totals: with_holding_taxes,
     };
   }
