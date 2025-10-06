@@ -93,7 +93,9 @@ export class EnviarHandler {
         const body = responseDian.ResponseDian.Envelope.Body;
         if (body.SendBillSyncResponse.SendBillSyncResult.IsValid === "true") {
 
-          if(!body.SendBillSyncResponse.SendBillSyncResult.StatusMessage.includes(`${documentoTransformado.prefix}${documentoTransformado.number}`)){
+          console.log("En ds", body.SendBillSyncResponse.SendBillSyncResult.StatusMessage);
+
+          if(!body.SendBillSyncResponse.SendBillSyncResult.StatusMessage?.includes(`${documentoTransformado.prefix}${documentoTransformado.number}`)){
 
             console.log("Documento no valido");
 
