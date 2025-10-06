@@ -109,7 +109,7 @@ export class ProcessSupportDocumentUseCase implements DocumentProcessorPort {
         )
       );
 
-      this.logger.log('Respuesta exitosa del servicio DIAN');
+      this.logger.log('Respuesta exitosa del servicio DIAN', response.data);
       return response.data;
 
     } catch (error) {
