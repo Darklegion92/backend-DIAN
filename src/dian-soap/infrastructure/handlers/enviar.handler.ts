@@ -89,11 +89,11 @@ export class EnviarHandler {
           throw new Error(`Tipo de documento no soportado: ${factura.tipoDocumento}`);
       }
 
+      console.log("En ds", responseDian);
       if (responseDian.ResponseDian) {
         const body = responseDian.ResponseDian.Envelope.Body;
         if (body.SendBillSyncResponse.SendBillSyncResult.IsValid === "true") {
 
-          console.log("En ds", body.SendBillSyncResponse.SendBillSyncResult.StatusMessage);
 
           if(!body.SendBillSyncResponse.SendBillSyncResult.StatusMessage?.includes(`${documentoTransformado.prefix}${documentoTransformado.number}`)){
 
@@ -187,7 +187,7 @@ export class EnviarHandler {
         return { EnviarResult: response };
 
       } else {
-        if (responseDian.message.includes("Este documento ya fue enviado anteriormente, se registra en la base de datos.")) {
+        if (responseDian?.message?.includes("Este documento ya fue enviado anteriormente, se registra en la base de datos.")) {
           const responseDocument: any = await this.documentService.getDocument(documentoTransformado.prefix, documentoTransformado.number, company.identificationNumber);
           if (responseDocument) {
             const qrString = "";
