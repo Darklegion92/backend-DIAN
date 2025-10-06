@@ -39,9 +39,9 @@ export class SupportDocumentTransformerService implements DocumentTransformer<Su
 
     const { taxes, with_holding_taxes } = await this.generateDataService.generateTaxtotals(factura.impuestosGenerales?.FacturaImpuestos || [], this.catalogService);
 
-    const invoiceLines = await this.generateInvoiceLines(factura.detalleDeFactura.FacturaDetalle, date);
+    let invoiceLines = await this.generateInvoiceLines(factura.detalleDeFactura.FacturaDetalle, date);
 
-    
+   invoiceLines = invoiceLines.map(line=>({...line, base_quantity: line.invoiced_quantity}))
 
    return {
         number: Number(number),
