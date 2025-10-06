@@ -116,7 +116,7 @@ export class EnviarHandler {
           return { EnviarResult: response };
         }
 
-          const cufe = responseDian.cufe  || responseDian.cude;
+          const cufe = responseDian.cufe  || responseDian.cude || responseDian.cuds;
           const response = new EnviarResponseDto({
             codigo: 200,
             consecutivoDocumento: factura.consecutivoDocumento || `PRUE${Date.now()}`,
