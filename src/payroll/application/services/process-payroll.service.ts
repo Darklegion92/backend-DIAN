@@ -846,10 +846,10 @@ export class ProcessPayrollService {
     const response = await this.sendPayrollToService(payroll, company.tokenDian);
 
     return {
-      codigo: 201,
+      codigo: 200,
       mensaje: 'Nómina enviada correctamente',
       resultado: 'Procesado',
-      consecutivoDocumento: response.cune,
+      consecutivoDocumento: prefix + number,
       cune: response.cune,
       trackId: response.trackId,
       reglasNotificacionesTFHKA: response.reglasNotificacionesTFHKA,
