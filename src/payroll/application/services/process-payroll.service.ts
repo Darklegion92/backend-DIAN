@@ -859,7 +859,7 @@ export class ProcessPayrollService {
       nitEmpleador: company.identificationNumber,
       nitEmpleado: trabajador.numeroDocumento,
       idSoftware: "SOLTEC",
-      qr: response.qr,
+      qr: response.cune,
       esvalidoDIAN: true,
     }
   }
