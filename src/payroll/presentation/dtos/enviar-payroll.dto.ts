@@ -1262,9 +1262,9 @@ export class EnviarPayrollRequestDto {
 // ============================================================================
 
 export class EnviarPayrollResponseDto {
-  @ApiProperty({ description: 'Indica el Estado de la operación retornado por el servicio', example: 200 })
-  @IsNumber()
-  codigo: number;
+  @ApiProperty({ description: 'Indica el Estado de la operación retornado por el servicio', example: '200' })
+  @IsString()
+  codigo: string;
 
   @ApiProperty({ description: 'Este mensaje está asociado al código de respuesta, útil para identificación de errores', example: 'Nómina procesada exitosamente' })
   @IsString()
@@ -1305,4 +1305,24 @@ export class EnviarPayrollResponseDto {
   @IsArray()
   @IsString({ each: true })
   reglasRechazoDIAN: string[];
+
+  @ApiProperty({ description: 'Indica el nit del empleador', example: '900123456' })
+  @IsString()
+  nitEmpleador: string;
+
+  @ApiProperty({ description: 'Indica el nit del empleado', example: '12345678' })
+  @IsString()
+  nitEmpleado: string;
+
+  @ApiProperty({ description: 'Identificador de Casa de Software', example: 'SOFTWARE001' })
+  @IsString()
+  idSoftware: string;
+
+  @ApiProperty({ description: 'Concatenación cadena del código QR (elemento de control)', example: 'QR123456789012345678901234567890' })
+  @IsString()
+  qr: string;
+
+  @ApiProperty({ description: '"true" Si es válido', example: true })
+  @IsBoolean()
+  esvalidoDIAN: boolean;
 } 

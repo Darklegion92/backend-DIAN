@@ -846,7 +846,7 @@ export class ProcessPayrollService {
     const response = await this.sendPayrollToService(payroll, company.tokenDian);
 
     return {
-      codigo: 200,
+      codigo: "200",
       mensaje: 'Nómina enviada correctamente',
       resultado: 'Procesado',
       consecutivoDocumento: prefix + number,
@@ -856,7 +856,11 @@ export class ProcessPayrollService {
       reglasNotificacionesDIAN: response.reglasNotificacionesDIAN,
       reglasRechazoTFHKA: response.reglasRechazoTFHKA,
       reglasRechazoDIAN: response.reglasRechazoDIAN,
-
+      nitEmpleador: company.identificationNumber,
+      nitEmpleado: trabajador.numeroDocumento,
+      idSoftware: "SOLTEC",
+      qr: response.qr,
+      esvalidoDIAN: true,
     }
   }
 
