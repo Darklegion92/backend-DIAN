@@ -473,6 +473,11 @@ export class LicenciaNRDto {
   @IsArray()
   @ValidateNested({ each: true })
   extrasNom?: any[];
+
+  @ApiProperty({ description: 'Valor de la licencia', example: '150000' })
+  @IsString()
+  @IsNotEmpty()
+  pago?: string;
 }
 
 export class LicenciaRDto {
@@ -527,7 +532,7 @@ export class LicenciasDto {
 
   @ApiProperty({ description: 'Valor de la licencia', example: '150000' })
   @IsString()
-  @IsNotEmpty()
+  @IsOptional()
   pago?: string;
 }
 
