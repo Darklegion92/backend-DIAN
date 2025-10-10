@@ -523,13 +523,13 @@ export class ProcessPayrollService {
         codigo: 201,
         mensaje: 'Nómina enviada correctamente',
         resultado: 'Procesado',
-        consecutivoDocumento: response.cune,
+        consecutivoDocumento: number,
         cune: response.cune,
-        trackId: response.trackId,
-        reglasNotificacionesTFHKA: response.reglasNotificacionesTFHKA,
-        reglasNotificacionesDIAN: response.reglasNotificacionesDIAN,
-        reglasRechazoTFHKA: response.reglasRechazoTFHKA,
-        reglasRechazoDIAN: response.reglasRechazoDIAN,
+        trackId: response.trackId || '',
+        reglasNotificacionesTFHKA: response.reglasNotificacionesTFHKA || [],
+        reglasNotificacionesDIAN: response.reglasNotificacionesDIAN || [],
+        reglasRechazoTFHKA: response.reglasRechazoTFHKA || [],
+        reglasRechazoDIAN: response.reglasRechazoDIAN || [],
 
       });
       return {
