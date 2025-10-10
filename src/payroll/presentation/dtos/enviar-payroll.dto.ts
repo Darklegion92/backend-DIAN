@@ -1325,4 +1325,8 @@ export class EnviarPayrollResponseDto {
   @ApiProperty({ description: '"true" Si es válido', example: true })
   @IsBoolean()
   esvalidoDIAN: boolean;
+
+  @ApiProperty({ description: 'XML de la nómina', example: 'XML de la nómina' })
+  @IsString()
+  xml: string;
 } 

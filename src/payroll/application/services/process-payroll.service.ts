@@ -861,6 +861,7 @@ export class ProcessPayrollService {
       idSoftware: "SOLTEC",
       qr: response.cune,
       esvalidoDIAN: true,
+      xml: "ninguno"
     }
   }
 
