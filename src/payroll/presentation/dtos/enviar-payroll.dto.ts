@@ -467,6 +467,12 @@ export class LicenciaNRDto {
   @IsString()
   @IsOptional()
   fechaFin?: string;
+
+  @ApiProperty({ description: 'Extras de nómina', required: false })
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  extrasNom?: any[];
 }
 
 export class LicenciaRDto {
@@ -512,6 +518,12 @@ export class LicenciasDto {
   @ValidateNested({ each: true })
   @Type(() => LicenciaRDto)
   licenciaR?: LicenciaRDto[];
+
+  @ApiProperty({ description: 'Extras de nómina', required: false })
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  extrasNom?: any[];
 }
 
 export class OtroConceptoDto {
