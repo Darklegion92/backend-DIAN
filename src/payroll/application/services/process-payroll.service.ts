@@ -516,34 +516,14 @@ export class ProcessPayrollService {
       const company = await this.companyService.getCompanyByNit(nitCompany);
 
       const response = await this.sendPayrollToService(payroll, company.tokenDian);
-      
-
-
-      console.log("nomina >>", {
-        codigo: 201,
-        mensaje: 'Nómina enviada correctamente',
-        resultado: 'Procesado',
-        consecutivoDocumento: number,
-        cune: response.cune,
-        trackId: response.trackId || '',
-        reglasNotificacionesTFHKA: response.reglasNotificacionesTFHKA || [],
-        reglasNotificacionesDIAN: response.reglasNotificacionesDIAN || [],
-        reglasRechazoTFHKA: response.reglasRechazoTFHKA || [],
-        reglasRechazoDIAN: response.reglasRechazoDIAN || [],
-
-      });
       return {
-        codigo: 201,
-        mensaje: 'Nómina enviada correctamente',
-        resultado: 'Procesado',
-        consecutivoDocumento: response.cune,
-        cune: response.cune,
-        trackId: response.trackId,
-        reglasNotificacionesTFHKA: response.reglasNotificacionesTFHKA,
-        reglasNotificacionesDIAN: response.reglasNotificacionesDIAN,
-        reglasRechazoTFHKA: response.reglasRechazoTFHKA,
-        reglasRechazoDIAN: response.reglasRechazoDIAN,
-
+        success: true,
+        statusCode: 200,
+        message: 'Nómina enviada correctamente',
+        data: {
+          cufe: response.cune,
+          date: this.generateDataService.formatDate(new Date()),
+        }
       }
 
 
@@ -865,9 +845,19 @@ export class ProcessPayrollService {
 
     const response = await this.sendPayrollToService(payroll, company.tokenDian);
 
-    console.log(response);
+    return {
+      codigo: 201,
+      mensaje: 'Nómina enviada correctamente',
+      resultado: 'Procesado',
+      consecutivoDocumento: response.cune,
+      cune: response.cune,
+      trackId: response.trackId,
+      reglasNotificacionesTFHKA: response.reglasNotificacionesTFHKA,
+      reglasNotificacionesDIAN: response.reglasNotificacionesDIAN,
+      reglasRechazoTFHKA: response.reglasRechazoTFHKA,
+      reglasRechazoDIAN: response.reglasRechazoDIAN,
 
-    return null;
+    }
   }
 
 

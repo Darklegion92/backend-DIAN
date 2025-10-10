@@ -1262,37 +1262,47 @@ export class EnviarPayrollRequestDto {
 // ============================================================================
 
 export class EnviarPayrollResponseDto {
-  @ApiProperty({ description: 'Código de respuesta', example: 200 })
+  @ApiProperty({ description: 'Indica el Estado de la operación retornado por el servicio', example: 200 })
   @IsNumber()
   codigo: number;
 
-  @ApiProperty({ description: 'Mensaje de respuesta', example: 'Documento procesado exitosamente' })
+  @ApiProperty({ description: 'Este mensaje está asociado al código de respuesta, útil para identificación de errores', example: 'Nómina procesada exitosamente' })
   @IsString()
   mensaje: string;
 
-  @ApiProperty({ description: 'CUNE del documento', example: 'CUNE123456789012345678901234567890123456789012345678901234567890' })
-  @IsString()
-  cune: string;
-
-  @ApiProperty({ description: 'Descripción del error', example: null, required: false })
-  @IsString()
-  @IsOptional()
-  descripcion?: string;
-
-  @ApiProperty({ description: 'Reglas de validación DIAN', example: null, required: false })
-  @IsString()
-  @IsOptional()
-  reglasValidacionDIAN?: string;
-
-  @ApiProperty({ description: 'Resultado del procesamiento', example: 'Procesado' })
+  @ApiProperty({ description: 'Resultado del consumo del método: "Procesado" ó "Error"', example: 'Procesado' })
   @IsString()
   resultado: string;
 
-  @ApiProperty({ description: 'Track ID del documento', example: 'TXN789012345' })
+  @ApiProperty({ description: 'Prefijo y Consecutivo del Documento concatenado sin separadores', example: 'PRUE980338337' })
   @IsString()
-  trackID: string;
+  consecutivoDocumento: string;
 
-  @ApiProperty({ description: 'Tipo de documento', example: '1' })
+  @ApiProperty({ description: 'Código Único de Nómina Electrónica correspondiente al documento consultado', example: 'a1b2c3d4-e5f6-g7h8-i9j0' })
   @IsString()
-  tipoDocumento: string;
+  cune: string;
+
+  @ApiProperty({ description: 'Número de seguimiento, es un UUID, para consultar posteriormente el proceso asíncrono', example: '123e4567-e89b-12d3-a456-426614174000' })
+  @IsString()
+  trackId: string;
+
+  @ApiProperty({ description: 'Reglas de validación en caso de notificación TFHKA', type: [String], example: ['Regla 1', 'Regla 2'] })
+  @IsArray()
+  @IsString({ each: true })
+  reglasNotificacionesTFHKA: string[];
+
+  @ApiProperty({ description: 'Reglas de validación en caso de notificación DIAN', type: [String], example: ['Regla 1', 'Regla 2'] })
+  @IsArray()
+  @IsString({ each: true })
+  reglasNotificacionesDIAN: string[];
+
+  @ApiProperty({ description: 'Reglas de validación en caso de rechazo TFHKA', type: [String], example: ['Regla 1', 'Regla 2'] })
+  @IsArray()
+  @IsString({ each: true })
+  reglasRechazoTFHKA: string[];
+
+  @ApiProperty({ description: 'Reglas de validación en caso de rechazo DIAN', type: [String], example: ['Regla 1', 'Regla 2'] })
+  @IsArray()
+  @IsString({ each: true })
+  reglasRechazoDIAN: string[];
 } 
