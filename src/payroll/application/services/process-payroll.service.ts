@@ -516,14 +516,19 @@ export class ProcessPayrollService {
       const company = await this.companyService.getCompanyByNit(nitCompany);
 
       const response = await this.sendPayrollToService(payroll, company.tokenDian);
+      
       return {
-        success: true,
-        statusCode: 200,
-        message: 'Nómina enviada correctamente',
-        data: {
-          cufe: response.cune,
-          date: this.generateDataService.formatDate(new Date()),
-        }
+        codigo: 201,
+        mensaje: 'Nómina enviada correctamente',
+        resultado: 'Procesado',
+        consecutivoDocumento: response.cune,
+        cune: response.cune,
+        trackId: response.trackId,
+        reglasNotificacionesTFHKA: response.reglasNotificacionesTFHKA,
+        reglasNotificacionesDIAN: response.reglasNotificacionesDIAN,
+        reglasRechazoTFHKA: response.reglasRechazoTFHKA,
+        reglasRechazoDIAN: response.reglasRechazoDIAN,
+
       }
 
 
@@ -543,7 +548,6 @@ export class ProcessPayrollService {
       }
       this.logger.log('Enviando solicitud de nómina al servicio externo');
       this.logger.debug('URL del servicio externo:', url);
-      this.logger.debug('Datos de la nómina:', JSON.stringify(payroll, null, 2));
       this.logger.debug('Token:', token);
 
       const response = await firstValueFrom(
