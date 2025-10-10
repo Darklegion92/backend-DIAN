@@ -517,6 +517,21 @@ export class ProcessPayrollService {
 
       const response = await this.sendPayrollToService(payroll, company.tokenDian);
       
+
+
+      console.log("nomina >>", {
+        codigo: 201,
+        mensaje: 'Nómina enviada correctamente',
+        resultado: 'Procesado',
+        consecutivoDocumento: response.cune,
+        cune: response.cune,
+        trackId: response.trackId,
+        reglasNotificacionesTFHKA: response.reglasNotificacionesTFHKA,
+        reglasNotificacionesDIAN: response.reglasNotificacionesDIAN,
+        reglasRechazoTFHKA: response.reglasRechazoTFHKA,
+        reglasRechazoDIAN: response.reglasRechazoDIAN,
+
+      });
       return {
         codigo: 201,
         mensaje: 'Nómina enviada correctamente',
