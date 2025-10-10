@@ -524,6 +524,11 @@ export class LicenciasDto {
   @IsArray()
   @ValidateNested({ each: true })
   extrasNom?: any[];
+
+  @ApiProperty({ description: 'Valor de la licencia', example: '150000' })
+  @IsString()
+  @IsNotEmpty()
+  pago?: string;
 }
 
 export class OtroConceptoDto {
