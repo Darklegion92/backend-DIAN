@@ -190,8 +190,6 @@ export class ProcessPayrollService {
       accrued.setCompensation(noelCompensao);
       accrued.setTransportationAllowance(noelAuxtr);
 
-
-
       const hed: HDto = new HDto(noelExdhorini, noelExdhorfin,
         noelExdcant, 1, noelExtrasd);
 
@@ -544,6 +542,7 @@ export class ProcessPayrollService {
       this.logger.log('Enviando solicitud de nómina al servicio externo');
       this.logger.debug('URL del servicio externo:', url);
       this.logger.debug('Token:', token);
+      console.log("Payroll:", payroll);
 
       const response = await firstValueFrom(
         this.httpService.post<any>(
