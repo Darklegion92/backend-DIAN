@@ -542,7 +542,7 @@ export class ProcessPayrollService {
       this.logger.log('Enviando solicitud de nómina al servicio externo');
       this.logger.debug('URL del servicio externo:', url);
       this.logger.debug('Token:', token);
-      console.log("Payroll:", payroll);
+      console.log("Payroll:", JSON.stringify(payroll, null, 2));
 
       const response = await firstValueFrom(
         this.httpService.post<any>(

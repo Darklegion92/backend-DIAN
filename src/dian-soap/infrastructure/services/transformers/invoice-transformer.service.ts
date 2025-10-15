@@ -85,6 +85,8 @@ export class InvoiceTransformerService implements DocumentTransformer<InvoiceReq
 
     }
 
+    const notes = factura.informacionAdicional?.string?.toLocaleLowerCase()?.includes('seze') ? "": factura.informacionAdicional?.string;
+
     return {
       number: parseInt(number),
       prefix,
@@ -92,7 +94,7 @@ export class InvoiceTransformerService implements DocumentTransformer<InvoiceReq
       date,
       time,
       resolution_number: resolutionNumber,
-      notes: '',
+      notes,
       customer,
       legal_monetary_totals: legalMonetaryTotals,
       invoice_lines: invoiceLines,
