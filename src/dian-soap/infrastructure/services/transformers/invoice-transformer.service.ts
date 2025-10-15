@@ -86,7 +86,7 @@ export class InvoiceTransformerService implements DocumentTransformer<InvoiceReq
     }
 
     const notes = factura.informacionAdicional?.string?.toLocaleLowerCase()?.includes('seze') ? "": factura.informacionAdicional?.string;
-
+    const seze = factura.informacionAdicional?.string?.toLocaleLowerCase()?.includes('seze') ? factura.informacionAdicional?.string : "";
     return {
       number: parseInt(number),
       prefix,
@@ -102,7 +102,7 @@ export class InvoiceTransformerService implements DocumentTransformer<InvoiceReq
       tax_totals: taxes,
       sendmail: this.generateDataService.sendEmail(customer.email, customer.identification_number, code),
       with_holding_tax_total: with_holding_taxes.length > 0 ? with_holding_taxes : undefined,
-      seze: factura.informacionAdicional?.string,
+      seze,
     };
 
   }
