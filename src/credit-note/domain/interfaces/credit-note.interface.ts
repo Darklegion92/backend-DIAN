@@ -34,4 +34,10 @@ export interface CreditNoteRequestDto {
   discrepancyresponsecode: number;
   head_note?: string;
   invoice_period?: InvoicePeriodDto;
+  email_cc_list?: EmailCcData[];
+
+}
+
+export interface EmailCcData {
+  email: string;
 }

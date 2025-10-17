@@ -37,7 +37,6 @@ export class CreditNoteTransformerService implements DocumentTransformer<CreditN
       charge_total_amount: Number(factura.totalCargosAplicados),
     };
 
-    //TODO: validamos si el iva de 0% que manda
 
     const totalTaxes: number = taxes.reduce((acc, tax) => acc + (tax.percent === 0 ? tax.taxable_amount : 0), 0);
     const totalTaxesDetail: number = creditNoteLines.reduce((acc, line) => acc + (line.tax_totals.reduce((acc, tax) => acc + (tax.percent === 0 && tax.tax_id === 1 ? tax.taxable_amount : 0), 0)), 0);
@@ -74,7 +73,14 @@ export class CreditNoteTransformerService implements DocumentTransformer<CreditN
 
     }
 
+    const sendMail = await this.generateDataService.sendEmail(customer.email, customer.identification_number.toString(), number);
 
+    const emails = customer.email.split(';');
+    let cc = [];
+    if(emails.length > 1){
+      customer.email = emails[0];
+      cc = emails.slice(1).map(email => ({ email }));
+    }
 
     return {
       type_document_id: 4,
@@ -84,7 +90,8 @@ export class CreditNoteTransformerService implements DocumentTransformer<CreditN
       number: parseInt(number),
       date,
       time,
-      send_mail: false,
+      send_mail: sendMail,
+      email_cc_list: cc,
       customer,
       credit_note_lines: creditNoteLines,
       billing_reference: billingReference,
