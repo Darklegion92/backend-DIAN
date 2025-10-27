@@ -27,7 +27,7 @@ export interface FacturaGeneralDto {
 }
 
 export interface InformacionAdicionalDto {
-  string: string;
+  string: string | string[];
 }
 
 

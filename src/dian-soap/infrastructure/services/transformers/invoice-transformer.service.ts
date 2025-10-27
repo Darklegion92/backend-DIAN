@@ -85,8 +85,29 @@ export class InvoiceTransformerService implements DocumentTransformer<InvoiceReq
 
     }
 
-    const notes = factura.informacionAdicional?.string?.toLowerCase()?.includes('seze') ? "": factura.informacionAdicional?.string;
-    const seze = factura.informacionAdicional?.string?.toLowerCase()?.includes('seze') ? factura.informacionAdicional?.string : "";
+    const additionalInfo = factura.informacionAdicional?.string;
+    
+    let notes = ""
+    let seze = ""
+
+    if(typeof additionalInfo === 'string'){
+
+        if(additionalInfo.toLowerCase().includes('seze')){
+          seze = additionalInfo;
+        }else{
+          notes = additionalInfo;
+        }      
+    }else{
+      for(const info of additionalInfo){
+        if(info.toLowerCase().includes('seze')){
+          seze = info;
+        }else{
+          notes = info;
+        }
+      }
+    }
+
+    
     return {
       number: parseInt(number),
       prefix,
