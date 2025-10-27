@@ -92,14 +92,14 @@ export class InvoiceTransformerService implements DocumentTransformer<InvoiceReq
 
     if(typeof additionalInfo === 'string'){
 
-        if(additionalInfo.toLowerCase().includes('zese')){
+        if(additionalInfo.toLowerCase().includes('zese') || additionalInfo.toLowerCase().includes('seze')){
           seze = additionalInfo;
         }else{
           notes = additionalInfo;
         }      
-    }else{
+    }else if(Array.isArray(additionalInfo)){
       for(const info of additionalInfo){
-        if(info.toLowerCase().includes('zese')){
+        if(info.toLowerCase().includes('zese') || info.toLowerCase().includes('seze')){
           seze = info;
         }else{
           notes = info;

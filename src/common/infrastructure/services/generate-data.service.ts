@@ -219,11 +219,6 @@ export class GenerateDataService {
       return false;
     }
 
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      return false;
-    }
-
     const repeatedDigitsRegex = /(\d)\1{4,}/;
     if (repeatedDigitsRegex.test(identificationNumber)) {
       return false;
