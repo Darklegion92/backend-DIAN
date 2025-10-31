@@ -6,6 +6,7 @@ import { CatalogService } from '@/catalog/application/services/catalog.service';
 import { AllowanceChargeDto, LegalMonetaryTotalsDto, LineDto, PaymentFormDto, SellerOrCustomerDto, TaxTotalDto } from '@/common/domain/interfaces/document-common.interface';
 import { ResolutionService } from '@/resolutions/application/services/resolution.service';
 import { GenerateDataService } from '@/common/infrastructure/services/generate-data.service';
+import { Client } from 'soap';
 
 @Injectable()
 export class InvoiceTransformerService implements DocumentTransformer<InvoiceRequestDto> {
@@ -43,6 +44,13 @@ export class InvoiceTransformerService implements DocumentTransformer<InvoiceReq
     };
 
     const { taxes, with_holding_taxes } = await this.generateDataService.generateTaxtotals(factura.impuestosGenerales?.FacturaImpuestos || [], this.catalogService);
+
+
+    const emails = factura.cliente.email.split(';');
+    if(emails.length > 1){
+      factura.cliente.email = emails[0];
+    }
+
     const customer = await this.generateDataService.generateCustomer(factura.cliente, this.catalogService, token);
     const invoiceLines = await this.generateInvoiceLines(factura.detalleDeFactura.FacturaDetalle, taxes);
 
@@ -124,6 +132,7 @@ export class InvoiceTransformerService implements DocumentTransformer<InvoiceReq
       sendmail: this.generateDataService.sendEmail(customer.email, customer.identification_number, code),
       with_holding_tax_total: with_holding_taxes.length > 0 ? with_holding_taxes : undefined,
       seze,
+      email_cc_list: emails.length > 1 ? emails.slice(1).map(email => ({ email })) : undefined,
     };
 
   }
