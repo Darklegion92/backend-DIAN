@@ -46,8 +46,8 @@ export class InvoiceTransformerService implements DocumentTransformer<InvoiceReq
     const { taxes, with_holding_taxes } = await this.generateDataService.generateTaxtotals(factura.impuestosGenerales?.FacturaImpuestos || [], this.catalogService);
 
 
-    const emails = factura.cliente.email.split(';');
-    if(emails.length > 1){
+    const emails = factura?.cliente?.email?.split(';');
+    if(emails?.length > 1){
       factura.cliente.email = emails[0];
     }
 
