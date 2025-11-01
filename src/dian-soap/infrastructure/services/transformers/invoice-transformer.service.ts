@@ -132,7 +132,7 @@ export class InvoiceTransformerService implements DocumentTransformer<InvoiceReq
       sendmail: this.generateDataService.sendEmail(customer.email, customer.identification_number, code),
       with_holding_tax_total: with_holding_taxes.length > 0 ? with_holding_taxes : undefined,
       seze,
-      email_cc_list: emails.length > 1 ? emails.slice(1).map(email => ({ email })) : undefined,
+      email_cc_list: emails?.length > 1 ? emails?.slice(1)?.map(email => ({ email })) : undefined,
     };
 
   }
