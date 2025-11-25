@@ -8,6 +8,7 @@ import { DocumentTransformerFactory } from '../services/transformers/document-tr
 import { soapLogger } from '../services/logger.service';
 import { ProcessCreditNoteUseCase } from '@/credit-note/application/use-cases/process-credit-note.use-case';
 import { ProcessSupportDocumentUseCase } from '@/support-document/application/use-cases/process-support-document.use-case';
+import { ProcessCreditNoteDocumentSupportUseCase } from '@/credit-note/application/use-cases/process-credit-note-document-support.use-case';
 
 @Injectable()
 export class EnviarHandler {
@@ -16,6 +17,7 @@ export class EnviarHandler {
     private readonly processInvoiceUseCase: ProcessInvoiceUseCase,
     private readonly processCreditNoteUseCase: ProcessCreditNoteUseCase,
     private readonly processSupportDocumentUseCase: ProcessSupportDocumentUseCase,
+    private readonly processCreditNoteDocumentSupportUseCase: ProcessCreditNoteDocumentSupportUseCase,
     private readonly companyService: CompanyService,
     private readonly documentService: DocumentService,
   ) {}
@@ -84,6 +86,9 @@ export class EnviarHandler {
           break;
         case '05':
           responseDian = await this.processSupportDocumentUseCase.sendSupportDocumentToDian(documentoTransformado, company.tokenDian);
+          break;
+        case '95':
+          responseDian = await this.processCreditNoteDocumentSupportUseCase.sendCreditNoteDocumentSupportToDian(documentoTransformado, company.tokenDian);
           break;
         default:
           throw new Error(`Tipo de documento no soportado: ${factura.tipoDocumento}`);
@@ -252,4 +257,4 @@ export class EnviarHandler {
       };
     }
   }
-} 
+}

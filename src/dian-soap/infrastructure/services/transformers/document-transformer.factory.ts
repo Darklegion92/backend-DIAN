@@ -4,6 +4,7 @@ import { InvoiceTransformerService } from './invoice-transformer.service';
 import { CreditNoteTransformerService } from './credit-note-transformer.service';
 import { FacturaGeneralDto } from '../../../presentation/dtos/request/factura-general.dto';
 import { SupportDocumentTransformerService } from './support-document-transformer.service';
+import { SupportDocumentCreditNoteTransformerService } from './support-document-credit-note-transformer.service';
 
 @Injectable()
 export class DocumentTransformerFactory {
@@ -11,6 +12,7 @@ export class DocumentTransformerFactory {
     private readonly invoiceTransformer: InvoiceTransformerService,
     private readonly creditNoteTransformer: CreditNoteTransformerService,
     private readonly supportDocumentTransformer: SupportDocumentTransformerService,
+    private readonly supportDocumentCreditNoteTransformer: SupportDocumentCreditNoteTransformerService,
   ) {}
 
   getTransformer(tipoDocumento: string): DocumentTransformer<any> {
@@ -24,6 +26,8 @@ export class DocumentTransformerFactory {
         return this.supportDocumentTransformer;
       case 'debitnote':
         throw new Error('Transformador para nota débito pendiente por implementar');
+      case '95':
+        return this.supportDocumentCreditNoteTransformer;
       default:
         throw new Error(`Tipo de documento no soportado: ${tipoDocumento}`);
     }

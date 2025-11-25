@@ -163,12 +163,12 @@ export class ProcessCreditNoteDocumentSupportUseCase implements DocumentProcesso
     return transformedData;
   }
 
- /**
-  * Envia la nota crédito de documento soporte al servicio externo
-  * @param transformedData - Datos transformados para la nota crédito de documento soporte
-  * @returns Respuesta de la nota crédito de documento soporte
-  */
-  private async sendCreditNoteDocumentSupportToDian(transformedData: SdCreditNoteRequestDto, token: string ): Promise<SdCreditNoteResponseDto> {
+  /**
+   * Envia la nota crédito de documento soporte al servicio externo
+   * @param transformedData - Datos transformados para la nota crédito de documento soporte
+   * @returns Respuesta de la nota crédito de documento soporte
+   */
+  public async sendCreditNoteDocumentSupportToDian(transformedData: SdCreditNoteRequestDto, token: string ): Promise<SdCreditNoteResponseDto> {
     try {
       this.logger.log('Enviando nota crédito de documento soporte al servicio PHP');
       this.logger.debug('URL del servicio externo:', `${this.externalApiUrl}/sd-credit-note`);

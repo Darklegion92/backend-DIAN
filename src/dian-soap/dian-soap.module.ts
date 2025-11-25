@@ -6,6 +6,7 @@ import { DocumentTransformerFactory } from './infrastructure/services/transforme
 import { InvoiceTransformerService } from './infrastructure/services/transformers/invoice-transformer.service';
 import { CreditNoteTransformerService } from './infrastructure/services/transformers/credit-note-transformer.service';
 import { SupportDocumentTransformerService } from './infrastructure/services/transformers/support-document-transformer.service';
+import { SupportDocumentCreditNoteTransformerService } from './infrastructure/services/transformers/support-document-credit-note-transformer.service';
 import { AdjuntosSoapService } from './infrastructure/services/adjuntos-soap.service';
 
 import { DocumentModule } from '@/document/document.module';
@@ -41,6 +42,7 @@ import { CompaniesModule } from '@/company/companies.module';
     InvoiceTransformerService,
     CreditNoteTransformerService,
     SupportDocumentTransformerService,
+    SupportDocumentCreditNoteTransformerService,
     AdjuntosSoapService,
     EnviarHandler,
     EstadoDocumentoHandler,
