@@ -34,9 +34,6 @@ export class SupportDocumentCreditNoteTransformerService implements DocumentTran
     // Asumimos que si no hay impuestos globales diferentes a la suma de impuestos de línea, usamos el calculado
     const totalTaxes = taxes.reduce((acc, tax) => acc + (tax.percent === 0 ? tax.taxable_amount : 0), 0);
     
-    // Si totalTaxes es 0, entonces tax_exclusive = tax_inclusive = payable = lineExtensionAmount
-    // Si hay impuestos, sumarlos.
-    
     // Función helper para redondear a 2 decimales y evitar problemas de punto flotante
     const round2 = (num: number) => Math.round((num + Number.EPSILON) * 100) / 100;
 
@@ -128,6 +125,7 @@ export class SupportDocumentCreditNoteTransformerService implements DocumentTran
       billing_reference: billingReference,
       legal_monetary_totals: legalMonetaryTotals,
       tax_totals: taxes,
+      type_operation_id: typeOperationId as any // Cast as any to avoid strict type check against 23|24 if dynamic
     };
   }
 
@@ -157,6 +155,9 @@ export class SupportDocumentCreditNoteTransformerService implements DocumentTran
         
         // Intentar usar el precio unitario provisto si es consistente
         let priceAmount = Number(detalle.precioVentaUnitario);
+        
+        // Limpiar ruido de punto flotante del input
+        priceAmount = Number(priceAmount.toFixed(6));
         
         // Verificar consistencia: Precio * Cantidad ~= Total (tolerancia 0.01)
         if (Math.abs(priceAmount * quantity - lineExtensionAmount) > 0.01) {
@@ -195,6 +196,9 @@ export class SupportDocumentCreditNoteTransformerService implements DocumentTran
         
         // Intentar usar el precio unitario provisto si es consistente
         let priceAmount = Number(notaCreditoDetalle.precioVentaUnitario);
+        
+        // Limpiar ruido de punto flotante del input
+        priceAmount = Number(priceAmount.toFixed(6));
         
         // Verificar consistencia: Precio * Cantidad ~= Total (tolerancia 0.01)
         if (Math.abs(priceAmount * quantity - lineExtensionAmount) > 0.01) {
