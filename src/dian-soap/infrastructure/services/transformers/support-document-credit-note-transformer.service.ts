@@ -147,13 +147,24 @@ export class SupportDocumentCreditNoteTransformerService implements DocumentTran
 
         // Recalcular precio unitario basado en el total de línea para evitar errores de redondeo (NSAV06)
         const quantity = Number(detalle.cantidadUnidades);
+        
+        // Usar el total de línea del JSON original, pero redondeado a 2 decimales
         const lineExtensionAmount = this.round2(Number(detalle.precioTotalSinImpuestos));
         
         // Recalcular siempre el precio unitario para garantizar consistencia con el total
+        // La DIAN valida: line_extension_amount == price_amount * quantity
+        // Por tanto: price_amount = line_extension_amount / quantity
         let priceAmount = 0;
         if (quantity !== 0) {
              priceAmount = lineExtensionAmount / quantity;
+             // Usar 6 decimales para el precio unitario para máxima precisión
              priceAmount = this.round6(priceAmount);
+             
+             // Ajuste fino: si al multiplicar da una diferencia por redondeo, ajustar el total de línea
+             // Es preferible ajustar levemente el total de línea que fallar la validación
+             // Sin embargo, la regla NSAV06 suele ser estricta con el precio.
+             // Si priceAmount * quantity != lineExtensionAmount (con tolerancia), fallará.
+             // Con 6 decimales en precio y 2 en total, la diferencia debe ser mínima.
         }
 
         invoiceLines.push({
@@ -177,12 +188,15 @@ export class SupportDocumentCreditNoteTransformerService implements DocumentTran
 
         // Recalcular precio unitario basado en el total de línea para evitar errores de redondeo (NSAV06)
         const quantity = Number(notaCreditoDetalle.cantidadUnidades);
+        
+        // Usar el total de línea del JSON original, pero redondeado a 2 decimales
         const lineExtensionAmount = this.round2(Number(notaCreditoDetalle.precioTotalSinImpuestos));
         
         // Recalcular siempre el precio unitario para garantizar consistencia con el total
         let priceAmount = 0;
         if (quantity !== 0) {
              priceAmount = lineExtensionAmount / quantity;
+             // Usar 6 decimales para el precio unitario para máxima precisión
              priceAmount = this.round6(priceAmount);
         }
 
