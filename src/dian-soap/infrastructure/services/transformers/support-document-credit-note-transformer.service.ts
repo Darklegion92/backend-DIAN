@@ -10,15 +10,6 @@ import { SdCreditNoteRequestDto } from '@/credit-note/domain/interfaces/credit-n
 @Injectable()
 export class SupportDocumentCreditNoteTransformerService implements DocumentTransformer<SdCreditNoteRequestDto> {
   constructor(private readonly generateDataService: GenerateDataService, private readonly catalogService: CatalogService) { }
-  
-  private round2(num: number): number {
-    return Math.round((num + Number.EPSILON) * 100) / 100;
-  }
-
-  private round6(num: number): number {
-    return Math.round((num + Number.EPSILON) * 1000000) / 1000000;
-  }
-
   async transform(factura: FacturaGeneralDto, _: number, token: string): Promise<SdCreditNoteRequestDto> {
 
     const prefix = factura.rangoNumeracion.split('-')[0];
@@ -37,33 +28,17 @@ export class SupportDocumentCreditNoteTransformerService implements DocumentTran
     const typeOperationId = await this.catalogService.getTypeOperationIdByCode(factura.tipoOperacion);
 
 
-    // Recalcular totales basados en las líneas para asegurar consistencia
-    const lineExtensionAmount = creditNoteLines.reduce((sum, line) => sum + line.line_extension_amount, 0);
-    
-    // Asumimos que si no hay impuestos globales diferentes a la suma de impuestos de línea, usamos el calculado
-    const totalTaxes = taxes.reduce((acc, tax) => acc + (tax.percent === 0 ? tax.taxable_amount : 0), 0);
-    
-    let taxExclusiveAmount = this.round2(lineExtensionAmount);
-    let taxInclusiveAmount = this.round2(lineExtensionAmount);
-    let payableAmount = this.round2(lineExtensionAmount);
-    
-    // Si hay impuestos, recalcular con impuestos
-    if (taxes.length > 0) {
-         const taxAmountTotal = taxes.reduce((acc, t) => acc + Number(t.tax_amount), 0);
-         taxInclusiveAmount = this.round2(taxExclusiveAmount + taxAmountTotal);
-         payableAmount = taxInclusiveAmount;
-    }
-    
     const legalMonetaryTotals: LegalMonetaryTotalsDto = {
-      line_extension_amount: this.round2(lineExtensionAmount),
-      tax_exclusive_amount: taxExclusiveAmount,
-      tax_inclusive_amount: taxInclusiveAmount,
-      payable_amount: payableAmount,
+      line_extension_amount: Number(factura.totalBaseImponible),
+      tax_exclusive_amount: Number(factura.totalSinImpuestos),
+      tax_inclusive_amount: Number(factura.totalBrutoConImpuesto),
+      payable_amount: Number(factura.totalMonto),
       allowance_total_amount: Number(factura.totalDescuentos),
       charge_total_amount: Number(factura.totalCargosAplicados),
     };
 
 
+    const totalTaxes: number = taxes.reduce((acc, tax) => acc + (tax.percent === 0 ? tax.taxable_amount : 0), 0);
     const totalTaxesDetail: number = creditNoteLines.reduce((acc, line) => acc + (line.tax_totals.reduce((acc, tax) => acc + (tax.percent === 0 && tax.tax_id === 1 ? tax.taxable_amount : 0), 0)), 0);
 
 
@@ -122,6 +97,7 @@ export class SupportDocumentCreditNoteTransformerService implements DocumentTran
       billing_reference: billingReference,
       legal_monetary_totals: legalMonetaryTotals,
       tax_totals: taxes,
+      type_operation_id: typeOperationId as any 
     };
   }
 
@@ -145,37 +121,16 @@ export class SupportDocumentCreditNoteTransformerService implements DocumentTran
         const typeItemIdentificationId = await this.catalogService.getTypeItemIdentificationIdByCode(detalle.estandarCodigoProducto);
         const { taxes } = await this.generateDataService.generateTaxtotals(detalle.impuestosDetalles.FacturaImpuestos, this.catalogService);
 
-        // Recalcular precio unitario basado en el total de línea para evitar errores de redondeo (NSAV06)
-        const quantity = Number(detalle.cantidadUnidades);
-        
-        // Usar el total de línea del JSON original, pero redondeado a 2 decimales
-        const lineExtensionAmount = this.round2(Number(detalle.precioTotalSinImpuestos));
-        
-        // Recalcular siempre el precio unitario para garantizar consistencia con el total
-        // La DIAN valida: line_extension_amount == price_amount * quantity
-        // Por tanto: price_amount = line_extension_amount / quantity
-        let priceAmount = 0;
-        if (quantity !== 0) {
-             priceAmount = lineExtensionAmount / quantity;
-             // Usar 6 decimales para el precio unitario para máxima precisión
-             priceAmount = this.round6(priceAmount);
-             
-             // Ajuste fino: si al multiplicar da una diferencia por redondeo, ajustar el total de línea
-             // Es preferible ajustar levemente el total de línea que fallar la validación
-             // Sin embargo, la regla NSAV06 suele ser estricta con el precio.
-             // Si priceAmount * quantity != lineExtensionAmount (con tolerancia), fallará.
-             // Con 6 decimales en precio y 2 en total, la diferencia debe ser mínima.
-        }
 
         invoiceLines.push({
           unit_measure_id: unitMeasureId,
-          invoiced_quantity: quantity,
-          line_extension_amount: lineExtensionAmount,
+          invoiced_quantity: Number(detalle.cantidadUnidades),
+          line_extension_amount: Number(detalle.precioTotalSinImpuestos),
           tax_totals: taxes,
           description: detalle.descripcion,
           code: detalle.codigoProducto,
           type_item_identification_id: typeItemIdentificationId,
-          price_amount: priceAmount,
+          price_amount: Number(detalle.precioVentaUnitario),
           base_quantity: Number(detalle.cantidadPorEmpaque),
           free_of_charge_indicator: false,
         });
@@ -186,29 +141,15 @@ export class SupportDocumentCreditNoteTransformerService implements DocumentTran
       const typeItemIdentificationId = await this.catalogService.getTypeItemIdentificationIdByCode(notaCreditoDetalle.estandarCodigoProducto);
       const { taxes } = await this.generateDataService.generateTaxtotals(notaCreditoDetalle.impuestosDetalles.FacturaImpuestos, this.catalogService);     
 
-        // Recalcular precio unitario basado en el total de línea para evitar errores de redondeo (NSAV06)
-        const quantity = Number(notaCreditoDetalle.cantidadUnidades);
-        
-        // Usar el total de línea del JSON original, pero redondeado a 2 decimales
-        const lineExtensionAmount = this.round2(Number(notaCreditoDetalle.precioTotalSinImpuestos));
-        
-        // Recalcular siempre el precio unitario para garantizar consistencia con el total
-        let priceAmount = 0;
-        if (quantity !== 0) {
-             priceAmount = lineExtensionAmount / quantity;
-             // Usar 6 decimales para el precio unitario para máxima precisión
-             priceAmount = this.round6(priceAmount);
-        }
-
       invoiceLines.push({
         unit_measure_id: unitMeasureId,
-        invoiced_quantity: quantity,
-        line_extension_amount: lineExtensionAmount,
+        invoiced_quantity: Number(notaCreditoDetalle.cantidadUnidades),
+        line_extension_amount: Number(notaCreditoDetalle.precioTotalSinImpuestos),
         tax_totals: taxes,
         description: notaCreditoDetalle.descripcion,
         code: notaCreditoDetalle.codigoProducto,
         type_item_identification_id: typeItemIdentificationId,
-        price_amount: priceAmount,
+        price_amount: Number(notaCreditoDetalle.precioVentaUnitario),
         base_quantity: Number(notaCreditoDetalle.cantidadPorEmpaque),
         free_of_charge_indicator: false,
       });
