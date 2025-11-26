@@ -97,7 +97,6 @@ export class SupportDocumentCreditNoteTransformerService implements DocumentTran
       billing_reference: billingReference,
       legal_monetary_totals: legalMonetaryTotals,
       tax_totals: taxes,
-      type_operation_id: typeOperationId as any 
     };
   }
 
@@ -130,7 +129,7 @@ export class SupportDocumentCreditNoteTransformerService implements DocumentTran
           description: detalle.descripcion,
           code: detalle.codigoProducto,
           type_item_identification_id: typeItemIdentificationId,
-          price_amount: Number(detalle.precioVentaUnitario),
+          price_amount: Number(detalle.precioTotalSinImpuestos),
           base_quantity: Number(detalle.cantidadPorEmpaque),
           free_of_charge_indicator: false,
         });
