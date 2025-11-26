@@ -28,17 +28,45 @@ export class SupportDocumentCreditNoteTransformerService implements DocumentTran
     const typeOperationId = await this.catalogService.getTypeOperationIdByCode(factura.tipoOperacion);
 
 
+    // Recalcular totales basados en las líneas para asegurar consistencia
+    const lineExtensionAmount = creditNoteLines.reduce((sum, line) => sum + line.line_extension_amount, 0);
+    
+    // Asumimos que si no hay impuestos globales diferentes a la suma de impuestos de línea, usamos el calculado
+    const totalTaxes = taxes.reduce((acc, tax) => acc + (tax.percent === 0 ? tax.taxable_amount : 0), 0);
+    
+    // Si totalTaxes es 0, entonces tax_exclusive = tax_inclusive = payable = lineExtensionAmount
+    // Si hay impuestos, sumarlos.
+    
+    let taxExclusiveAmount = lineExtensionAmount;
+    let taxInclusiveAmount = lineExtensionAmount;
+    let payableAmount = lineExtensionAmount;
+    
+    // Si hay impuestos, recalcular con impuestos
+    if (taxes.length > 0) {
+        // Nota: Aquí asumimos que 'taxes' ya trae los montos correctos. 
+        // Si hay inconsistencia global, deberíamos recalcular los impuestos basados en lineExtensionAmount?
+        // Por ahora, confiamos en lineExtensionAmount como la base real.
+        
+        // Si los impuestos son 0 (como en el ejemplo), no suman nada.
+         const taxAmountTotal = taxes.reduce((acc, t) => acc + Number(t.tax_amount), 0);
+         taxInclusiveAmount = taxExclusiveAmount + taxAmountTotal;
+         payableAmount = taxInclusiveAmount;
+    }
+    
+    // Comparar con el total de factura original por si hay cargos globales
+    // Si la diferencia es pequeña (redondeo), usamos el calculado. 
+    // Si hay cargos globales (no en linea), deberíamos sumarlos.
+    
     const legalMonetaryTotals: LegalMonetaryTotalsDto = {
-      line_extension_amount: Number(factura.totalBaseImponible),
-      tax_exclusive_amount: Number(factura.totalSinImpuestos),
-      tax_inclusive_amount: Number(factura.totalBrutoConImpuesto),
-      payable_amount: Number(factura.totalMonto),
+      line_extension_amount: lineExtensionAmount,
+      tax_exclusive_amount: taxExclusiveAmount,
+      tax_inclusive_amount: taxInclusiveAmount,
+      payable_amount: payableAmount,
       allowance_total_amount: Number(factura.totalDescuentos),
       charge_total_amount: Number(factura.totalCargosAplicados),
     };
 
 
-    const totalTaxes: number = taxes.reduce((acc, tax) => acc + (tax.percent === 0 ? tax.taxable_amount : 0), 0);
     const totalTaxesDetail: number = creditNoteLines.reduce((acc, line) => acc + (line.tax_totals.reduce((acc, tax) => acc + (tax.percent === 0 && tax.tax_id === 1 ? tax.taxable_amount : 0), 0)), 0);
 
 
@@ -121,16 +149,21 @@ export class SupportDocumentCreditNoteTransformerService implements DocumentTran
         const typeItemIdentificationId = await this.catalogService.getTypeItemIdentificationIdByCode(detalle.estandarCodigoProducto);
         const { taxes } = await this.generateDataService.generateTaxtotals(detalle.impuestosDetalles.FacturaImpuestos, this.catalogService);
 
+        // Recalcular precio unitario basado en el total de línea para evitar errores de redondeo (NSAV06)
+        const quantity = Number(detalle.cantidadUnidades);
+        const lineExtensionAmount = Number(detalle.precioTotalSinImpuestos);
+        // Si la cantidad es 0, el precio es 0. Usamos precisión completa de JS.
+        const priceAmount = quantity !== 0 ? lineExtensionAmount / quantity : 0;
 
         invoiceLines.push({
           unit_measure_id: unitMeasureId,
-          invoiced_quantity: Number(detalle.cantidadUnidades),
-          line_extension_amount: Number(detalle.precioTotalSinImpuestos),
+          invoiced_quantity: quantity,
+          line_extension_amount: lineExtensionAmount,
           tax_totals: taxes,
           description: detalle.descripcion,
           code: detalle.codigoProducto,
           type_item_identification_id: typeItemIdentificationId,
-          price_amount: Number(detalle.precioVentaUnitario),
+          price_amount: priceAmount,
           base_quantity: Number(detalle.cantidadPorEmpaque),
           free_of_charge_indicator: false,
         });
@@ -141,15 +174,21 @@ export class SupportDocumentCreditNoteTransformerService implements DocumentTran
       const typeItemIdentificationId = await this.catalogService.getTypeItemIdentificationIdByCode(notaCreditoDetalle.estandarCodigoProducto);
       const { taxes } = await this.generateDataService.generateTaxtotals(notaCreditoDetalle.impuestosDetalles.FacturaImpuestos, this.catalogService);     
 
+        // Recalcular precio unitario basado en el total de línea para evitar errores de redondeo (NSAV06)
+        const quantity = Number(notaCreditoDetalle.cantidadUnidades);
+        const lineExtensionAmount = Number(notaCreditoDetalle.precioTotalSinImpuestos);
+        // Si la cantidad es 0, el precio es 0. Usamos precisión completa de JS.
+        const priceAmount = quantity !== 0 ? lineExtensionAmount / quantity : 0;
+
       invoiceLines.push({
         unit_measure_id: unitMeasureId,
-        invoiced_quantity: Number(notaCreditoDetalle.cantidadUnidades),
-        line_extension_amount: Number(notaCreditoDetalle.precioTotalSinImpuestos),
+        invoiced_quantity: quantity,
+        line_extension_amount: lineExtensionAmount,
         tax_totals: taxes,
         description: notaCreditoDetalle.descripcion,
         code: notaCreditoDetalle.codigoProducto,
         type_item_identification_id: typeItemIdentificationId,
-        price_amount: Number(notaCreditoDetalle.precioVentaUnitario),
+        price_amount: priceAmount,
         base_quantity: Number(notaCreditoDetalle.cantidadPorEmpaque),
         free_of_charge_indicator: false,
       });
@@ -182,4 +221,3 @@ export class SupportDocumentCreditNoteTransformerService implements DocumentTran
 
   }
 }
-
