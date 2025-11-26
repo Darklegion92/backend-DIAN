@@ -10,6 +10,15 @@ import { SdCreditNoteRequestDto } from '@/credit-note/domain/interfaces/credit-n
 @Injectable()
 export class SupportDocumentCreditNoteTransformerService implements DocumentTransformer<SdCreditNoteRequestDto> {
   constructor(private readonly generateDataService: GenerateDataService, private readonly catalogService: CatalogService) { }
+  
+  private round2(num: number): number {
+    return Math.round((num + Number.EPSILON) * 100) / 100;
+  }
+
+  private round6(num: number): number {
+    return Math.round((num + Number.EPSILON) * 1000000) / 1000000;
+  }
+
   async transform(factura: FacturaGeneralDto, _: number, token: string): Promise<SdCreditNoteRequestDto> {
 
     const prefix = factura.rangoNumeracion.split('-')[0];
@@ -34,31 +43,19 @@ export class SupportDocumentCreditNoteTransformerService implements DocumentTran
     // Asumimos que si no hay impuestos globales diferentes a la suma de impuestos de línea, usamos el calculado
     const totalTaxes = taxes.reduce((acc, tax) => acc + (tax.percent === 0 ? tax.taxable_amount : 0), 0);
     
-    // Función helper para redondear a 2 decimales y evitar problemas de punto flotante
-    const round2 = (num: number) => Math.round((num + Number.EPSILON) * 100) / 100;
-
-    let taxExclusiveAmount = round2(lineExtensionAmount);
-    let taxInclusiveAmount = round2(lineExtensionAmount);
-    let payableAmount = round2(lineExtensionAmount);
+    let taxExclusiveAmount = this.round2(lineExtensionAmount);
+    let taxInclusiveAmount = this.round2(lineExtensionAmount);
+    let payableAmount = this.round2(lineExtensionAmount);
     
     // Si hay impuestos, recalcular con impuestos
     if (taxes.length > 0) {
-        // Nota: Aquí asumimos que 'taxes' ya trae los montos correctos. 
-        // Si hay inconsistencia global, deberíamos recalcular los impuestos basados en lineExtensionAmount?
-        // Por ahora, confiamos en lineExtensionAmount como la base real.
-        
-        // Si los impuestos son 0 (como en el ejemplo), no suman nada.
          const taxAmountTotal = taxes.reduce((acc, t) => acc + Number(t.tax_amount), 0);
-         taxInclusiveAmount = round2(taxExclusiveAmount + taxAmountTotal);
+         taxInclusiveAmount = this.round2(taxExclusiveAmount + taxAmountTotal);
          payableAmount = taxInclusiveAmount;
     }
     
-    // Comparar con el total de factura original por si hay cargos globales
-    // Si la diferencia es pequeña (redondeo), usamos el calculado. 
-    // Si hay cargos globales (no en linea), deberíamos sumarlos.
-    
     const legalMonetaryTotals: LegalMonetaryTotalsDto = {
-      line_extension_amount: round2(lineExtensionAmount),
+      line_extension_amount: this.round2(lineExtensionAmount),
       tax_exclusive_amount: taxExclusiveAmount,
       tax_inclusive_amount: taxInclusiveAmount,
       payable_amount: payableAmount,
@@ -125,7 +122,6 @@ export class SupportDocumentCreditNoteTransformerService implements DocumentTran
       billing_reference: billingReference,
       legal_monetary_totals: legalMonetaryTotals,
       tax_totals: taxes,
-      type_operation_id: typeOperationId as any // Cast as any to avoid strict type check against 23|24 if dynamic
     };
   }
 
@@ -151,24 +147,13 @@ export class SupportDocumentCreditNoteTransformerService implements DocumentTran
 
         // Recalcular precio unitario basado en el total de línea para evitar errores de redondeo (NSAV06)
         const quantity = Number(detalle.cantidadUnidades);
-        const lineExtensionAmount = Number(detalle.precioTotalSinImpuestos);
+        const lineExtensionAmount = this.round2(Number(detalle.precioTotalSinImpuestos));
         
-        // Intentar usar el precio unitario provisto si es consistente
-        let priceAmount = Number(detalle.precioVentaUnitario);
-        
-        // Limpiar ruido de punto flotante del input
-        priceAmount = Number(priceAmount.toFixed(6));
-        
-        // Verificar consistencia: Precio * Cantidad ~= Total (tolerancia 0.01)
-        if (Math.abs(priceAmount * quantity - lineExtensionAmount) > 0.01) {
-           // Si hay discrepancia significativa, recalcular
-           if (quantity !== 0) {
+        // Recalcular siempre el precio unitario para garantizar consistencia con el total
+        let priceAmount = 0;
+        if (quantity !== 0) {
              priceAmount = lineExtensionAmount / quantity;
-             // Redondear a 6 decimales para evitar ruido de punto flotante (ej. 14416.660000000002 -> 14416.660000)
-             priceAmount = Number(priceAmount.toFixed(6));
-           } else {
-             priceAmount = 0;
-           }
+             priceAmount = this.round6(priceAmount);
         }
 
         invoiceLines.push({
@@ -192,24 +177,13 @@ export class SupportDocumentCreditNoteTransformerService implements DocumentTran
 
         // Recalcular precio unitario basado en el total de línea para evitar errores de redondeo (NSAV06)
         const quantity = Number(notaCreditoDetalle.cantidadUnidades);
-        const lineExtensionAmount = Number(notaCreditoDetalle.precioTotalSinImpuestos);
+        const lineExtensionAmount = this.round2(Number(notaCreditoDetalle.precioTotalSinImpuestos));
         
-        // Intentar usar el precio unitario provisto si es consistente
-        let priceAmount = Number(notaCreditoDetalle.precioVentaUnitario);
-        
-        // Limpiar ruido de punto flotante del input
-        priceAmount = Number(priceAmount.toFixed(6));
-        
-        // Verificar consistencia: Precio * Cantidad ~= Total (tolerancia 0.01)
-        if (Math.abs(priceAmount * quantity - lineExtensionAmount) > 0.01) {
-           // Si hay discrepancia significativa, recalcular
-           if (quantity !== 0) {
+        // Recalcular siempre el precio unitario para garantizar consistencia con el total
+        let priceAmount = 0;
+        if (quantity !== 0) {
              priceAmount = lineExtensionAmount / quantity;
-             // Redondear a 6 decimales para evitar ruido de punto flotante
-             priceAmount = Number(priceAmount.toFixed(6));
-           } else {
-             priceAmount = 0;
-           }
+             priceAmount = this.round6(priceAmount);
         }
 
       invoiceLines.push({
