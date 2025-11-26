@@ -37,9 +37,12 @@ export class SupportDocumentCreditNoteTransformerService implements DocumentTran
     // Si totalTaxes es 0, entonces tax_exclusive = tax_inclusive = payable = lineExtensionAmount
     // Si hay impuestos, sumarlos.
     
-    let taxExclusiveAmount = lineExtensionAmount;
-    let taxInclusiveAmount = lineExtensionAmount;
-    let payableAmount = lineExtensionAmount;
+    // Función helper para redondear a 2 decimales y evitar problemas de punto flotante
+    const round2 = (num: number) => Math.round((num + Number.EPSILON) * 100) / 100;
+
+    let taxExclusiveAmount = round2(lineExtensionAmount);
+    let taxInclusiveAmount = round2(lineExtensionAmount);
+    let payableAmount = round2(lineExtensionAmount);
     
     // Si hay impuestos, recalcular con impuestos
     if (taxes.length > 0) {
@@ -49,7 +52,7 @@ export class SupportDocumentCreditNoteTransformerService implements DocumentTran
         
         // Si los impuestos son 0 (como en el ejemplo), no suman nada.
          const taxAmountTotal = taxes.reduce((acc, t) => acc + Number(t.tax_amount), 0);
-         taxInclusiveAmount = taxExclusiveAmount + taxAmountTotal;
+         taxInclusiveAmount = round2(taxExclusiveAmount + taxAmountTotal);
          payableAmount = taxInclusiveAmount;
     }
     
@@ -58,7 +61,7 @@ export class SupportDocumentCreditNoteTransformerService implements DocumentTran
     // Si hay cargos globales (no en linea), deberíamos sumarlos.
     
     const legalMonetaryTotals: LegalMonetaryTotalsDto = {
-      line_extension_amount: lineExtensionAmount,
+      line_extension_amount: round2(lineExtensionAmount),
       tax_exclusive_amount: taxExclusiveAmount,
       tax_inclusive_amount: taxInclusiveAmount,
       payable_amount: payableAmount,
@@ -125,7 +128,6 @@ export class SupportDocumentCreditNoteTransformerService implements DocumentTran
       billing_reference: billingReference,
       legal_monetary_totals: legalMonetaryTotals,
       tax_totals: taxes,
-      type_operation_id: typeOperationId as any // Cast as any to avoid strict type check against 23|24 if dynamic
     };
   }
 
@@ -152,8 +154,21 @@ export class SupportDocumentCreditNoteTransformerService implements DocumentTran
         // Recalcular precio unitario basado en el total de línea para evitar errores de redondeo (NSAV06)
         const quantity = Number(detalle.cantidadUnidades);
         const lineExtensionAmount = Number(detalle.precioTotalSinImpuestos);
-        // Si la cantidad es 0, el precio es 0. Usamos precisión completa de JS.
-        const priceAmount = quantity !== 0 ? lineExtensionAmount / quantity : 0;
+        
+        // Intentar usar el precio unitario provisto si es consistente
+        let priceAmount = Number(detalle.precioVentaUnitario);
+        
+        // Verificar consistencia: Precio * Cantidad ~= Total (tolerancia 0.01)
+        if (Math.abs(priceAmount * quantity - lineExtensionAmount) > 0.01) {
+           // Si hay discrepancia significativa, recalcular
+           if (quantity !== 0) {
+             priceAmount = lineExtensionAmount / quantity;
+             // Redondear a 6 decimales para evitar ruido de punto flotante (ej. 14416.660000000002 -> 14416.660000)
+             priceAmount = Number(priceAmount.toFixed(6));
+           } else {
+             priceAmount = 0;
+           }
+        }
 
         invoiceLines.push({
           unit_measure_id: unitMeasureId,
@@ -177,8 +192,21 @@ export class SupportDocumentCreditNoteTransformerService implements DocumentTran
         // Recalcular precio unitario basado en el total de línea para evitar errores de redondeo (NSAV06)
         const quantity = Number(notaCreditoDetalle.cantidadUnidades);
         const lineExtensionAmount = Number(notaCreditoDetalle.precioTotalSinImpuestos);
-        // Si la cantidad es 0, el precio es 0. Usamos precisión completa de JS.
-        const priceAmount = quantity !== 0 ? lineExtensionAmount / quantity : 0;
+        
+        // Intentar usar el precio unitario provisto si es consistente
+        let priceAmount = Number(notaCreditoDetalle.precioVentaUnitario);
+        
+        // Verificar consistencia: Precio * Cantidad ~= Total (tolerancia 0.01)
+        if (Math.abs(priceAmount * quantity - lineExtensionAmount) > 0.01) {
+           // Si hay discrepancia significativa, recalcular
+           if (quantity !== 0) {
+             priceAmount = lineExtensionAmount / quantity;
+             // Redondear a 6 decimales para evitar ruido de punto flotante
+             priceAmount = Number(priceAmount.toFixed(6));
+           } else {
+             priceAmount = 0;
+           }
+        }
 
       invoiceLines.push({
         unit_measure_id: unitMeasureId,
