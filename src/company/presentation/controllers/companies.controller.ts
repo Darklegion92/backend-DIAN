@@ -1,5 +1,6 @@
-import { Controller, Put, Get, Post, Body, Param, Query, UseGuards, ParseIntPipe, NotFoundException, HttpCode } from '@nestjs/common';
+import { Controller, Put, Get, Post, Body, Param, Query, UseGuards, ParseIntPipe, NotFoundException, HttpCode, Res } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth, ApiQuery} from '@nestjs/swagger';
+import { Response } from 'express';
 
 import { UpdateEnvironmentUseCase } from '@/company/application/use-cases/update-environment.use-case';
 import { UpdateEnvironmentDto } from '@/company/presentation/dtos/update-environment.dto';
@@ -79,6 +80,28 @@ export class CompaniesController {
         throw error;
       }
       throw new NotFoundException(`Error al buscar empresa con NIT ${nit}: ${error.message}`);
+    }
+  }
+
+  @Get(':id/logo')
+  @ApiOperation({
+    summary: 'Obtener logo de la compañía',
+    description: 'Obtiene el logo de la compañía desde el servicio apidian. Devuelve la imagen en formato JPG.',
+  })
+  async getCompanyLogo(
+    @Param('id', ParseIntPipe) companyId: number,
+    @Res() res: Response,
+  ): Promise<void> {
+    try {
+      const logoBuffer = await this.companyService.getCompanyLogo(companyId);
+      res.setHeader('Content-Type', 'image/jpeg');
+      res.setHeader('Content-Length', logoBuffer.length);
+      res.send(logoBuffer);
+    } catch (error) {
+      if (error.message.includes('no encontrada')) {
+        throw new NotFoundException(error.message);
+      }
+      throw new NotFoundException(`Error al obtener el logo: ${error.message}`);
     }
   }
 

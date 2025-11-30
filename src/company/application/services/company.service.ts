@@ -381,4 +381,47 @@ export class CompanyService {
     }
     
   }
+
+  /**
+   * Obtiene el logo de la compañía desde el servicio apidian
+   * @param companyId ID de la compañía
+   * @returns Buffer de la imagen del logo
+   */
+  async getCompanyLogo(companyId: number): Promise<Buffer> {
+    const company = await this.companyRepository.findOne({
+      where: { id: companyId },
+    });
+
+    if (!company) {
+      throw new Error('Compañía no encontrada');
+    }
+
+    if (!company.identificationNumber) {
+      throw new Error('La compañía no tiene número de identificación (NIT)');
+    }
+
+    const externalServerUrl = this.configService.get<string>('EXTERNAL_SERVER_URL');
+    if (!externalServerUrl) {
+      throw new Error('EXTERNAL_SERVER_URL no está configurada en las variables de entorno');
+    }
+
+    const nit = company.identificationNumber;
+    const dv = company.dv || '';
+
+    // Construir la URL: /api/invoice/{nit}/{nit}{dv}.jpg
+    const logoUrl = `${externalServerUrl}/api/invoice/${nit}/${nit}${dv}.jpg`;
+
+    try {
+      const response = await firstValueFrom(
+        this.httpService.get(logoUrl, {
+          responseType: 'arraybuffer',
+        }),
+      );
+
+      return Buffer.from(response.data);
+    } catch (error) {
+      console.log('Error al obtener el logo:', error);
+      throw new Error(`Error al obtener el logo de la compañía: ${error.message}`);
+    }
+  }
 }
