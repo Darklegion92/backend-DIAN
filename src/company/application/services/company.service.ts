@@ -409,7 +409,7 @@ export class CompanyService {
     const dv = company.dv || '';
 
     // Construir la URL: /api/invoice/{nit}/{nit}{dv}.jpg
-    const logoUrl = `${externalServerUrl}/api/invoice/${nit}/${nit}${dv}.jpg`;
+    const logoUrl = `${externalServerUrl.replace('/ubl2.1', '')}/invoice/${nit}/${nit}${dv}.jpg`;
 
     try {
       const response = await firstValueFrom(
