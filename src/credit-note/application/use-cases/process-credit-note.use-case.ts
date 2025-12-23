@@ -83,7 +83,7 @@ export class ProcessCreditNoteUseCase implements DocumentProcessorPort {
    * @param dto - Datos de la nota crédito
    * @returns Datos transformados para la nota crédito
    */
-  private async transformCreditNoteData({ header, number, resolutionNumber, customer, taxes, detail, paymentCondition }: SendDocumentElectronicDto, tokenDian: string): Promise<CreditNoteRequestDto> {
+  private async transformCreditNoteData({ header, number, resolutionNumber, customer, taxes, detail, paymentCondition, trm  }: SendDocumentElectronicDto, tokenDian: string): Promise<CreditNoteRequestDto> {
 
     // Parsear header
     const dataHead: string[] = header.split('|');
@@ -134,6 +134,8 @@ export class ProcessCreditNoteUseCase implements DocumentProcessorPort {
   
     }
 
+    const trmData: string[] = trm.split('|');
+
 
     const transformedData: CreditNoteRequestDto = {
       discrepancyresponsecode: 1,
@@ -151,7 +153,8 @@ export class ProcessCreditNoteUseCase implements DocumentProcessorPort {
       customer: customerDto,
       tax_totals: taxTotals,
       credit_note_lines: creditNoteLines,
-      invoice_period: invoicePeriod
+      invoice_period: invoicePeriod,
+      notes: trmData[3]  ? [trmData[3]] : []
     }
 
 

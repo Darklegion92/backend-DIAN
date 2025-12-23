@@ -97,7 +97,8 @@ export class CreditNoteTransformerService implements DocumentTransformer<CreditN
       billing_reference: billingReference,
       legal_monetary_totals: legalMonetaryTotals,
       tax_totals: taxes,
-      type_operation_id: typeOperationId
+      type_operation_id: typeOperationId,
+      notes: typeof factura.informacionAdicional?.string === 'string'  ? [factura.informacionAdicional.string] : [""]
     };
   }
 

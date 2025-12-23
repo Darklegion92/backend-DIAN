@@ -219,7 +219,7 @@ export class CreateCompanyExternalDto {
     example: 'usuario@gmail.com',
   })
   @IsOptional()
-  @IsEmail({}, { message: 'Debe ser un correo electrónico válido' })
+  @IsString()
   mail_username: string;
 
   @ApiProperty({
