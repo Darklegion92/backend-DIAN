@@ -6,7 +6,7 @@ export interface CreditNoteRequestDto {
   number?: number;
   type_operation_id?: number;
   resolution_number?: string;
-  notes?: string[];
+  notes?: string;
   date?: string;
   time?: string;
   type_currency_id?: string;

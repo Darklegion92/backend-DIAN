@@ -154,7 +154,7 @@ export class ProcessCreditNoteUseCase implements DocumentProcessorPort {
       tax_totals: taxTotals,
       credit_note_lines: creditNoteLines,
       invoice_period: invoicePeriod,
-      notes: trmData[3]  ? [trmData[3]] : []
+      notes: trmData[3]
     }
 
 
