@@ -148,7 +148,7 @@ export class SupportDocumentCreditNoteTransformerService implements DocumentTran
         description: notaCreditoDetalle.descripcion,
         code: notaCreditoDetalle.codigoProducto,
         type_item_identification_id: typeItemIdentificationId,
-        price_amount: Number(notaCreditoDetalle.precioVentaUnitario),
+        price_amount: Number(notaCreditoDetalle.precioTotalSinImpuestos),
         base_quantity: Number(notaCreditoDetalle.cantidadPorEmpaque),
         free_of_charge_indicator: false,
       });
