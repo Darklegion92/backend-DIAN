@@ -85,7 +85,7 @@ export class SupportDocumentCreditNoteTransformerService implements DocumentTran
     return {
       type_document_id: 13,
       discrepancyresponsecode: 2,
-      resolution_number: null,
+      resolution_number: "1",
       prefix,
       number: parseInt(number),
       date,
