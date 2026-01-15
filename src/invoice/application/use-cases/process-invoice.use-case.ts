@@ -140,7 +140,7 @@ export class ProcessInvoiceUseCase implements DocumentProcessorPort {
     const dataTrm: string[] = taxes.split('|');
     const dataCustomer: string[] = customer.split('|');
     const dataTaxTotals: string[] = taxes.split('%02G');
-    const dataInvoiceLines: string[] = detail.split('0.00¬03');
+    const dataInvoiceLines: string[] = detail.split('¬03');
     const dataPaymentCondition: string[] = payment.split('|');
 
     const transformedData: InvoiceRequestDto = {
