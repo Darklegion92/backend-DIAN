@@ -212,6 +212,8 @@ export class InvoiceService {
         const taxesData: TaxTotalData[] = await this.createInvoiceTaxes(dataTaxes);
 
         const dataDetail:string[] = detail.split("¬03");
+
+        console.log("dataDetail", dataDetail.length);
         const invoiceLineData: InvoiceLineData[] = await this.createInvoiceLineData(dataDetail);
 
         const dataPago:string[] = payment.split("\|");  
