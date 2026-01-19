@@ -422,16 +422,19 @@ export class GenerateDataService {
 
     // regeneramos el pdf
     const responseRegenerate = await firstValueFrom(
-      this.httpService.post(`${urlMain}/regeneratepdf/${prefix}/${number}/${cufe}`, {
-        headers: {
-          'Accept': 'application/pdf',
-          'Authorization': `Bearer ${token}`,
-        },
-        responseType: 'arraybuffer', // Importante: especificar que esperamos datos binarios
-      })
+      this.httpService.post(
+        `${urlMain}/regeneratepdf/${prefix}/${number}/${cufe}`,
+        {},
+        {
+          headers: {
+            'Accept': 'application/json',
+            'Authorization': `Bearer ${token}`,
+          },
+        }
+      )
     );
     const regeneratedPdf = this.extractPdfBuffer(responseRegenerate.data);
-    return regeneratedPdf ?? Buffer.from(responseRegenerate.data);
+    return regeneratedPdf ?? Buffer.from("");
      
   }
 
