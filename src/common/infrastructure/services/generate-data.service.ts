@@ -403,19 +403,24 @@ export class GenerateDataService {
         break;
     }
 
-    console.log("document>>>", type_document);
+    let response: { data?: unknown } | null = null;
+    try {
+      response = await firstValueFrom(
+        this.httpService.get(`${urlMain}/invoice/${company_identification_number}/${prefixDocument}-${prefix}${number}.pdf`, {
+          headers: {
+            'Accept': 'application/pdf',
+          },
+          responseType: 'arraybuffer', // Importante: especificar que esperamos datos binarios
+        })
+      );
+    } catch (error) {
+      console.error("invoice request failed", {
+        url: `${urlMain}/invoice/${company_identification_number}/${prefixDocument}-${prefix}${number}.pdf`,
+        error: (error as Error).message,
+      });
+    }
 
-
-    const response = await firstValueFrom(
-      this.httpService.get(`${urlMain}/invoice/${company_identification_number}/${prefixDocument}-${prefix}${number}.pdf`, {
-        headers: {
-          'Accept': 'application/pdf',
-        },
-        responseType: 'arraybuffer', // Importante: especificar que esperamos datos binarios
-      })
-    );
-
-    const directPdf = this.extractPdfBuffer(response.data);
+    const directPdf = this.extractPdfBuffer(response?.data);
     if (directPdf) {
       return directPdf;
     }
