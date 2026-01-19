@@ -385,7 +385,7 @@ export class GenerateDataService {
   }
 
 
-  async getDocument(prefix: string, number: string, company_identification_number: string, type_document: number): Promise<any> {
+  async getDocument(prefix: string, number: string, company_identification_number: string, type_document: number, cufe: string): Promise<any> {
 
     const urlMain = this.externalApiUrl.replace('/ubl2.1', '');
 
@@ -419,8 +419,17 @@ export class GenerateDataService {
     if (!Buffer.isBuffer(response.data)) {
       return Buffer.from(response.data);
     }
-    
-    return response.data;
+      //regeneramos el pdf
+      const responseRegenerate = await firstValueFrom(
+        this.httpService.get(`${urlMain}/regeneratepdf/${prefix}/${number}/${cufe}`, {
+          headers: {
+            'Accept': 'application/pdf',
+          },
+          responseType: 'arraybuffer', // Importante: especificar que esperamos datos binarios
+        })
+      );
+      return Buffer.from(responseRegenerate.data);
+     
   }
 
   async getCustomerDian(identification_number: string, token: string): Promise<CustomerDianDto> {
