@@ -89,7 +89,7 @@ export class DescargaPdfHandler {
         };
       }
 
-      const pdf = await this.generateDataService.getDocument(prefix, number.toString(), company.identificationNumber, parseInt(doc.typeDocumentId.toString()), doc.cufe);
+      const pdf = await this.generateDataService.getDocument(prefix, number.toString(), company.identificationNumber, parseInt(doc.typeDocumentId.toString()), doc.cufe, company.tokenDian);
 
       // Validar que el PDF no esté vacío
       if (!pdf || pdf.length === 0) {

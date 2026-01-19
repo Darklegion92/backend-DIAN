@@ -385,7 +385,7 @@ export class GenerateDataService {
   }
 
 
-  async getDocument(prefix: string, number: string, company_identification_number: string, type_document: number, cufe: string): Promise<any> {
+  async getDocument(prefix: string, number: string, company_identification_number: string, type_document: number, cufe: string, token: string): Promise<any> {
 
     const urlMain = this.externalApiUrl.replace('/ubl2.1', '');
 
@@ -422,9 +422,10 @@ export class GenerateDataService {
 
     // regeneramos el pdf
     const responseRegenerate = await firstValueFrom(
-      this.httpService.get(`${urlMain}/regeneratepdf/${prefix}/${number}/${cufe}`, {
+      this.httpService.post(`${urlMain}/regeneratepdf/${prefix}/${number}/${cufe}`, {
         headers: {
           'Accept': 'application/pdf',
+          'Authorization': `Bearer ${token}`,
         },
         responseType: 'arraybuffer', // Importante: especificar que esperamos datos binarios
       })
