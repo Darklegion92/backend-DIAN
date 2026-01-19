@@ -421,9 +421,18 @@ export class GenerateDataService {
     }
 
     // regeneramos el pdf
+    const regenerateUrl = `${urlMain}/regeneratepdf/${prefix}/${number}/${cufe}`;
+    console.log("regeneratepdf request", {
+      url: regenerateUrl,
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    });
     const responseRegenerate = await firstValueFrom(
       this.httpService.post(
-        `${urlMain}/regeneratepdf/${prefix}/${number}/${cufe}`,
+        regenerateUrl,
         {},
         {
           headers: {
