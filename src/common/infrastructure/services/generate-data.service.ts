@@ -415,21 +415,50 @@ export class GenerateDataService {
       })
     );
 
-    // Si la respuesta no es un Buffer, intentar convertirla
-    if (!Buffer.isBuffer(response.data)) {
-      return Buffer.from(response.data);
+    const directPdf = this.extractPdfBuffer(response.data);
+    if (directPdf) {
+      return directPdf;
     }
-      //regeneramos el pdf
-      const responseRegenerate = await firstValueFrom(
-        this.httpService.get(`${urlMain}/regeneratepdf/${prefix}/${number}/${cufe}`, {
-          headers: {
-            'Accept': 'application/pdf',
-          },
-          responseType: 'arraybuffer', // Importante: especificar que esperamos datos binarios
-        })
-      );
-      return Buffer.from(responseRegenerate.data);
+
+    // regeneramos el pdf
+    const responseRegenerate = await firstValueFrom(
+      this.httpService.get(`${urlMain}/regeneratepdf/${prefix}/${number}/${cufe}`, {
+        headers: {
+          'Accept': 'application/pdf',
+        },
+        responseType: 'arraybuffer', // Importante: especificar que esperamos datos binarios
+      })
+    );
+    const regeneratedPdf = this.extractPdfBuffer(responseRegenerate.data);
+    return regeneratedPdf ?? Buffer.from(responseRegenerate.data);
      
+  }
+
+  private extractPdfBuffer(data: unknown): Buffer | null {
+    if (!data) {
+      return null;
+    }
+
+    if (Buffer.isBuffer(data)) {
+      return data;
+    }
+
+    if (data instanceof ArrayBuffer) {
+      return Buffer.from(data);
+    }
+
+    if (typeof data === "string") {
+      return Buffer.from(data);
+    }
+
+    if (typeof data === "object") {
+      const payload = data as { filebase64?: string };
+      if (payload.filebase64) {
+        return Buffer.from(payload.filebase64, "base64");
+      }
+    }
+
+    return null;
   }
 
   async getCustomerDian(identification_number: string, token: string): Promise<CustomerDianDto> {
