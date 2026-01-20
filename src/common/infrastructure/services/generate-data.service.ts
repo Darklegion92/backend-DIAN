@@ -414,10 +414,7 @@ export class GenerateDataService {
         })
       );
     } catch (error) {
-      console.error("invoice request failed", {
-        url: `${urlMain}/invoice/${company_identification_number}/${prefixDocument}-${prefix}${number}.pdf`,
-        error: (error as Error).message,
-      });
+      console.error("Error al obtener el PDF:", error);
     }
 
     const directPdf = this.extractPdfBuffer(response?.data);
@@ -426,15 +423,8 @@ export class GenerateDataService {
     }
 
     // regeneramos el pdf
-    const regenerateUrl = `${urlMain}/regeneratepdf/${prefix}/${number}/${cufe}`;
-    console.log("regeneratepdf request", {
-      url: regenerateUrl,
-      headers: {
-        Accept: "application/json",
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-    });
+    const regenerateUrl = `${urlMain}/ubl2.1/regeneratepdf/${prefix}/${number}/${cufe}`;
+
     const responseRegenerate = await firstValueFrom(
       this.httpService.post(
         regenerateUrl,
