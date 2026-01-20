@@ -77,7 +77,8 @@ export class EnvioCorreoHandler {
       //Valida y reconstruye el pdf si es necesario
       await this.generateDataService.getDocument(prefix, number.toString(), company.identificationNumber, parseInt(document.typeDocumentId.toString()), document.cufe, company.tokenDian);
 
-
+      await regenerateXml(document);
+      
       const sendEmail = await this.mailService.sendMailWithCompanyConfig({
         prefix,
         number: number.toString(),
