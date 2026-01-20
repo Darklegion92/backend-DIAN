@@ -423,7 +423,7 @@ export class GenerateDataService {
     }
 
     // regeneramos el pdf
-    const regenerateUrl = `${urlMain}/ubl2.1/regeneratepdf/${prefix}/${number}/${cufe}`;
+    const regenerateUrl = `${this.externalApiUrl}/regeneratepdf/${prefix}/${number}/${cufe}`;
 
     const responseRegenerate = await firstValueFrom(
       this.httpService.post(

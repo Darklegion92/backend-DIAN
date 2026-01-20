@@ -6,6 +6,10 @@ import { DocumentService } from '@/document/infrastructure/services/document.ser
 import { CompanyService } from '@/company/application/services/company.service';
 import { GenerateDataService } from '@/common/infrastructure/services/generate-data.service';
 import { MailService } from '@/common/infrastructure/services/mail.service';
+import { Document } from '@/document/domain/entities/document.entity';
+import { firstValueFrom } from 'rxjs';
+import { promises as fs } from 'fs';
+import * as path from 'path';
 
 @Injectable()
 export class EnvioCorreoHandler {
@@ -14,7 +18,7 @@ export class EnvioCorreoHandler {
     private readonly companyService: CompanyService,
     private readonly generateDataService: GenerateDataService,
     private readonly mailService: MailService,
-  ) {}
+  ) { }
 
   async handle(args: EnvioCorreoRequest): Promise<EnvioCorreoResponse> {
     const requestId = Date.now().toString();
@@ -36,7 +40,7 @@ export class EnvioCorreoHandler {
       const company = await this.companyService.getCompanyByTokenEmpresa(tokenEmpresa);
 
 
-      if(prefix === "SETP"){
+      if (prefix === "SETP") {
         number = number + 990080000;
       }
 
@@ -67,14 +71,17 @@ export class EnvioCorreoHandler {
       </div>
     `;
 
-    const email_cc_list = !!correo ? [{email: correo}] : null;
+      const email_cc_list = !!correo ? [{ email: correo }] : null;
+      //Valida y reconstruye el pdf si es necesario
+      await this.generateDataService.getDocument(prefix, number.toString(), company.identificationNumber, parseInt(document.typeDocumentId.toString()), document.cufe, company.tokenDian);
+
 
       const sendEmail = await this.mailService.sendMailWithCompanyConfig({
         prefix,
         number: number.toString(),
         token: company.tokenDian,
         email_cc_list,
-        html_body: body,  
+        html_body: body,
       });
 
 
@@ -101,4 +108,142 @@ export class EnvioCorreoHandler {
       };
     }
   }
-} 
+}
+
+async function regenerateXml(document: Document) {
+  const urlMain = this.externalApiUrl.replace('/ubl2.1', '');
+
+  let prefixDocument = "FE";
+
+  switch (document.typeDocumentId) {
+    case 1:
+      prefixDocument = "FE";
+      break;
+    case 4:
+      prefixDocument = "NC";
+      break;
+    case 11:
+      prefixDocument = "DS";
+      break;
+  }
+
+  const fileName = `Rpta${prefixDocument}-${document.prefix}${document.number}.xml`;
+
+  try {
+    const response = await firstValueFrom(
+      this.httpService.get(`${urlMain}/invoice/${document.identificationNumber}/${fileName}`, {
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+        },
+      })
+    );
+    return;
+  } catch (error) {
+    const routeXml = `/var/www/html/apidian/storage/app/public/${document.identificationNumber}/${fileName}`;
+
+    const xmlContent = buildXmlFromResponseDian(document.responseDian);
+    console.log("xmlContent", xmlContent);
+    await fs.mkdir(path.dirname(routeXml), { recursive: true });
+    await fs.writeFile(routeXml, xmlContent, 'utf8');
+
+  }
+}
+
+function buildXmlFromResponseDian(responseDian: unknown): string {
+  if (responseDian === null || responseDian === undefined) {
+    return '';
+  }
+
+  if (typeof responseDian === 'string') {
+    const trimmed = responseDian.trim();
+    if (trimmed.startsWith('<')) {
+      return trimmed;
+    }
+
+    if (trimmed.startsWith('{') || trimmed.startsWith('[')) {
+      try {
+        const parsed = JSON.parse(trimmed);
+        return toXml(parsed);
+      } catch {
+        return trimmed;
+      }
+    }
+
+    return trimmed;
+  }
+
+  return toXml(responseDian);
+}
+
+function toXml(value: unknown): string {
+  if (value === null || value === undefined) {
+    return '';
+  }
+
+  if (typeof value !== 'object') {
+    return escapeXml(String(value));
+  }
+
+  const obj = value as Record<string, unknown>;
+  const keys = Object.keys(obj);
+  if (keys.length === 1) {
+    const [rootKey] = keys;
+    return `<?xml version="1.0" encoding="utf-8"?>\n${serializeElement(rootKey, obj[rootKey])}`;
+  }
+
+  return `<?xml version="1.0" encoding="utf-8"?>\n${keys.map((key) => serializeElement(key, obj[key])).join('')}`;
+}
+
+function serializeElement(tag: string, value: unknown): string {
+  if (Array.isArray(value)) {
+    return value.map((item) => serializeElement(tag, item)).join('');
+  }
+
+  if (value === null || value === undefined) {
+    return `<${tag}/>`;
+  }
+
+  if (typeof value !== 'object') {
+    return `<${tag}>${escapeXml(String(value))}</${tag}>`;
+  }
+
+  const obj = value as Record<string, unknown>;
+  const attributes = obj._attributes && typeof obj._attributes === 'object'
+    ? buildAttributes(obj._attributes as Record<string, unknown>)
+    : '';
+
+  const textValue = obj._value ?? obj._text;
+  const cdataValue = obj._cdata;
+  const childrenKeys = Object.keys(obj).filter(
+    (key) => !['_attributes', '_value', '_text', '_cdata'].includes(key)
+  );
+
+  const childrenContent = childrenKeys.map((key) => serializeElement(key, obj[key])).join('');
+  const textContent = textValue !== undefined ? escapeXml(String(textValue)) : '';
+  const cdataContent = cdataValue !== undefined ? `<![CDATA[${String(cdataValue)}]]>` : '';
+  const content = `${textContent}${cdataContent}${childrenContent}`;
+
+  if (!content) {
+    return `<${tag}${attributes}/>`;
+  }
+
+  return `<${tag}${attributes}>${content}</${tag}>`;
+}
+
+function buildAttributes(attributes: Record<string, unknown>): string {
+  const pairs = Object.entries(attributes).map(([key, value]) => {
+    return `${key}="${escapeXml(String(value))}"`;
+  });
+
+  return pairs.length ? ` ${pairs.join(' ')}` : '';
+}
+
+function escapeXml(value: string): string {
+  return value
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&apos;');
+}
