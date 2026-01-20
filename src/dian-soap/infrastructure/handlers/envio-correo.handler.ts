@@ -72,6 +72,8 @@ export class EnvioCorreoHandler {
     `;
 
       const email_cc_list = !!correo ? [{ email: correo }] : null;
+      // Asegura XML antes de solicitar el PDF en el servicio externo
+      await regenerateXml(document);
       //Valida y reconstruye el pdf si es necesario
       await this.generateDataService.getDocument(prefix, number.toString(), company.identificationNumber, parseInt(document.typeDocumentId.toString()), document.cufe, company.tokenDian);
 
@@ -111,8 +113,6 @@ export class EnvioCorreoHandler {
 }
 
 async function regenerateXml(document: Document) {
-  const urlMain = this.externalApiUrl.replace('/ubl2.1', '');
-
   let prefixDocument = "FE";
 
   switch (document.typeDocumentId) {
@@ -129,24 +129,15 @@ async function regenerateXml(document: Document) {
 
   const fileName = `Rpta${prefixDocument}-${document.prefix}${document.number}.xml`;
 
-  try {
-    const response = await firstValueFrom(
-      this.httpService.get(`${urlMain}/invoice/${document.identificationNumber}/${fileName}`, {
-        headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json',
-        },
-      })
-    );
-    return;
-  } catch (error) {
-    const routeXml = `/var/www/html/apidian/storage/app/public/${document.identificationNumber}/${fileName}`;
+  const routeXml = `/var/www/html/apidian/storage/app/public/${document.identificationNumber}/${fileName}`;
 
+  try {
+    await fs.access(routeXml);
+    return;
+  } catch {
     const xmlContent = buildXmlFromResponseDian(document.responseDian);
-    console.log("xmlContent", xmlContent);
     await fs.mkdir(path.dirname(routeXml), { recursive: true });
     await fs.writeFile(routeXml, xmlContent, 'utf8');
-
   }
 }
 
