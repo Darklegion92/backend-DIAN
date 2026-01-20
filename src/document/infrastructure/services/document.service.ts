@@ -9,6 +9,8 @@ import { MailService } from '@/common/infrastructure/services/mail.service';
 import { User } from '@/auth/domain/entities/user.entity';
 import { CompanyService } from '@/company/application/services/company.service';
 import { GenerateDataService } from '@/common/infrastructure/services/generate-data.service';
+import { promises as fs } from 'fs';
+import * as path from 'path';
 
 @Injectable()
 export class DocumentService {
@@ -21,7 +23,7 @@ export class DocumentService {
     private readonly mailService: MailService,
     private readonly companyService: CompanyService,
     private readonly generateDataService: GenerateDataService,
-  ) {}
+  ) { }
 
   /**
    * Obtener lista de documentos por compañía con paginación y filtros
@@ -87,7 +89,7 @@ export class DocumentService {
 
     } catch (error) {
       this.logger.error('Error al obtener documentos de la base de datos', error);
-      
+
       throw new HttpException(
         {
           message: 'Error al consultar documentos',
@@ -106,7 +108,7 @@ export class DocumentService {
     try {
       const documentType = sendDocumentElectronicDto.typeDocumentId;
       const documentTypeLabel = this.documentProcessorFactory.getDocumentTypeName(documentType);
-      
+
       this.logger.log(`🚀 Iniciando procesamiento de documento electrónico: ${documentTypeLabel}`);
       this.logger.debug('📄 Datos del documento:', {
         number: sendDocumentElectronicDto.number,
@@ -118,7 +120,7 @@ export class DocumentService {
 
       // Obtener el procesador específico para el tipo de documento
       const processor = this.documentProcessorFactory.getProcessor(documentType);
-      
+
       // Delegar el procesamiento al caso de uso específico
       const result = await processor.process(sendDocumentElectronicDto);
 
@@ -133,11 +135,11 @@ export class DocumentService {
 
     } catch (error) {
       this.logger.error('❌ Error al procesar documento electrónico', error);
-      
+
       if (error instanceof HttpException) {
         throw error;
       }
-      
+
       throw new HttpException(
         {
           success: false,
@@ -157,7 +159,7 @@ export class DocumentService {
    * @param companyIdentification - Identificación de la compañía
    * @returns Documento encontrado o null si no existe
    */
-  async getDocument(prefix:string, number:string, companyIdentification:string){
+  async getDocument(prefix: string, number: string, companyIdentification: string) {
 
     return await this.documentRepository.findOne({
       where: {
@@ -169,7 +171,7 @@ export class DocumentService {
     });
   }
 
-  async sendEmail({number, prefix, correo, document_company}: SendEmailDto, user:User): Promise<any> {
+  async sendEmail({ number, prefix, correo, document_company }: SendEmailDto, user: User): Promise<any> {
 
     try {
 
@@ -177,7 +179,7 @@ export class DocumentService {
 
       const document = await this.getDocument(prefix, number.toString(), document_company);
 
-      if(!document){
+      if (!document) {
         throw new HttpException({
           success: false,
           message: 'Documento no encontrado',
@@ -209,14 +211,18 @@ export class DocumentService {
       </div>
     `;
 
-    const email_cc_list = !!correo ? [{email: correo}] : null;
+      const email_cc_list = !!correo ? [{ email: correo }] : null;
+
+      await this.generateDataService.getDocument(prefix, number.toString(), company.identificationNumber, parseInt(document.typeDocumentId.toString()), document.cufe, company.tokenDian);
+
+      await this.regenerateXml(document);
 
       const sendEmail = await this.mailService.sendMailWithCompanyConfig({
         prefix,
         number: number.toString(),
         token: company.tokenDian,
         email_cc_list,
-        html_body: body,  
+        html_body: body,
       });
 
       console.log("sendEmail", sendEmail);
@@ -246,22 +252,22 @@ export class DocumentService {
   }
 
 
-  async downloadPDF({prefix, number, company_document}: DownloadPDFDto): Promise<Buffer> {
-    try{
-    const company = await this.companyService.getCompanyByNit(company_document);
-    const document = await this.getDocument(prefix, number.toString(), company_document);
+  async downloadPDF({ prefix, number, company_document }: DownloadPDFDto): Promise<Buffer> {
+    try {
+      const company = await this.companyService.getCompanyByNit(company_document);
+      const document = await this.getDocument(prefix, number.toString(), company_document);
 
-    const pdf = await this.generateDataService.getDocument(prefix, number.toString(), company.identificationNumber, parseInt(document.typeDocumentId.toString()), document.cufe, company.tokenDian);
+      const pdf = await this.generateDataService.getDocument(prefix, number.toString(), company.identificationNumber, parseInt(document.typeDocumentId.toString()), document.cufe, company.tokenDian);
 
-    if (!pdf || pdf.length === 0) {
-      throw new HttpException({
-        success: false,
-        message: 'No se pudo obtener el documento PDF',
-      }, HttpStatus.NOT_FOUND);
-    }
-    
-    return pdf;
-    }catch(error){
+      if (!pdf || pdf.length === 0) {
+        throw new HttpException({
+          success: false,
+          message: 'No se pudo obtener el documento PDF',
+        }, HttpStatus.NOT_FOUND);
+      }
+
+      return pdf;
+    } catch (error) {
       console.log("error", error);
       throw new HttpException({
         success: false,
@@ -270,7 +276,7 @@ export class DocumentService {
     }
   }
 
-  async deleteDocument(prefix:string, number:string, companyIdentification:string){
+  async deleteDocument(prefix: string, number: string, companyIdentification: string) {
     await this.documentRepository.delete({
       prefix,
       number,
@@ -278,4 +284,131 @@ export class DocumentService {
     });
   }
 
+
+  async regenerateXml(document: Document) {
+    let prefixDocument = "FE";
+
+    switch (document.typeDocumentId) {
+      case 1:
+        prefixDocument = "FE";
+        break;
+      case 4:
+        prefixDocument = "NC";
+        break;
+      case 11:
+        prefixDocument = "DS";
+        break;
+    }
+
+    const fileName = `Rpta${prefixDocument}-${document.prefix}${document.number}.xml`;
+
+    const routeXml = `/var/www/html/apidian/storage/app/public/${document.identificationNumber}/${fileName}`;
+
+    try {
+      await fs.access(routeXml);
+      return;
+    } catch {
+      const xmlContent = this.buildXmlFromResponseDian(document.responseDian);
+      await fs.mkdir(path.dirname(routeXml), { recursive: true });
+      await fs.writeFile(routeXml, xmlContent, 'utf8');
+    }
+  }
+
+  buildXmlFromResponseDian(responseDian: unknown): string {
+    if (responseDian === null || responseDian === undefined) {
+      return '';
+    }
+
+    if (typeof responseDian === 'string') {
+      const trimmed = responseDian.trim();
+      if (trimmed.startsWith('<')) {
+        return trimmed;
+      }
+
+      if (trimmed.startsWith('{') || trimmed.startsWith('[')) {
+        try {
+          const parsed = JSON.parse(trimmed);
+          return this.toXml(parsed);
+        } catch {
+          return trimmed;
+        }
+      }
+
+      return trimmed;
+    }
+
+    return this.toXml(responseDian);
+  }
+
+  toXml(value: unknown): string {
+    if (value === null || value === undefined) {
+      return '';
+    }
+
+    if (typeof value !== 'object') {
+      return this.escapeXml(String(value));
+    }
+
+    const obj = value as Record<string, unknown>;
+    const keys = Object.keys(obj);
+    if (keys.length === 1) {
+      const [rootKey] = keys;
+      return `<?xml version="1.0" encoding="utf-8"?>\n${this.serializeElement(rootKey, obj[rootKey])}`;
+    }
+
+    return `<?xml version="1.0" encoding="utf-8"?>\n${keys.map((key) => this.serializeElement(key, obj[key])).join('')}`;
+  }
+
+  serializeElement(tag: string, value: unknown): string {
+    if (Array.isArray(value)) {
+      return value.map((item) => this.serializeElement(tag, item)).join('');
+    }
+
+    if (value === null || value === undefined) {
+      return `<${tag}/>`;
+    }
+
+    if (typeof value !== 'object') {
+      return `<${tag}>${this.escapeXml(String(value))}</${tag}>`;
+    }
+
+    const obj = value as Record<string, unknown>;
+    const attributes = obj._attributes && typeof obj._attributes === 'object'
+      ? this.buildAttributes(obj._attributes as Record<string, unknown>)
+      : '';
+
+    const textValue = obj._value ?? obj._text;
+    const cdataValue = obj._cdata;
+    const childrenKeys = Object.keys(obj).filter(
+      (key) => !['_attributes', '_value', '_text', '_cdata'].includes(key)
+    );
+
+    const childrenContent = childrenKeys.map((key) => this.serializeElement(key, obj[key])).join('');
+    const textContent = textValue !== undefined ? this.escapeXml(String(textValue)) : '';
+    const cdataContent = cdataValue !== undefined ? `<![CDATA[${String(cdataValue)}]]>` : '';
+    const content = `${textContent}${cdataContent}${childrenContent}`;
+
+    if (!content) {
+      return `<${tag}${attributes}/>`;
+    }
+
+    return `<${tag}${attributes}>${content}</${tag}>`;
+  }
+
+  buildAttributes(attributes: Record<string, unknown>): string {
+    const pairs = Object.entries(attributes).map(([key, value]) => {
+      return `${key}="${this.escapeXml(String(value))}"`;
+    });
+
+    return pairs.length ? ` ${pairs.join(' ')}` : '';
+  }
+
+  escapeXml(value: string): string {
+    return value
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&apos;');
+  }
 } 
