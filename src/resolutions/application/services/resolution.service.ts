@@ -165,7 +165,6 @@ export class ResolutionService {
 
       const externalData = await this.generateExternalData(createResolutionDto);
 
-    
 
       // Llamar al servicio externo
       const response = await firstValueFrom(
@@ -242,12 +241,23 @@ export class ResolutionService {
     }
 
     if([11].includes(createResolutionDto.type_document_id)) {
+
+      if(!createResolutionDto.date_from || !createResolutionDto.date_to || !createResolutionDto.number_from || !createResolutionDto.number_to) {
+        throw new HttpException(
+          'La fecha de inicio, la fecha de fin, el número de inicio y el número de fin son requeridos para documento soporte',
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+
       return {
         type_document_id: createResolutionDto.type_document_id,
         prefix: createResolutionDto.prefix,
         resolution: createResolutionDto.resolution,
-        from: '1',
-        to: '999999999',
+        resolution_date: createResolutionDto.date_from,
+        date_from: createResolutionDto.date_from,
+        date_to: createResolutionDto.date_to,
+        from: createResolutionDto.number_from?.toString() || '1',
+        to: createResolutionDto.number_to?.toString() || '999999999',
       }   
 
     }

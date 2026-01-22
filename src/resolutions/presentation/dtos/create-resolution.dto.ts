@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString, IsNotEmpty, IsNumber, Min } from 'class-validator';
+import { IsString, IsNotEmpty, IsNumber, Min, IsDateString, IsOptional } from 'class-validator';
 
 export class CreateResolutionDto {
   @ApiProperty({
@@ -28,6 +28,40 @@ export class CreateResolutionDto {
   @IsString({ message: 'La resolución debe ser una cadena de texto' })
   @IsNotEmpty({ message: 'La resolución es requerida' })
   resolution: string;
+
+  @ApiProperty({
+    description: 'Fecha de inicio de la resolución',
+    example: '2024-01-15',
+  })
+  @IsDateString({}, { message: 'La fecha de inicio debe ser una fecha válida' })
+  @IsOptional({ message: 'La fecha de inicio es opcional' })
+  date_from?: string;
+
+  @ApiProperty({
+    description: 'Fecha de fin de la resolución',
+    example: '2024-01-15',
+  })
+  @IsDateString({}, { message: 'La fecha de fin debe ser una fecha válida' })
+  @IsOptional({ message: 'La fecha de fin es opcional' })
+  date_to?: string;
+
+  @ApiProperty({
+    description: 'Número de inicio de la resolución',
+    example: 1,
+  })
+  @IsNumber({}, { message: 'El número de inicio debe ser un número' })
+  @IsOptional({ message: 'El número de inicio es opcional' })
+  @Min(1, { message: 'El número de inicio debe ser mayor a 0' })
+  number_from?: number;
+
+  @ApiProperty({
+    description: 'Número de fin de la resolución',
+    example: 1,
+  })
+  @IsNumber({}, { message: 'El número de fin debe ser un número' })
+  @IsOptional({ message: 'El número de fin es opcional' })
+  @Min(1, { message: 'El número de fin debe ser mayor a 0' })
+  number_to?: number;
 
   @ApiProperty({
     description: 'Bearer token para autenticación con el servicio externo',
