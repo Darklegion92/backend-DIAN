@@ -249,6 +249,22 @@ export class ResolutionService {
         );
       }
 
+      // Validar que la fecha de inicio sea anterior a la fecha de fin
+      if(new Date(createResolutionDto.date_from) >= new Date(createResolutionDto.date_to)) {
+        throw new HttpException(
+          'La fecha de inicio debe ser anterior a la fecha de fin',
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+
+      // Validar que el número de inicio sea menor al número de fin
+      if(createResolutionDto.number_from >= createResolutionDto.number_to) {
+        throw new HttpException(
+          'El número de inicio debe ser menor al número de fin',
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+
       return {
         type_document_id: createResolutionDto.type_document_id,
         prefix: createResolutionDto.prefix,

@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString, IsNotEmpty, IsNumber, Min, IsDateString, IsOptional } from 'class-validator';
+import { IsString, IsNotEmpty, IsNumber, Min, IsDateString, IsOptional, ValidateIf } from 'class-validator';
 
 export class CreateResolutionDto {
   @ApiProperty({
@@ -30,36 +30,40 @@ export class CreateResolutionDto {
   resolution: string;
 
   @ApiProperty({
-    description: 'Fecha de inicio de la resolución',
+    description: 'Fecha de inicio de la resolución (requerida solo para tipo de documento 11)',
     example: '2024-01-15',
   })
+  @ValidateIf((o) => o.type_document_id === 11)
   @IsDateString({}, { message: 'La fecha de inicio debe ser una fecha válida' })
-  @IsOptional({ message: 'La fecha de inicio es opcional' })
+  @IsNotEmpty({ message: 'La fecha de inicio es requerida para documento soporte' })
   date_from?: string;
 
   @ApiProperty({
-    description: 'Fecha de fin de la resolución',
-    example: '2024-01-15',
+    description: 'Fecha de fin de la resolución (requerida solo para tipo de documento 11)',
+    example: '2024-12-31',
   })
+  @ValidateIf((o) => o.type_document_id === 11)
   @IsDateString({}, { message: 'La fecha de fin debe ser una fecha válida' })
-  @IsOptional({ message: 'La fecha de fin es opcional' })
+  @IsNotEmpty({ message: 'La fecha de fin es requerida para documento soporte' })
   date_to?: string;
 
   @ApiProperty({
-    description: 'Número de inicio de la resolución',
+    description: 'Número de inicio de la resolución (requerido solo para tipo de documento 11)',
     example: 1,
   })
+  @ValidateIf((o) => o.type_document_id === 11)
   @IsNumber({}, { message: 'El número de inicio debe ser un número' })
-  @IsOptional({ message: 'El número de inicio es opcional' })
+  @IsNotEmpty({ message: 'El número de inicio es requerido para documento soporte' })
   @Min(1, { message: 'El número de inicio debe ser mayor a 0' })
   number_from?: number;
 
   @ApiProperty({
-    description: 'Número de fin de la resolución',
-    example: 1,
+    description: 'Número de fin de la resolución (requerido solo para tipo de documento 11)',
+    example: 100,
   })
+  @ValidateIf((o) => o.type_document_id === 11)
   @IsNumber({}, { message: 'El número de fin debe ser un número' })
-  @IsOptional({ message: 'El número de fin es opcional' })
+  @IsNotEmpty({ message: 'El número de fin es requerido para documento soporte' })
   @Min(1, { message: 'El número de fin debe ser mayor a 0' })
   number_to?: number;
 
