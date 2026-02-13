@@ -57,15 +57,20 @@ export class FondoSPDto {
 }
 
 export class LibranzaDto {
-  @ApiProperty({ description: 'Valor de la libranza', example: '300000' })
+  @ApiProperty({ description: 'Descripción de la libranza (descripcion según API The Factory HKA)', example: 'Libranza vivienda', required: false })
   @IsString()
-  @IsNotEmpty()
-  descripción: string;
+  @IsOptional()
+  descripcion?: string;
 
   @ApiProperty({ description: 'Valor de la deducción', example: '300000' })
   @IsString()
-  @IsNotEmpty()
-  deduccion: string;
+  @IsOptional()
+  deduccion?: string;
+
+  @ApiProperty({ description: 'Extras de nómina', required: false })
+  @Allow()
+  @IsOptional()
+  extrasNom?: any[] | null;
 }
 
 export class OtraDeduccionDto {
