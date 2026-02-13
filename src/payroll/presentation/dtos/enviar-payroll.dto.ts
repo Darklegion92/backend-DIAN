@@ -617,8 +617,8 @@ export class TransporteDto {
 export class VacacionesComunesDto {
   @ApiProperty({ description: 'Valor de vacaciones comunes', example: '0' })
   @IsString()
-  @IsNotEmpty()
-  cantidad: string;
+  @IsOptional()
+  cantidad?: string;
 
   @ApiProperty({ description: 'Fecha de inicio de las vacaciones comunes', example: '2024-01-31' })
   @IsString()
@@ -632,15 +632,20 @@ export class VacacionesComunesDto {
 
   @ApiProperty({ description: 'Valor de vacaciones comunes', example: '150000' })
   @IsString()
-  @IsNotEmpty()
-  pago: string;
+  @IsOptional()
+  pago?: string;
+
+  @ApiProperty({ description: 'Extras de nómina', required: false })
+  @Allow()
+  @IsOptional()
+  extrasNom?: any[] | null;
 }
 
 export class VacacionesCompensadasDto {
   @ApiProperty({ description: 'Valor de vacaciones compensadas', example: '0' })
   @IsString()
-  @IsNotEmpty()
-  cantidad: string;
+  @IsOptional()
+  cantidad?: string;
 
   @ApiProperty({ description: 'Fecha de inicio de las vacaciones compensadas', example: '2024-01-31' })
   @IsString()
@@ -654,8 +659,13 @@ export class VacacionesCompensadasDto {
 
   @ApiProperty({ description: 'Valor de vacaciones compensadas', example: '150000' })
   @IsString()
-  @IsNotEmpty()
-  pago: string;
+  @IsOptional()
+  pago?: string;
+
+  @ApiProperty({ description: 'Extras de nómina', required: false })
+  @Allow()
+  @IsOptional()
+  extrasNom?: any[] | null;
 }
 
 export class VacacionesDto {
@@ -673,12 +683,10 @@ export class VacacionesDto {
   @Type(() => VacacionesCompensadasDto)
   vacacionesCompensadas?: VacacionesCompensadasDto[];
 
-  @ApiProperty({ description: 'Extras de vacaciones', required: false })
+  @ApiProperty({ description: 'Extras de nómina (extrasNom según API The Factory HKA)', required: false })
   @Allow()
   @IsOptional()
-  @IsArray()
-  @ValidateNested({ each: true })
-  extrasNom?: any[];
+  extrasNom?: any[] | null;
 }
 
 export class DevengadosDto {
