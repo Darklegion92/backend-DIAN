@@ -746,7 +746,7 @@ export class ProcessPayrollService {
       trabajador.altoRiesgoPension === "1",
       trabajador.numeroDocumento,
       trabajador.primerApellido,
-      trabajador.segundoApellido,
+      trabajador.segundoApellido ?? '',
       trabajador.primerNombre,
       trabajador.otrosNombres,
       trabajador.lugarTrabajoDireccion,

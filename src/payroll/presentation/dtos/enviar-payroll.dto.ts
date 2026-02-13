@@ -1088,10 +1088,10 @@ export class TrabajadorDto {
   @IsNotEmpty()
   primerApellido: string;
 
-  @ApiProperty({ description: 'Segundo apellido', example: 'Gómez' })
+  @ApiProperty({ description: 'Segundo apellido (opcional cuando no aplica)', example: 'Gómez', required: false })
   @IsString()
-  @IsNotEmpty()
-  segundoApellido: string;
+  @IsOptional()
+  segundoApellido?: string;
 
   @ApiProperty({ description: 'Primer nombre', example: 'Juan' })
   @IsString()
