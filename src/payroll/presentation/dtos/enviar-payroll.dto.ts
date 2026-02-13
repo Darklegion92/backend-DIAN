@@ -479,6 +479,11 @@ export class LicenciaMPDto {
   @IsString()
   @IsNotEmpty()
   pago: string;
+
+  @ApiProperty({ description: 'Extras de nómina', required: false })
+  @Allow()
+  @IsOptional()
+  extrasNom?: any[] | null;
 }
 
 export class LicenciaNRDto {
@@ -498,10 +503,9 @@ export class LicenciaNRDto {
   fechaFin?: string;
 
   @ApiProperty({ description: 'Extras de nómina', required: false })
+  @Allow()
   @IsOptional()
-  @IsArray()
-  @ValidateNested({ each: true })
-  extrasNom?: any[];
+  extrasNom?: any[] | null;
 
   @ApiProperty({ description: 'Valor de la licencia', example: '150000' })
   @IsString()
@@ -529,6 +533,11 @@ export class LicenciaRDto {
   @IsString()
   @IsNotEmpty()
   pago: string;
+
+  @ApiProperty({ description: 'Extras de nómina', required: false })
+  @Allow()
+  @IsOptional()
+  extrasNom?: any[] | null;
 }
 
 export class LicenciasDto {
