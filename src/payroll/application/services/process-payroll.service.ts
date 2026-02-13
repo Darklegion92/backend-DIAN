@@ -881,13 +881,16 @@ export class ProcessPayrollService {
 
     (devengados?.horasExtras ?? devengados?.horaExtras)?.forEach(horaExtra => {
 
+
+
+
       switch (horaExtra.tipoHorasExtra) {
         case "0":
           accrued.setHEDs([new HDto(
             horaExtra.horaInicio,
             horaExtra.horaFin,
             Number(horaExtra.cantidad),
-            Number(horaExtra.porcentaje),
+            1,
             horaExtra.pago
           )]);
           break;
@@ -896,7 +899,7 @@ export class ProcessPayrollService {
             horaExtra.horaInicio,
             horaExtra.horaFin,
             Number(horaExtra.cantidad),
-            Number(horaExtra.porcentaje),
+            2,
             horaExtra.pago
           )]);
           break;
@@ -905,7 +908,7 @@ export class ProcessPayrollService {
             horaExtra.horaInicio,
             horaExtra.horaFin,
             Number(horaExtra.cantidad),
-            Number(horaExtra.porcentaje),
+            3,
             horaExtra.pago
           )]);
           break;
@@ -914,7 +917,7 @@ export class ProcessPayrollService {
             horaExtra.horaInicio,
             horaExtra.horaFin,
             Number(horaExtra.cantidad),
-            Number(horaExtra.porcentaje),
+            4,
             horaExtra.pago
           )]);
           break;
@@ -923,7 +926,7 @@ export class ProcessPayrollService {
             horaExtra.horaInicio,
             horaExtra.horaFin,
             Number(horaExtra.cantidad),
-            Number(horaExtra.porcentaje),
+            5,
             horaExtra.pago
           )]);
           break;
@@ -932,7 +935,7 @@ export class ProcessPayrollService {
             horaExtra.horaInicio,
             horaExtra.horaFin,
             Number(horaExtra.cantidad),
-            Number(horaExtra.porcentaje),
+            6,
             horaExtra.pago
           )]);
           break;
@@ -941,7 +944,7 @@ export class ProcessPayrollService {
             horaExtra.horaInicio,
             horaExtra.horaFin,
             Number(horaExtra.cantidad),
-            Number(horaExtra.porcentaje),
+            7,
             horaExtra.pago
           )]);
           break;
