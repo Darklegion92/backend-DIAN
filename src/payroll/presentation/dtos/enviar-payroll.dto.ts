@@ -398,6 +398,11 @@ export class HoraExtraDto {
   @IsString()
   @IsNotEmpty()
   tipoHorasExtra: string;
+
+  @ApiProperty({ description: 'Extras de nómina', required: false })
+  @Allow()
+  @IsOptional()
+  extrasNom?: any[] | null;
 }
 
 export class HuelgaLegalDto {
