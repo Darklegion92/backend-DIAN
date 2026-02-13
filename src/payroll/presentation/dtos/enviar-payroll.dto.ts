@@ -672,6 +672,13 @@ export class VacacionesDto {
   @ValidateNested({ each: true })
   @Type(() => VacacionesCompensadasDto)
   vacacionesCompensadas?: VacacionesCompensadasDto[];
+
+  @ApiProperty({ description: 'Extras de vacaciones', required: false })
+  @Allow()
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  extrasNom?: any[];
 }
 
 export class DevengadosDto {
