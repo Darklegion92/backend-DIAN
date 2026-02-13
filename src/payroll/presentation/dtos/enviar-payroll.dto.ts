@@ -39,21 +39,25 @@ export class FondoSPDto {
   @IsOptional()
   deduccionSP?: string;
 
-  @ApiProperty({ description: 'Valor de la deducción subrogada', example: '300000' })
+  @ApiProperty({ description: 'Valor de la Deducción subrogada (deduccionSub según API The Factory HKA)', example: '300000', required: false })
   @IsString()
   @IsOptional()
-  deduccionSubrogada?: string;
+  deduccionSub?: string;
 
-  @ApiProperty({ description: 'Valor de la deducción subrogada', example: '300000' })
+  @ApiProperty({ description: 'Porcentaje', example: '300000' })
   @IsString()
   @IsOptional()
   porcentaje?: string;
 
-  @ApiProperty({ description: 'Valor de la deducción subrogada', example: '300000' })
+  @ApiProperty({ description: 'Porcentaje subrogado', example: '300000' })
   @IsString()
   @IsOptional()
   porcentajeSub?: string;
 
+  @ApiProperty({ description: 'Extras de nómina', required: false })
+  @Allow()
+  @IsOptional()
+  extrasNom?: any[] | null;
 }
 
 export class LibranzaDto {

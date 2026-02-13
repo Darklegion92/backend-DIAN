@@ -798,7 +798,7 @@ export class ProcessPayrollService {
     deductions.setFondospDeductionSP(deducciones.fondosSP?.[0]?.deduccionSP);
 
     deductions.setFondosspSubTypeLawDeductionsId("9");
-    deductions.setFondospDeductionSub(deducciones.fondosSP?.[0]?.deduccionSubrogada);
+    deductions.setFondospDeductionSub(deducciones.fondosSP?.[0]?.deduccionSub);
 
     const laborUnion = [];
 
