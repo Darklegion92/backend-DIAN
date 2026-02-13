@@ -81,6 +81,11 @@ export class PagoTerceroDto {
   @IsOptional()
   pagoTercero?: string;
 
+  @ApiProperty({ description: 'Extras de nómina', required: false })
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  extrasNom?: any[];
 }
 
 export class SaludDto {
