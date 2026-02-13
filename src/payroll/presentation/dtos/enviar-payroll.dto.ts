@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsString, IsOptional, IsArray, IsNumber, ValidateNested, IsBoolean } from 'class-validator';
+import { Allow, IsNotEmpty, IsString, IsOptional, IsArray, IsNumber, ValidateNested, IsBoolean } from 'class-validator';
 import { Type } from 'class-transformer';
 
 /**
@@ -76,16 +76,17 @@ export class OtraDeduccionDto {
 }
 
 export class PagoTerceroDto {
-  @ApiProperty({ description: 'Valor de los pagos a terceros', example: '300000' })
+  @ApiProperty({ description: 'Valor de los pagos a terceros (montopagotercero según API The Factory HKA)', example: '300000' })
   @IsString()
   @IsOptional()
-  pagoTercero?: string;
+  montopagotercero?: string;
 
   @ApiProperty({ description: 'Extras de nómina', required: false })
+  @Allow()
   @IsOptional()
   @IsArray()
   @ValidateNested({ each: true })
-  extrasNom?: any[];
+  extrasNom?: any[] | null;
 }
 
 export class SaludDto {
@@ -165,10 +166,11 @@ export class DeduccionesDto {
   embargoFiscal?: string;
 
   @ApiProperty({ description: 'Extras de nómina', required: false })
+  @Allow()
   @IsOptional()
   @IsArray()
   @ValidateNested({ each: true })
-  extrasNom?: any[];
+  extrasNom?: any[] | null;
 
   @ApiProperty({ description: 'Clase relacionada a las deducciones realizadas por motivos de fondos de pensión', type: [FondoPensionDto], required: false })
   @IsNotEmpty()
@@ -561,18 +563,18 @@ export class OtroConceptoDto {
 export class PrimaDto {
   @ApiProperty({ description: 'Cantidad de primas de servicios', example: '1' })
   @IsString()
-  @IsNotEmpty()
-  cantidad: string;
-
-  @ApiProperty({ description: 'Valor de la prima de servicios', example: '180000' })
-  @IsString()
-  @IsNotEmpty()
-  pago: string;
+  @IsOptional()
+  cantidad?: string;
 
   @ApiProperty({ description: 'Valor de la prima de servicios', example: '180000' })
   @IsString()
   @IsOptional()
-  pagoNs?: string;
+  pago?: string;
+
+  @ApiProperty({ description: 'Valor de la prima no salarial (pagoNS según API The Factory HKA)', example: '180000', required: false })
+  @IsString()
+  @IsOptional()
+  pagoNS?: string;
 }
 
 export class TransporteDto {
@@ -861,10 +863,11 @@ export class LugarGeneracionXMLDto {
   departamentoEstado: string;
 
   @ApiProperty({ description: 'Extras de nómina', required: false })
+  @Allow()
   @IsOptional()
   @IsArray()
   @ValidateNested({ each: true })
-  extrasNom?: any[];
+  extrasNom?: any[] | null;
 
   @ApiProperty({ description: 'Código del municipio', example: '11001' })
   @IsString()
@@ -883,12 +886,13 @@ export class LugarGeneracionXMLDto {
 
 export class FechasPagosDto {
   @ApiProperty({ description: 'Extras de nómina', required: false })
+  @Allow()
   @IsOptional()
   @IsArray()
   @ValidateNested({ each: true })
-  extrasNom?: any[];
+  extrasNom?: any[] | null;
 
-  @ApiProperty({ description: 'Forma de pago', example: '1' })
+  @ApiProperty({ description: 'Fecha de pago de la nómina (fechapagonomina según API The Factory HKA)', example: '2026-01-31' })
   @IsString()
   @IsNotEmpty()
   fechapagonomina: string;
@@ -901,10 +905,11 @@ export class FechasPagosDto {
 export class PagoDto {
 
   @ApiProperty({ description: 'Extras de nómina', required: false })
+  @Allow()
   @IsOptional()
   @IsArray()
   @ValidateNested({ each: true })
-  extrasNom?: any[];
+  extrasNom?: any[] | null;
 
   @ApiProperty({ description: 'Fechas de pagos', type: [FechasPagosDto] })
   @IsArray()
@@ -920,13 +925,13 @@ export class PagoDto {
 
   @ApiProperty({ description: 'Métodos de Pago del Documento', example: '1' })
   @IsString()
-  @IsNotEmpty()
-  metodoDePago: string;
+  @IsOptional()
+  metodoDePago?: string;
 
   @ApiProperty({ description: 'Medios de Pago del Documento', example: '1' })
   @IsString()
-  @IsNotEmpty()
-  medioPago: string;
+  @IsOptional()
+  medioPago?: string;
 
   @ApiProperty({ description: 'Nombre de la entidad bancaria donde el trabajador tiene su cuenta para pago de nómina', example: 'BANCOLOMBIA', required: false })
   @IsString()
@@ -1152,9 +1157,10 @@ export class NominaElectronicaDto {
   novedad: string;
 
   @ApiProperty({ description: 'CUNE de la novedad', example: null, required: false })
-  @IsString()
+  @Allow()
   @IsOptional()
-  novedadCUNE?: string;
+  @IsString()
+  novedadCUNE?: string | null;
 
   @ApiProperty({ description: 'Lugar de generación del XML', type: LugarGeneracionXMLDto })
   @ValidateNested()
@@ -1198,10 +1204,11 @@ export class NominaElectronicaDto {
   @IsNotEmpty()
   tipoMonedaNom: string;
 
-  @ApiProperty({ description: 'Tipo de nota', example: '102' })
-  @IsString()
+  @ApiProperty({ description: 'Tipo de nota', example: '102', nullable: true })
+  @Allow()
   @IsOptional()
-  tipoNota?: string;
+  @IsString()
+  tipoNota?: string | null;
 
   @ApiProperty({ description: 'Total del comprobante', example: '102' })
   @IsString()
@@ -1267,71 +1274,86 @@ export class EnviarPayrollRequestDto {
 // ============================================================================
 
 export class EnviarPayrollResponseDto {
-  @ApiProperty({ description: 'Indica el Estado de la operación retornado por el servicio', example: '200' })
-  @IsString()
-  codigo: string;
+  @ApiProperty({ description: 'Indica el Estado de la operación retornado por el servicio (integer en API The Factory HKA)', example: 200 })
+  @Allow()
+  codigo?: number | string;
 
-  @ApiProperty({ description: 'Este mensaje está asociado al código de respuesta, útil para identificación de errores', example: 'Nómina procesada exitosamente' })
+  @ApiProperty({ description: 'Este mensaje está asociado al código de respuesta', example: 'Nómina procesada exitosamente', nullable: true })
+  @IsOptional()
   @IsString()
-  mensaje: string;
+  mensaje?: string | null;
 
-  @ApiProperty({ description: 'Resultado del consumo del método: "Procesado" ó "Error"', example: 'Procesado' })
+  @ApiProperty({ description: 'Resultado del consumo del método: "Procesado" ó "Error"', example: 'Procesado', nullable: true })
+  @IsOptional()
   @IsString()
-  resultado: string;
+  resultado?: string | null;
 
-  @ApiProperty({ description: 'Prefijo y Consecutivo del Documento concatenado sin separadores', example: 'PRUE980338337' })
+  @ApiProperty({ description: 'Prefijo y Consecutivo del Documento concatenado sin separadores', example: 'PRUE980338337', nullable: true })
+  @IsOptional()
   @IsString()
-  consecutivoDocumento: string;
+  consecutivoDocumento?: string | null;
 
-  @ApiProperty({ description: 'Código Único de Nómina Electrónica correspondiente al documento consultado', example: 'a1b2c3d4-e5f6-g7h8-i9j0' })
+  @ApiProperty({ description: 'Código Único de Nómina Electrónica correspondiente al documento consultado', example: 'a1b2c3d4-e5f6-g7h8-i9j0', nullable: true })
+  @IsOptional()
   @IsString()
-  cune: string;
+  cune?: string | null;
 
-  @ApiProperty({ description: 'Número de seguimiento, es un UUID, para consultar posteriormente el proceso asíncrono', example: '123e4567-e89b-12d3-a456-426614174000' })
+  @ApiProperty({ description: 'Número de seguimiento (trackId en API The Factory HKA)', example: '123e4567-e89b-12d3-a456-426614174000', nullable: true })
+  @IsOptional()
   @IsString()
-  trackId: string;
+  trackId?: string | null;
 
-  @ApiProperty({ description: 'Reglas de validación en caso de notificación TFHKA', type: [String], example: ['Regla 1', 'Regla 2'] })
+  @ApiProperty({ description: 'Reglas de validación en caso de notificación TFHKA', type: [String], required: false })
+  @IsOptional()
   @IsArray()
   @IsString({ each: true })
-  reglasNotificacionesTFHKA: string[];
+  reglasNotificacionesTFHKA?: string[] | null;
 
-  @ApiProperty({ description: 'Reglas de validación en caso de notificación DIAN', type: [String], example: ['Regla 1', 'Regla 2'] })
+  @ApiProperty({ description: 'Reglas de validación en caso de notificación DIAN', type: [String], required: false })
+  @IsOptional()
   @IsArray()
   @IsString({ each: true })
-  reglasNotificacionesDIAN: string[];
+  reglasNotificacionesDIAN?: string[] | null;
 
-  @ApiProperty({ description: 'Reglas de validación en caso de rechazo TFHKA', type: [String], example: ['Regla 1', 'Regla 2'] })
+  @ApiProperty({ description: 'Reglas de validación en caso de rechazo TFHKA', type: [String], required: false })
+  @IsOptional()
   @IsArray()
   @IsString({ each: true })
-  reglasRechazoTFHKA: string[];
+  reglasRechazoTFHKA?: string[] | null;
 
-  @ApiProperty({ description: 'Reglas de validación en caso de rechazo DIAN', type: [String], example: ['Regla 1', 'Regla 2'] })
+  @ApiProperty({ description: 'Reglas de validación en caso de rechazo DIAN', type: [String], required: false })
+  @IsOptional()
   @IsArray()
   @IsString({ each: true })
-  reglasRechazoDIAN: string[];
+  reglasRechazoDIAN?: string[] | null;
 
-  @ApiProperty({ description: 'Indica el nit del empleador', example: '900123456' })
+  @ApiProperty({ description: 'Indica el nit del empleador', example: '900123456', required: false })
+  @IsOptional()
   @IsString()
-  nitEmpleador: string;
+  nitEmpleador?: string | null;
 
-  @ApiProperty({ description: 'Indica el nit del empleado', example: '12345678' })
+  @ApiProperty({ description: 'Indica el nit del empleado', example: '12345678', required: false })
+  @IsOptional()
   @IsString()
-  nitEmpleado: string;
+  nitEmpleado?: string | null;
 
-  @ApiProperty({ description: 'Identificador de Casa de Software', example: 'SOFTWARE001' })
+  @ApiProperty({ description: 'Identificador de Casa de Software', example: 'SOFTWARE001', required: false })
+  @IsOptional()
   @IsString()
-  idSoftware: string;
+  idSoftware?: string | null;
 
-  @ApiProperty({ description: 'Concatenación cadena del código QR (elemento de control)', example: 'QR123456789012345678901234567890' })
+  @ApiProperty({ description: 'Concatenación cadena del código QR (elemento de control)', required: false })
+  @IsOptional()
   @IsString()
-  qr: string;
+  qr?: string | null;
 
-  @ApiProperty({ description: '"true" Si es válido', example: true })
+  @ApiProperty({ description: '"true" Si es válido según DIAN', example: true, required: false })
+  @IsOptional()
   @IsBoolean()
-  esvalidoDIAN: boolean;
+  esvalidoDIAN?: boolean;
 
-  @ApiProperty({ description: 'XML de la nómina', example: 'XML de la nómina' })
+  @ApiProperty({ description: 'XML de la nómina', required: false })
+  @IsOptional()
   @IsString()
-  xml: string;
+  xml?: string | null;
 } 

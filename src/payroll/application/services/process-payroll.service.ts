@@ -976,7 +976,9 @@ export class ProcessPayrollService {
       serviceBonuses.push(new ServiceBonusDto(
         Number(prima.cantidad),
         prima.pago,
-        prima.pagoNs
+        prima.pagoNS
+
+
       ));
     });
 
@@ -1113,7 +1115,7 @@ export class ProcessPayrollService {
     const thirdPartyPayments = [];
 
     devengados?.pagosTerceros?.forEach(pago => {
-      thirdPartyPayments.push(new ThirdPartyPaymentDto(pago.pagoTercero));
+      thirdPartyPayments.push(new ThirdPartyPaymentDto(pago.montopagotercero ?? (pago as { pagoTercero?: string }).pagoTercero ?? '0'));
     });
 
     accrued.setThirdPartyPayments(thirdPartyPayments);
