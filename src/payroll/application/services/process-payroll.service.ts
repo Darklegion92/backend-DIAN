@@ -985,11 +985,11 @@ export class ProcessPayrollService {
       ));
     });
 
-    accrued.setSeverance([new SeveranceDto(
+    accrued.setSeverance(devengados?.cesantias ? [new SeveranceDto(
       devengados.cesantias?.[0]?.pago,
       devengados.cesantias?.[0]?.porcentaje,
       devengados.cesantias?.[0]?.pagoIntereses
-    )]);
+    )] : []);
 
 
     const workDisabilities = [];
