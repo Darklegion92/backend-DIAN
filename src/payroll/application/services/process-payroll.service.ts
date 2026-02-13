@@ -879,7 +879,7 @@ export class ProcessPayrollService {
     //accrued.setSalaryViatics(devengados.);
     //accrued.setNonSalaryViatics(devengados.viaticos[0].viaticos);
 
-    devengados?.horaExtras?.forEach(horaExtra => {
+    (devengados?.horasExtras ?? devengados?.horaExtras)?.forEach(horaExtra => {
 
       switch (horaExtra.tipoHorasExtra) {
         case "0":

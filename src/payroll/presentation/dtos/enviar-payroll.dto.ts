@@ -442,6 +442,11 @@ export class IncapacidadDto {
   @IsString()
   @IsNotEmpty()
   tipo: string;
+
+  @ApiProperty({ description: 'Extras de nómina', required: false })
+  @Allow()
+  @IsOptional()
+  extrasNom?: any[] | null;
 }
 
 export class LicenciaMPDto {
@@ -773,6 +778,13 @@ export class DevengadosDto {
   @ValidateNested({ each: true })
   @Type(() => HoraExtraDto)
   horaExtras?: HoraExtraDto[];
+
+  @ApiProperty({ description: 'Horas extras (horasExtras según API The Factory HKA)', type: [HoraExtraDto], required: false })
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => HoraExtraDto)
+  horasExtras?: HoraExtraDto[];
 
   @ApiProperty({ description: 'Huelga legal', type: [HuelgaLegalDto], required: false })
   @IsOptional()
