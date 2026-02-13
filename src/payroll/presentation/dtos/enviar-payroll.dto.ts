@@ -347,7 +347,6 @@ export class CesantiaDto {
   @ValidateNested({ each: true })
   extrasNom?: any[];
 
-
 }
 
 export class ComisionDto {
@@ -583,6 +582,13 @@ export class PrimaDto {
   @IsString()
   @IsOptional()
   pagoNS?: string;
+
+  @ApiProperty({ description: 'Extras de prima', required: false })
+  @Allow()
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  extrasNom?: any[];
 }
 
 export class TransporteDto {
