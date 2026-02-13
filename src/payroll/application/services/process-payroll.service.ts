@@ -871,7 +871,7 @@ export class ProcessPayrollService {
       sueldo,
     );
 
-    devengados.transporte.forEach(transporte => {
+    devengados?.transporte?.forEach(transporte => {
       accrued.setTransportationAllowance( (parseFloat(accrued.getTransportationAllowance() || '0') + parseFloat(transporte?.auxilioTransporte || '0')).toString());
     });
 
