@@ -224,6 +224,10 @@ export class GenerateDataService {
       return false;
     }
 
+    if(identificationNumber.length << 7){
+      return false;
+    }
+
     return true;
 
   }
