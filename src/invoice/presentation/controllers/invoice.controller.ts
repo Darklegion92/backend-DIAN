@@ -336,41 +336,36 @@ export class InvoiceController {
 
   @Post('generate-test-invoice')
   @ApiOperation({
-    summary: 'Generar 5 facturas y 5 notas crédito de prueba',
+    summary: 'Generar factura de prueba',
     description: `
-    Envía a apidian 5 facturas y 5 notas crédito de prueba (10 documentos en total).
-    Cada nota crédito referencia a su factura correspondiente.
-    Retorna si los 10 documentos fueron aceptados correctamente por la DIAN.
-    Requiere el NIT de la empresa en el body (empresa con token DIAN configurado).
+    Envía a apidian una factura de prueba usando los datos de test-documents.data.
+    Retorna si el documento fue aceptado correctamente por la DIAN.
+    Requiere el testId de la empresa en el body (empresa con token DIAN configurado).
     `,
   })
   @ApiBody({
     schema: {
       type: 'object',
-      required: ['nit'],
+      required: ['testId'],
       properties: {
-        nit: { type: 'string', description: 'NIT de la empresa (para obtener tokenDian)' },
+        testId: { type: 'string', description: 'Test ID de la empresa (para obtener tokenDian)' },
       },
     },
   })
   @ApiResponse({
     status: HttpStatus.OK,
-    description: 'Proceso finalizado. allAccepted indica si los 10 documentos fueron aceptados.',
+    description: 'Proceso finalizado. allAccepted indica si la factura fue aceptada.',
     content: {
       'application/json': {
         example: {
           allAccepted: true,
-          totalDocuments: 10,
-          acceptedCount: 10,
+          totalDocuments: 1,
+          acceptedCount: 1,
           invoices: [
             { index: 1, number: 'SETP990001147', accepted: true, cufe: '...' },
-            { index: 2, number: 'SETP990001148', accepted: true, cufe: '...' },
           ],
-          creditNotes: [
-            { index: 1, number: 'NC74', accepted: true },
-            { index: 2, number: 'NC75', accepted: true },
-          ],
-          message: 'Los 10 documentos (5 facturas y 5 notas crédito) fueron aceptados correctamente.',
+          creditNotes: [],
+          message: 'La factura de prueba fue aceptada correctamente.',
         },
       },
     },

@@ -649,10 +649,10 @@ export class InvoiceService {
   }
 
   /**
-   * Genera y envía a apidian 5 facturas y 5 notas crédito de prueba.
-   * Cada nota crédito referencia a su factura correspondiente.
-   * @param testId - NIT de la empresa (para obtener tokenDian)
-   * @returns Resultado indicando si los 10 documentos fueron aceptados correctamente
+   * Genera y envía a apidian una factura de prueba.
+   * @param testId - Test id de la empresa
+   * @param nit - NIT de la empresa
+   * @returns Resultado indicando si la factura fue aceptada correctamente y los documentos enviados
    */
   async generateTestInvoice(testId: string, nit: string): Promise<GenerateTestInvoiceResult> {
     const company = await this.companyService.getCompanyByNit(nit);
@@ -667,130 +667,62 @@ export class InvoiceService {
     const invoices: TestDocumentResult[] = [];
     const creditNotes: TestDocumentResult[] = [];
     const prefix = TEST_INVOICE_DATA.prefix ?? 'SETP';
-    const invoiceDate = TEST_INVOICE_DATA.date ?? new Date().toISOString().split('T')[0];
-    const nowTime = new Date().toTimeString().slice(0, 8);
+    const invoiceNumber = TEST_INVOICE_DATA.number;
 
-    for (let i = 0; i < 5; i++) {
-      const invoiceNumber = TEST_INVOICE_DATA.number + i;
-      const invoicePayload = {
-        ...TEST_INVOICE_DATA,
-        number: invoiceNumber,
-        establishment_phone: String(TEST_INVOICE_DATA.establishment_phone ?? ''),
-        customer: {
-          ...TEST_INVOICE_DATA.customer,
-          dv: TEST_INVOICE_DATA.customer.dv != null
-            ? parseInt(String(TEST_INVOICE_DATA.customer.dv), 10)
-            : undefined,
-        },
-      } as unknown as CreateInvoiceDto;
+    const invoicePayload = {
+      ...TEST_INVOICE_DATA,
+      number: invoiceNumber,
+      establishment_phone: String(TEST_INVOICE_DATA.establishment_phone ?? ''),
+      customer: {
+        ...TEST_INVOICE_DATA.customer,
+        dv: TEST_INVOICE_DATA.customer.dv != null
+          ? parseInt(String(TEST_INVOICE_DATA.customer.dv), 10)
+          : undefined,
+      },
+    } as unknown as CreateInvoiceDto;
 
-      // Enviar factura
-      let invoiceAccepted = false;
-      let cufe: string | undefined;
-      let invoiceError: string | undefined;
-      try {
-        this.logger.log(`Enviando factura de prueba ${i + 1}/5 a apidian`);
-        const response = await this.createInvoice(invoicePayload, token, testId);
-        invoiceAccepted =
-          response.ResponseDian?.Envelope?.Body?.SendBillSyncResponse?.SendBillSyncResult?.IsValid === 'true' ||
-          !!response.cufe;
-        cufe = response.cufe;
-        if (invoiceAccepted) {
-          this.logger.log(`Factura ${prefix}${invoiceNumber} enviada correctamente`);
-        } else {
-          invoiceError = response.message ?? 'Respuesta no válida de la DIAN';
-        }
-      } catch (err: any) {
-        invoiceError = err?.response?.data?.message ?? err?.message ?? 'Error al enviar factura';
-        this.logger.error(`Error factura ${invoiceNumber}: ${invoiceError}`);
+    let invoiceAccepted = false;
+    let cufe: string | undefined;
+    let invoiceError: string | undefined;
+    try {
+      this.logger.log('Enviando factura de prueba a apidian');
+      const response = await this.createInvoice(invoicePayload, token, testId);
+      invoiceAccepted =
+        response.ResponseDian?.Envelope?.Body?.SendBillSyncResponse?.SendBillSyncResult?.IsValid === 'true' ||
+        !!response.cufe;
+      cufe = response.cufe;
+      if (invoiceAccepted) {
+        this.logger.log(`Factura ${prefix}${invoiceNumber} enviada correctamente`);
+      } else {
+        invoiceError = response.message ?? 'Respuesta no válida de la DIAN';
       }
-      invoices.push({
-        index: i + 1,
-        number: `${prefix}${invoiceNumber}`,
-        accepted: invoiceAccepted,
-        cufe,
-        error: invoiceError,
-      });
-
-      // Enviar nota crédito que referencia esta factura
-      let creditNoteAccepted = false;
-      let creditNoteError: string | undefined;
-      const creditNoteNumber = (TEST_CREDIT_NOTE_DATA.number ?? 0) + i;
-      const billing_reference: BillingReferenceDto = {
-        number: `${prefix}${invoiceNumber}`,
-        uuid: cufe ?? '',
-        issue_date: invoiceDate,
-      };
-
-      try {
-        this.logger.log(`Enviando nota crédito de prueba ${i + 1}/5 a apidian`);
-        const cnResponse = await this.sendCreditNoteToApidian(
-          {
-            ...TEST_CREDIT_NOTE_DATA,
-            date: invoiceDate,
-            time: nowTime,
-            number: creditNoteNumber,
-            billing_reference,
-          },
-          token,
-        );
-        creditNoteAccepted =
-          cnResponse?.ResponseDian?.Envelope?.Body?.SendBillSyncResponse?.SendBillSyncResult?.IsValid === 'true' ||
-          !!cnResponse?.cufe ||
-          (typeof cnResponse?.message === 'string' && cnResponse.message.includes('ya fue enviado'));
-        if (!creditNoteAccepted && !creditNoteError) {
-          creditNoteError = cnResponse?.message ?? 'Respuesta no válida de la DIAN';
-        }
-      } catch (err: any) {
-        creditNoteError = err?.response?.data?.message ?? err?.message ?? 'Error al enviar nota crédito';
-        this.logger.error(`Error nota crédito ${creditNoteNumber}: ${creditNoteError}`);
-      }
-      creditNotes.push({
-        index: i + 1,
-        number: `NC${creditNoteNumber}`,
-        accepted: creditNoteAccepted,
-        error: creditNoteError,
-      });
+    } catch (err: any) {
+      invoiceError = err?.response?.data?.message ?? err?.message ?? 'Error al enviar factura';
+      this.logger.error(`Error factura ${invoiceNumber}: ${invoiceError}`);
     }
+    invoices.push({
+      index: 1,
+      number: `${prefix}${invoiceNumber}`,
+      accepted: invoiceAccepted,
+      cufe,
+      error: invoiceError,
+    });
 
-    const acceptedCount = invoices.filter((d) => d.accepted).length + creditNotes.filter((d) => d.accepted).length;
-    const allAccepted = acceptedCount === 10;
+    const acceptedCount = invoices.filter((d) => d.accepted).length;
+    const allAccepted = acceptedCount === 1;
 
     return {
       allAccepted,
-      totalDocuments: 10,
+      totalDocuments: 1,
       acceptedCount,
       invoices,
       creditNotes,
       message: allAccepted
-        ? 'Los 10 documentos (5 facturas y 5 notas crédito) fueron aceptados correctamente.'
-        : `Se aceptaron ${acceptedCount} de 10 documentos. Revisar invoices y creditNotes para detalles.`,
+        ? 'La factura de prueba fue aceptada correctamente.'
+        : acceptedCount === 0
+          ? `La factura no fue aceptada. ${invoiceError ?? ''}`
+          : `Se aceptó ${acceptedCount} de 1 documento.`,
     };
-  }
-
-  /**
-   * Envía una nota crédito al servicio apidian.
-   * @returns Respuesta del servicio (para validar IsValid/cufe)
-   */
-  private async sendCreditNoteToApidian(
-    data: CreditNoteRequestDto,
-    token: string,
-  ): Promise<{ ResponseDian?: any; cufe?: string; message?: string }> {
-    const response = await firstValueFrom(
-      this.httpService.post<{ ResponseDian?: any; cufe?: string; message?: string }>(
-        `${this.externalApiUrl}/credit-note`,
-        data,
-        {
-          headers: {
-            'Content-Type': 'application/json',
-            Accept: 'application/json',
-            Authorization: `Bearer ${token}`,
-          },
-          timeout: 120000,
-        },
-      ),
-    );
-    return response.data;
   }
 }
 
