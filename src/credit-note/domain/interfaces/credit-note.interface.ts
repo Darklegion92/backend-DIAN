@@ -28,10 +28,14 @@ export interface CreditNoteRequestDto {
   legal_monetary_totals: LegalMonetaryTotalsDto;
   credit_note_lines: LineDto[];
   additional_documents?: Array<AdditionalDocumentDto>;
-  send_mail?: boolean;
+  sendmail?: boolean;
+  sendmailtome?: boolean;
+  foot_note?: string;
+  seze?: string;
   custom_fields?: Record<string, unknown>;
   customer: SellerOrCustomerDto;
   discrepancyresponsecode: number;
+  discrepancyresponsedescription?: string;
   head_note?: string;
   invoice_period?: InvoicePeriodDto;
   email_cc_list?: EmailCcData[];

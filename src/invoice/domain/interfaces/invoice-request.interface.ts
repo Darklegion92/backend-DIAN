@@ -39,6 +39,8 @@ export interface InvoiceRequestDto {
   // Notas
   notes?: string;
 
+  disable_confirmation_text?: boolean;
+
   // Elaborado y revisado
   elaborated?: string;
   reviewed?: string;
@@ -52,8 +54,15 @@ export interface InvoiceRequestDto {
   // Totales monetarios legales - REQUERIDO
   legal_monetary_totals: LegalMonetaryTotalsDto;
 
+  html_header?: string;
+  html_buttons?: string;
+  html_footer?: string;
+  head_note?: string;
+  foot_note?: string;
+
   // Líneas de factura - REQUERIDO
   invoice_lines: LineDto[];
+  send_customer_credentials?: boolean;
 
   // Opciones de configuración
   sendmail?: boolean;
