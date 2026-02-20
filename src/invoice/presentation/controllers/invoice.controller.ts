@@ -5,6 +5,7 @@ import {
   Post,
   Body,
   HttpStatus,
+  HttpException,
   Logger,
   UseGuards,
 } from '@nestjs/common';
@@ -19,7 +20,7 @@ import { CreateInvoiceDto } from '../dtos/create-invoice.dto';
 import { CurrentUser } from '@/auth/presentation/decorators/current-user.decorator';
 import { User } from '@/auth/domain/entities/user.entity';
 import { CreateInvoiceResponse } from '@/invoice/application/ports/output/dian-service.interface';
-
+import { GenerateTestInvoiceResult } from '@/invoice/domain/interfaces/generate-test-invoice-result.interface';
 
 @ApiTags('Facturas')
 @Controller('invoice')
@@ -331,5 +332,63 @@ export class InvoiceController {
     
     this.logger.log('Factura creada exitosamente');
     return result;
+  }
+
+  @Post('generate-test-invoice')
+  @ApiOperation({
+    summary: 'Generar 5 facturas y 5 notas crédito de prueba',
+    description: `
+    Envía a apidian 5 facturas y 5 notas crédito de prueba (10 documentos en total).
+    Cada nota crédito referencia a su factura correspondiente.
+    Retorna si los 10 documentos fueron aceptados correctamente por la DIAN.
+    Requiere el NIT de la empresa en el body (empresa con token DIAN configurado).
+    `,
+  })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      required: ['nit'],
+      properties: {
+        nit: { type: 'string', description: 'NIT de la empresa (para obtener tokenDian)' },
+      },
+    },
+  })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Proceso finalizado. allAccepted indica si los 10 documentos fueron aceptados.',
+    content: {
+      'application/json': {
+        example: {
+          allAccepted: true,
+          totalDocuments: 10,
+          acceptedCount: 10,
+          invoices: [
+            { index: 1, number: 'SETP990001147', accepted: true, cufe: '...' },
+            { index: 2, number: 'SETP990001148', accepted: true, cufe: '...' },
+          ],
+          creditNotes: [
+            { index: 1, number: 'NC74', accepted: true },
+            { index: 2, number: 'NC75', accepted: true },
+          ],
+          message: 'Los 10 documentos (5 facturas y 5 notas crédito) fueron aceptados correctamente.',
+        },
+      },
+    },
+  })
+  @ApiResponse({
+    status: HttpStatus.BAD_REQUEST,
+    description: 'Empresa no encontrada o sin token DIAN',
+  })
+  async generateTestInvoice(
+    @Body('testId') testId: string,
+    @CurrentUser() currentUser: User,
+  ): Promise<GenerateTestInvoiceResult> {
+    if (!testId?.trim()) {
+      throw new HttpException(
+        { message: 'El testId es requerido' },
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+    return this.externalInvoiceService.generateTestInvoice(testId.trim(), currentUser.company_document);
   }
 } 

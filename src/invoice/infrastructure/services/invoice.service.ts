@@ -10,6 +10,15 @@ import { LegalMonetaryTotalDto } from '@/invoice/presentation/dtos/example-invoi
 import { CustomerDataDto } from '@/invoice/presentation/dtos/customer-data.dto';
 import { InvoiceLineData } from '@/invoice/presentation/dtos/invoice-line-data.dto';
 import { DocumentRepository } from '../repositories/document.repository';
+import { CompanyService } from '@/company/application/services/company.service';
+import { TEST_INVOICE_DATA } from '@/invoice/domain/data/test-documents.data';
+import { TEST_CREDIT_NOTE_DATA } from '@/invoice/domain/data/test-documents.data';
+import { CreditNoteRequestDto } from '@/credit-note/domain/interfaces/credit-note.interface';
+import { BillingReferenceDto } from '@/common/domain/interfaces/document-common.interface';
+import {
+  GenerateTestInvoiceResult,
+  TestDocumentResult,
+} from '@/invoice/domain/interfaces/generate-test-invoice-result.interface';
 
 @Injectable()
 export class InvoiceService {
@@ -23,6 +32,7 @@ export class InvoiceService {
     private readonly configService: ConfigService,
     private readonly catalogService: CatalogService,
     private readonly documentRepositoryInfrastructure: DocumentRepository,
+    private readonly companyService: CompanyService,
   ) {
     this.externalApiUrl = this.configService.get<string>('EXTERNAL_SERVER_URL');
     if (!this.externalApiUrl) {
@@ -36,16 +46,18 @@ export class InvoiceService {
    * @param token - Token de autenticación
    * @returns Respuesta del servicio externo
    */
-  async createInvoice(invoiceData: CreateInvoiceDto, token: string): Promise<CreateInvoiceResponse> {
+  async createInvoice(invoiceData: CreateInvoiceDto, token: string, testId?: string): Promise<CreateInvoiceResponse> {
     try {
       this.logger.log('Enviando solicitud de factura al servicio externo');
       this.logger.debug('URL del servicio externo:', `${this.externalApiUrl}/invoice`);
       this.logger.debug('Datos de la factura:', JSON.stringify(invoiceData, null, 2));
       this.logger.debug('Token:', token);
 
+      const url = testId ? `${this.externalApiUrl}/invoice/${testId}` : `${this.externalApiUrl}/invoice`;
+
       const response = await firstValueFrom(
         this.httpService.post<CreateInvoiceResponse>(
-          `${this.externalApiUrl}/invoice`,
+          url,
           invoiceData,
           {
             headers: {
@@ -62,14 +74,14 @@ export class InvoiceService {
 
       return response.data;
     } catch (error) {
-      this.logger.error('Error al consumir el servicio externo de facturas', {error});
-      
+      this.logger.error('Error al consumir el servicio externo de facturas', { error });
+
       if (error.response) {
         const status = error.response.status;
         const message = error.response.data?.message || 'Error en el servicio externo';
-        
+
         this.logger.error(`Error HTTP ${status}: ${message}`);
-        
+
         switch (status) {
           case 400:
             throw new HttpException(
@@ -154,102 +166,102 @@ export class InvoiceService {
    * @param nit - NIT de la empresa
    * @returns Datos de la factura
    */
-  async prepareInvoice({tokenDian,customer,trm,discount,detail,taxes,payment,header,resolutionNumber}: any,  nit: string): Promise<any> {
+  async prepareInvoice({ tokenDian, customer, trm, discount, detail, taxes, payment, header, resolutionNumber }: any, nit: string): Promise<any> {
     try {
 
-        const dataHeader: string[] = header.split("\|");
-        const dataTrm: string[] = trm.split("\|");
-        const dataDiscount: string[] = discount.split("\|");
+      const dataHeader: string[] = header.split("\|");
+      const dataTrm: string[] = trm.split("\|");
+      const dataDiscount: string[] = discount.split("\|");
 
-        const prefix:string = dataHeader[3].split("\-")[0];
-        let number:string = dataHeader[2].replace(prefix, "");
+      const prefix: string = dataHeader[3].split("\-")[0];
+      let number: string = dataHeader[2].replace(prefix, "");
 
-        if(resolutionNumber === "18760000001"){
-            number = "99" + number.padStart(7, '0');
-        }
+      if (resolutionNumber === "18760000001") {
+        number = "99" + number.padStart(7, '0');
+      }
 
-        const time:string = dataHeader[4].split(" ")[1];
-        const date:string = dataHeader[4].split(" ")[0];
-
-
-        const invoice: CreateInvoiceDto = {
-          number: parseInt(number),
-          type_document_id: 1,
-          date,
-          time,
-          resolution_number: resolutionNumber,
-          prefix,
-          customer: undefined,
-          legal_monetary_totals: undefined,
-          invoice_lines: []
-        }
+      const time: string = dataHeader[4].split(" ")[1];
+      const date: string = dataHeader[4].split(" ")[0];
 
 
-        if(dataTrm.length >= 3){
-          invoice.notes = dataTrm[3];
-        }
+      const invoice: CreateInvoiceDto = {
+        number: parseInt(number),
+        type_document_id: 1,
+        date,
+        time,
+        resolution_number: resolutionNumber,
+        prefix,
+        customer: undefined,
+        legal_monetary_totals: undefined,
+        invoice_lines: []
+      }
 
-        const legalMonetaryTotal: LegalMonetaryTotalDto = {
-          line_extension_amount: parseFloat(dataHeader[18]),
-          tax_exclusive_amount: parseFloat(dataHeader[18]),
-          tax_inclusive_amount: parseFloat(dataHeader[19]),
-          payable_amount: parseFloat(dataHeader[10]),
-        }
+
+      if (dataTrm.length >= 3) {
+        invoice.notes = dataTrm[3];
+      }
+
+      const legalMonetaryTotal: LegalMonetaryTotalDto = {
+        line_extension_amount: parseFloat(dataHeader[18]),
+        tax_exclusive_amount: parseFloat(dataHeader[18]),
+        tax_inclusive_amount: parseFloat(dataHeader[19]),
+        payable_amount: parseFloat(dataHeader[10]),
+      }
 
 
-        const dataCustomer:string[] = customer.split("\|");
-        const customerData: CustomerDataDto = await this.createCustomer(dataCustomer);
+      const dataCustomer: string[] = customer.split("\|");
+      const customerData: CustomerDataDto = await this.createCustomer(dataCustomer);
 
-        if(customerData.email.match(";")){
-          const emails:string[] = customerData.email.split(";");
-          customerData.email = emails[0];
-          invoice.email_cc_list = emails.slice(1).map(email => ({email}));
-        }
+      if (customerData.email.match(";")) {
+        const emails: string[] = customerData.email.split(";");
+        customerData.email = emails[0];
+        invoice.email_cc_list = emails.slice(1).map(email => ({ email }));
+      }
 
-        invoice.customer = customerData;
+      invoice.customer = customerData;
 
-        const dataTaxes:string[] = taxes.split("\%02G");
-        const taxesData: TaxTotalData[] = await this.createInvoiceTaxes(dataTaxes);
+      const dataTaxes: string[] = taxes.split("\%02G");
+      const taxesData: TaxTotalData[] = await this.createInvoiceTaxes(dataTaxes);
 
-        const dataDetail:string[] = detail.split("¬03");
+      const dataDetail: string[] = detail.split("¬03");
 
-        console.log("dataDetail", dataDetail.length);
-        const invoiceLineData: InvoiceLineData[] = await this.createInvoiceLineData(dataDetail);
+      console.log("dataDetail", dataDetail.length);
+      const invoiceLineData: InvoiceLineData[] = await this.createInvoiceLineData(dataDetail);
 
-        const dataPago:string[] = payment.split("\|");  
-        const payments: PaymentFormData[] = await this.createInvoicePayment(dataPago);
+      const dataPago: string[] = payment.split("\|");
+      const payments: PaymentFormData[] = await this.createInvoicePayment(dataPago);
 
-        if(dataDiscount.length > 3){
-          const allowanceCharge: AllowanceChargeData = {
-            charge_indicator: false,
-            allowance_charge_reason: dataDiscount[2],
-            amount: parseFloat(dataDiscount[4]),
-            base_amount: parseFloat(dataDiscount[5]),
-            discount_id: 11,
-          };
-          invoice.allowance_charges = [allowanceCharge];
-          legalMonetaryTotal.allowance_total_amount = parseFloat(dataDiscount[4]);
-        }
+      if (dataDiscount.length > 3) {
+        const allowanceCharge: AllowanceChargeData = {
+          charge_indicator: false,
+          allowance_charge_reason: dataDiscount[2],
+          amount: parseFloat(dataDiscount[4]),
+          base_amount: parseFloat(dataDiscount[5]),
+          discount_id: 11,
+        };
+        invoice.allowance_charges = [allowanceCharge];
+        legalMonetaryTotal.allowance_total_amount = parseFloat(dataDiscount[4]);
+      }
 
-        invoice.legal_monetary_totals = legalMonetaryTotal;
-        invoice.customer = customerData;
-        invoice.tax_totals = taxesData;
-        invoice.invoice_lines = invoiceLineData;
-        invoice.payment_form = payments;
+      invoice.legal_monetary_totals = legalMonetaryTotal;
+      invoice.customer = customerData;
+      invoice.tax_totals = taxesData;
+      invoice.invoice_lines = invoiceLineData;
+      invoice.payment_form = payments;
 
-        invoice.sendmail = this.validateSendEmail(customerData.identification_number, customerData.email) && customerData[9] === "SI";
-        
+      invoice.sendmail = this.validateSendEmail(customerData.identification_number, customerData.email) && customerData[9] === "SI";
 
-        if(this.withHoldingTaxTotal.length > 0){
-          invoice.with_holding_tax_total = this.withHoldingTaxTotal;
-        }
-       
 
-        const response: CreateInvoiceResponse = await this.createInvoice(invoice, tokenDian);
+      if (this.withHoldingTaxTotal.length > 0) {
+        invoice.with_holding_tax_total = this.withHoldingTaxTotal;
+      }
 
-        return this.evaluateInvoiceResponse(response, prefix, number, tokenDian, nit);
 
-    }catch(error){
+      const response: CreateInvoiceResponse = await this.createInvoice(invoice, tokenDian);
+
+      return this.evaluateInvoiceResponse(response, prefix, number, tokenDian, nit);
+
+    } catch (error) {
       this.logger.error('Error al preparar la factura', error);
       throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
     }
@@ -265,136 +277,136 @@ export class InvoiceService {
     for (const detail of dataDetail) {
       //Separa cada una de las lineas de detalle
       const dataDetailLine: string[] = detail.split("\|");
-        //Separa cada uno de los datos de cada linea de detalle
+      //Separa cada uno de los datos de cada linea de detalle
 
-        const unitMeasureId: number  = await this.catalogService.getUnitMeasureIdByCode(dataDetailLine[3]);
+      const unitMeasureId: number = await this.catalogService.getUnitMeasureIdByCode(dataDetailLine[3]);
 
-        const taxTotals: TaxTotalData[] = [];
-        const AllowanceCharge: AllowanceChargeData[] = [];
-        if(dataDetailLine[46] === "DESCUENTO ITEM"){
-          const taxId:number = await this.catalogService.getTaxIdByCode(dataDetailLine[45]);
-          const taxTotal: TaxTotalData = {
-            tax_id: taxId,
-            tax_amount: parseFloat(dataDetailLine[50]),
-            percent: parseFloat(dataDetailLine[47]),
-            taxable_amount: parseFloat(dataDetailLine[44]),
+      const taxTotals: TaxTotalData[] = [];
+      const AllowanceCharge: AllowanceChargeData[] = [];
+      if (dataDetailLine[46] === "DESCUENTO ITEM") {
+        const taxId: number = await this.catalogService.getTaxIdByCode(dataDetailLine[45]);
+        const taxTotal: TaxTotalData = {
+          tax_id: taxId,
+          tax_amount: parseFloat(dataDetailLine[50]),
+          percent: parseFloat(dataDetailLine[47]),
+          taxable_amount: parseFloat(dataDetailLine[44]),
+        };
+        taxTotals.push(taxTotal);
+      } else {
+        const taxId: number = await this.catalogService.getTaxIdByCode(dataDetailLine[57]);
+        const taxTotal: TaxTotalData = {
+          tax_id: taxId,
+          tax_amount: parseFloat(dataDetailLine[62]),
+          percent: parseFloat(dataDetailLine[59]),
+          taxable_amount: parseFloat(dataDetailLine[56]),
+        };
+        taxTotals.push(taxTotal);
+
+        const discountId: number = await this.catalogService.getDiscountIdByCode(dataDetailLine[44]);
+        const allowanceCharge: AllowanceChargeData = {
+          charge_indicator: false,
+          allowance_charge_reason: dataDetailLine[45],
+          amount: parseFloat(dataDetailLine[47]),
+          base_amount: parseFloat(dataDetailLine[48]),
+          discount_id: discountId,
+        };
+        AllowanceCharge.push(allowanceCharge);
+      }
+
+      const typeItemIdentificationId: number = await this.catalogService.getTypeItemIdentificationIdByCode(dataDetailLine[11]);
+
+      const invoiceLine: InvoiceLineData = {
+        unit_measure_id: unitMeasureId,
+        invoiced_quantity: parseFloat(dataDetailLine[4]),
+        line_extension_amount: parseFloat(dataDetailLine[27]),
+        tax_totals: taxTotals,
+        description: dataDetailLine[9],
+        code: dataDetailLine[7],
+        type_item_identification_id: typeItemIdentificationId,
+        price_amount: parseFloat(dataDetailLine[26]),
+        base_quantity: parseFloat(dataDetailLine[2]),
+        free_of_charge_indicator: true,
+        reference_price_id: 3,
+        allowance_charges: AllowanceCharge,
+      };
+
+      if (dataDetailLine.length > 59) {
+        if (dataDetailLine[58] === "02") {
+
+          const taxTotal2: TaxTotalData = {
+            tax_id: 15,
+            tax_amount: parseFloat(dataDetailLine[63]),
+            percent: parseFloat(dataDetailLine[60]),
+            taxable_amount: parseFloat(dataDetailLine[57]),
           };
-          taxTotals.push(taxTotal);
-        }else{
-          const taxId:number = await this.catalogService.getTaxIdByCode(dataDetailLine[57]);
+          taxTotals.push(taxTotal2);
+        }
+
+        if (dataDetailLine[58] === "22") {
+          const taxTotal2: TaxTotalData = {
+            tax_id: 10,
+            tax_amount: parseFloat(dataDetailLine[63]),
+            percent: 0,
+            taxable_amount: 0,
+            base_unit_measure: 1,
+            per_unit_amount: parseFloat(dataDetailLine[62]),
+            unit_measure_id: 70,
+          };
+          taxTotals.push(taxTotal2);
+
+          const allowanceCharges: AllowanceChargeData[] = [];
+
+          const allowanceCharge: AllowanceChargeData = {
+            allowance_charge_reason: "DESCUENTO GENERAL",
+            amount: 0,
+            base_amount: parseFloat(dataDetailLine[26]),
+          };
+          allowanceCharges.push(allowanceCharge);
+
+          invoiceLine.allowance_charges = allowanceCharges;
+          invoiceLine.free_of_charge_indicator = true;
+          invoiceLine.reference_price_id = 3;
+          invoiceLine.tax_totals = taxTotals;
+          invoiceLine.base_quantity = 1;
+        }
+
+        if (dataDetailLine[55] === "\$\$03C") {
+          const taxtId: number = await this.catalogService.getTaxIdByCode(dataDetailLine[57]);
           const taxTotal: TaxTotalData = {
-            tax_id: taxId,
+            tax_id: taxtId,
             tax_amount: parseFloat(dataDetailLine[62]),
             percent: parseFloat(dataDetailLine[59]),
             taxable_amount: parseFloat(dataDetailLine[56]),
           };
           taxTotals.push(taxTotal);
+        }
+      }
 
-          const discountId:number = await this.catalogService.getDiscountIdByCode(dataDetailLine[44]);
-          const allowanceCharge: AllowanceChargeData = {
-            charge_indicator: false,
-            allowance_charge_reason: dataDetailLine[45],
-            amount: parseFloat(dataDetailLine[47]),
-            base_amount: parseFloat(dataDetailLine[48]),
-            discount_id: discountId,
+      if (dataDetailLine.length > 70) {
+        if (dataDetailLine[70] === "02") {
+          const taxTotal: TaxTotalData = {
+            tax_id: 19,
+            tax_amount: parseFloat(dataDetailLine[75]),
+            percent: parseFloat(dataDetailLine[72]),
+            taxable_amount: parseFloat(dataDetailLine[69]),
+            base_unit_measure: 1,
+            per_unit_amount: parseFloat(dataDetailLine[75]),
+            unit_measure_id: 70,
           };
-          AllowanceCharge.push(allowanceCharge);
+          taxTotals.push(taxTotal);
         }
+      }
 
-        const typeItemIdentificationId: number = await this.catalogService.getTypeItemIdentificationIdByCode(dataDetailLine[11]); 
+      invoiceLine.allowance_charges = AllowanceCharge;
+      invoiceLine.tax_totals = taxTotals;
 
-        const invoiceLine: InvoiceLineData = {
-          unit_measure_id: unitMeasureId,
-          invoiced_quantity: parseFloat(dataDetailLine[4]),
-            line_extension_amount: parseFloat(dataDetailLine[27]),
-            tax_totals: taxTotals,
-            description: dataDetailLine[9],
-            code: dataDetailLine[7],
-            type_item_identification_id: typeItemIdentificationId,
-            price_amount: parseFloat(dataDetailLine[26]),
-            base_quantity: parseFloat(dataDetailLine[2]),
-            free_of_charge_indicator: true,
-            reference_price_id: 3,
-            allowance_charges: AllowanceCharge,
-          };
+      if (invoiceLine.invoiced_quantity === 0) {
+        invoiceLine.invoiced_quantity = 1;
+        invoiceLine.base_quantity = 1;
+      }
 
-        if (dataDetailLine.length > 59) {
-          if (dataDetailLine[58] === "02" ) {
+      invoiceLineData.push(invoiceLine);
 
-              const taxTotal2:TaxTotalData = {
-                tax_id: 15,
-                tax_amount: parseFloat(dataDetailLine[63]),
-                percent: parseFloat(dataDetailLine[60]),
-                taxable_amount: parseFloat(dataDetailLine[57]),
-              };
-              taxTotals.push(taxTotal2);
-          }
-
-          if (dataDetailLine[58] === "22") {
-              const taxTotal2: TaxTotalData = {
-                tax_id: 10,
-                tax_amount: parseFloat(dataDetailLine[63]),
-                percent: 0,
-                taxable_amount: 0,
-                base_unit_measure: 1,
-                per_unit_amount: parseFloat(dataDetailLine[62]),
-                unit_measure_id: 70,
-              };
-              taxTotals.push(taxTotal2);
-
-              const allowanceCharges: AllowanceChargeData[] = [];
-
-              const allowanceCharge: AllowanceChargeData = {
-                allowance_charge_reason: "DESCUENTO GENERAL",
-                amount: 0,
-                base_amount: parseFloat(dataDetailLine[26]),
-              };
-              allowanceCharges.push(allowanceCharge);
-
-              invoiceLine.allowance_charges = allowanceCharges;
-              invoiceLine.free_of_charge_indicator = true;
-              invoiceLine.reference_price_id = 3;
-              invoiceLine.tax_totals = taxTotals;
-              invoiceLine.base_quantity = 1;
-          }
-
-          if(dataDetailLine[55] === "\$\$03C"){
-            const taxtId:number = await this.catalogService.getTaxIdByCode(dataDetailLine[57]);
-            const taxTotal: TaxTotalData = {
-              tax_id: taxtId,
-              tax_amount: parseFloat(dataDetailLine[62]),
-              percent: parseFloat(dataDetailLine[59]),
-              taxable_amount: parseFloat(dataDetailLine[56]),
-            };
-            taxTotals.push(taxTotal);
-          }
-        }
-
-        if(dataDetailLine.length> 70){
-          if(dataDetailLine[70] === "02"){
-            const taxTotal: TaxTotalData = {
-              tax_id: 19,
-              tax_amount: parseFloat(dataDetailLine[75]),
-              percent: parseFloat(dataDetailLine[72]),
-              taxable_amount: parseFloat(dataDetailLine[69]),
-              base_unit_measure: 1,
-              per_unit_amount: parseFloat(dataDetailLine[75]),
-              unit_measure_id: 70,
-            };
-            taxTotals.push(taxTotal);
-          }
-        }
-        
-        invoiceLine.allowance_charges = AllowanceCharge;
-        invoiceLine.tax_totals = taxTotals;
-
-          if(invoiceLine.invoiced_quantity === 0){
-            invoiceLine.invoiced_quantity = 1;
-            invoiceLine.base_quantity = 1;
-          }
-          
-          invoiceLineData.push(invoiceLine);
-      
     }
     return invoiceLineData;
   }
@@ -405,12 +417,12 @@ export class InvoiceService {
    * @returns Datos del cliente 
    */
   private async createCustomer(dataCustomer: string[]): Promise<CustomerDataDto> {
-    const typeDocumentIdentificationId:number = await this.catalogService.getDocumentTypeIdByCode(dataCustomer[6]);
-    const typeLiabilityId:number = await this.catalogService.getLiabilityTypeIdByCode(dataCustomer[44]);
-    const typeRegimeId:number = await this.catalogService.getRegimeTypeIdByCode(dataCustomer[45]);
+    const typeDocumentIdentificationId: number = await this.catalogService.getDocumentTypeIdByCode(dataCustomer[6]);
+    const typeLiabilityId: number = await this.catalogService.getLiabilityTypeIdByCode(dataCustomer[44]);
+    const typeRegimeId: number = await this.catalogService.getRegimeTypeIdByCode(dataCustomer[45]);
     let codeMunicipality = dataCustomer[66];
 
-    if(codeMunicipality.length === 4){
+    if (codeMunicipality.length === 4) {
       codeMunicipality = "0" + codeMunicipality;
     }
     const municipalityId = await this.catalogService.getMunicipalityByCode(codeMunicipality);
@@ -422,19 +434,19 @@ export class InvoiceService {
 
     if (phone === "" || phone === " " || phone === null || phone === undefined) {
       phone = "5781818";
-  }
+    }
 
-  if (address === "" || address === " " || address === null || address === undefined) {
+    if (address === "" || address === " " || address === null || address === undefined) {
       address = "Sin Dirección";
-  }
+    }
 
-  if (email === "" || email === " " || email === null || email === undefined) {
+    if (email === "" || email === " " || email === null || email === undefined) {
       email = "sinemail@gmail.com";
-  }
+    }
 
-  if (dv === "" || dv === " " || dv === undefined || dataCustomer[5].includes("22222")) {
+    if (dv === "" || dv === " " || dv === undefined || dataCustomer[5].includes("22222")) {
       dv = null;
-  }
+    }
 
     const customer: CustomerDataDto = {
       identification_number: dataCustomer[5],
@@ -463,9 +475,9 @@ export class InvoiceService {
 
     for (const tax of dataTaxes) {
 
-      const dataTax:string[] = tax.split("\|");
+      const dataTax: string[] = tax.split("\|");
 
-      const taxId:number = await this.catalogService.getTaxIdByCode(dataTax[2]);
+      const taxId: number = await this.catalogService.getTaxIdByCode(dataTax[2]);
 
       let taxTotal: TaxTotalData = {
         tax_id: taxId,
@@ -484,19 +496,19 @@ export class InvoiceService {
       }
 
       if (taxId === 10) {
-       taxTotal = {
-        tax_id: 10,
-        tax_amount: parseFloat(dataTax[7]),
-        percent: 0,
-        taxable_amount: parseFloat(dataTax[1]),
-        base_unit_measure: 1,
-        per_unit_amount: parseFloat(dataTax[6]),
-        unit_measure_id: 70,
-       }
-       taxes.push(taxTotal);
-      } else if ([7,5,6].includes(taxId)) {
+        taxTotal = {
+          tax_id: 10,
+          tax_amount: parseFloat(dataTax[7]),
+          percent: 0,
+          taxable_amount: parseFloat(dataTax[1]),
+          base_unit_measure: 1,
+          per_unit_amount: parseFloat(dataTax[6]),
+          unit_measure_id: 70,
+        }
+        taxes.push(taxTotal);
+      } else if ([7, 5, 6].includes(taxId)) {
         this.withHoldingTaxTotal.push(taxTotal);
-      }else{
+      } else {
         taxes.push(taxTotal);
       }
 
@@ -512,8 +524,8 @@ export class InvoiceService {
   private async createInvoicePayment(dataPago: string[]): Promise<PaymentFormData[]> {
     const payments: PaymentFormData[] = [];
 
-    const paymentFormId:number = await this.catalogService.getPaymentFormIdByCode(dataPago[6]);
-    const paymentMethodId:number = await this.catalogService.getPaymentMethodIdByCode(dataPago[5]);
+    const paymentFormId: number = await this.catalogService.getPaymentFormIdByCode(dataPago[6]);
+    const paymentMethodId: number = await this.catalogService.getPaymentMethodIdByCode(dataPago[5]);
 
     if (paymentFormId === 2) {
       const paymentDate: Date = new Date();
@@ -527,7 +539,7 @@ export class InvoiceService {
       });
     }
 
-    if(parseInt(dataPago[9]) < 0){
+    if (parseInt(dataPago[9]) < 0) {
       const paymentDate: Date = new Date();
       const paymentDatePlusEightDaysString: string = paymentDate.toISOString().split("T")[0];
       payments.push({
@@ -553,8 +565,8 @@ export class InvoiceService {
    */
   private async evaluateInvoiceResponse(response: CreateInvoiceResponse, prefix: string, number: string, token: string, nit: string): Promise<any> {
 
-    if(response.ResponseDian){
-      if(response.ResponseDian.Envelope.Body.SendBillSyncResponse.SendBillSyncResult.IsValid === "true"){
+    if (response.ResponseDian) {
+      if (response.ResponseDian.Envelope.Body.SendBillSyncResponse.SendBillSyncResult.IsValid === "true") {
 
         const document: string = await this.getDocumentPDF(nit, prefix, number, token);
         return {
@@ -566,36 +578,36 @@ export class InvoiceService {
             document: document,
           }
         }
-      }else{
+      } else {
 
-          const errorMessage = response.ResponseDian.Envelope.Body.SendBillSyncResponse.SendBillSyncResult.ErrorMessage;
+        const errorMessage = response.ResponseDian.Envelope.Body.SendBillSyncResponse.SendBillSyncResult.ErrorMessage;
 
-         if(errorMessage.strings.length > 0){
+        if (errorMessage.strings.length > 0) {
           for (const error of errorMessage.strings) {
             this.logger.error(error);
           }
           throw new HttpException(errorMessage.strings, HttpStatus.INTERNAL_SERVER_ERROR);
-         }else{
+        } else {
           throw new HttpException(errorMessage.string, HttpStatus.INTERNAL_SERVER_ERROR);
-         }
+        }
       }
 
-    } else if(response.cufe){
-          const document = await this.documentRepositoryInfrastructure.findOne(prefix, number, nit);
-          if(document){
+    } else if (response.cufe) {
+      const document = await this.documentRepositoryInfrastructure.findOne(prefix, number, nit);
+      if (document) {
 
-            const documentPdf: string = await this.getDocumentPDF(nit, prefix, number, token);
-            return {
-              success: true,
-              message: "Factura registrada correctamente",
-              data: {
-                date: new Date().toISOString(),
-                cufe: document.cufe,
-                document: documentPdf,
-              }
-            } 
+        const documentPdf: string = await this.getDocumentPDF(nit, prefix, number, token);
+        return {
+          success: true,
+          message: "Factura registrada correctamente",
+          data: {
+            date: new Date().toISOString(),
+            cufe: document.cufe,
+            document: documentPdf,
           }
-              throw new HttpException("Factura registrada con otro provedor electrónico, agregue el cufe de manera manual", HttpStatus.BAD_REQUEST);     
+        }
+      }
+      throw new HttpException("Factura registrada con otro provedor electrónico, agregue el cufe de manera manual", HttpStatus.BAD_REQUEST);
     }
 
   }
@@ -609,7 +621,7 @@ export class InvoiceService {
    * @returns Documento PDF de la factura
    */
   private async getDocumentPDF(nit: string, prefix: string, number: string, token: string): Promise<string> {
-    const url = `${this.externalApiUrl.replace("\/ubl2.1", "")}/invoice/${nit}/FES-${prefix}${number}.pdf`; 
+    const url = `${this.externalApiUrl.replace("\/ubl2.1", "")}/invoice/${nit}/FES-${prefix}${number}.pdf`;
     this.logger.debug('URL del documento:', url);
     const response = await firstValueFrom(
       this.httpService.get(url, {
@@ -630,10 +642,155 @@ export class InvoiceService {
    * @returns true si el cliente tiene un email válido, false en caso contrario
    */
   private validateSendEmail(customerIdentification: string, email: string): boolean {
-    if(email === "sinemail@gmail.com"){
+    if (email === "sinemail@gmail.com") {
       return false;
     }
     return !customerIdentification.match(".*22222.*");
   }
-} 
+
+  /**
+   * Genera y envía a apidian 5 facturas y 5 notas crédito de prueba.
+   * Cada nota crédito referencia a su factura correspondiente.
+   * @param testId - NIT de la empresa (para obtener tokenDian)
+   * @returns Resultado indicando si los 10 documentos fueron aceptados correctamente
+   */
+  async generateTestInvoice(testId: string, nit: string): Promise<GenerateTestInvoiceResult> {
+    const company = await this.companyService.getCompanyByNit(nit);
+    if (!company?.tokenDian) {
+      throw new HttpException(
+        { message: 'Empresa no encontrada o sin token DIAN configurado' },
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+    const token = company.tokenDian;
+
+    const invoices: TestDocumentResult[] = [];
+    const creditNotes: TestDocumentResult[] = [];
+    const prefix = TEST_INVOICE_DATA.prefix ?? 'SETP';
+    const invoiceDate = TEST_INVOICE_DATA.date ?? new Date().toISOString().split('T')[0];
+    const nowTime = new Date().toTimeString().slice(0, 8);
+
+    for (let i = 0; i < 5; i++) {
+      const invoiceNumber = TEST_INVOICE_DATA.number + i;
+      const invoicePayload = {
+        ...TEST_INVOICE_DATA,
+        number: invoiceNumber,
+        establishment_phone: String(TEST_INVOICE_DATA.establishment_phone ?? ''),
+        customer: {
+          ...TEST_INVOICE_DATA.customer,
+          dv: TEST_INVOICE_DATA.customer.dv != null
+            ? parseInt(String(TEST_INVOICE_DATA.customer.dv), 10)
+            : undefined,
+        },
+      } as unknown as CreateInvoiceDto;
+
+      // Enviar factura
+      let invoiceAccepted = false;
+      let cufe: string | undefined;
+      let invoiceError: string | undefined;
+      try {
+        this.logger.log(`Enviando factura de prueba ${i + 1}/5 a apidian`);
+        const response = await this.createInvoice(invoicePayload, token, testId);
+        invoiceAccepted =
+          response.ResponseDian?.Envelope?.Body?.SendBillSyncResponse?.SendBillSyncResult?.IsValid === 'true' ||
+          !!response.cufe;
+        cufe = response.cufe;
+        if (invoiceAccepted) {
+          this.logger.log(`Factura ${prefix}${invoiceNumber} enviada correctamente`);
+        } else {
+          invoiceError = response.message ?? 'Respuesta no válida de la DIAN';
+        }
+      } catch (err: any) {
+        invoiceError = err?.response?.data?.message ?? err?.message ?? 'Error al enviar factura';
+        this.logger.error(`Error factura ${invoiceNumber}: ${invoiceError}`);
+      }
+      invoices.push({
+        index: i + 1,
+        number: `${prefix}${invoiceNumber}`,
+        accepted: invoiceAccepted,
+        cufe,
+        error: invoiceError,
+      });
+
+      // Enviar nota crédito que referencia esta factura
+      let creditNoteAccepted = false;
+      let creditNoteError: string | undefined;
+      const creditNoteNumber = (TEST_CREDIT_NOTE_DATA.number ?? 0) + i;
+      const billing_reference: BillingReferenceDto = {
+        number: `${prefix}${invoiceNumber}`,
+        uuid: cufe ?? '',
+        issue_date: invoiceDate,
+      };
+
+      try {
+        this.logger.log(`Enviando nota crédito de prueba ${i + 1}/5 a apidian`);
+        const cnResponse = await this.sendCreditNoteToApidian(
+          {
+            ...TEST_CREDIT_NOTE_DATA,
+            date: invoiceDate,
+            time: nowTime,
+            number: creditNoteNumber,
+            billing_reference,
+          },
+          token,
+        );
+        creditNoteAccepted =
+          cnResponse?.ResponseDian?.Envelope?.Body?.SendBillSyncResponse?.SendBillSyncResult?.IsValid === 'true' ||
+          !!cnResponse?.cufe ||
+          (typeof cnResponse?.message === 'string' && cnResponse.message.includes('ya fue enviado'));
+        if (!creditNoteAccepted && !creditNoteError) {
+          creditNoteError = cnResponse?.message ?? 'Respuesta no válida de la DIAN';
+        }
+      } catch (err: any) {
+        creditNoteError = err?.response?.data?.message ?? err?.message ?? 'Error al enviar nota crédito';
+        this.logger.error(`Error nota crédito ${creditNoteNumber}: ${creditNoteError}`);
+      }
+      creditNotes.push({
+        index: i + 1,
+        number: `NC${creditNoteNumber}`,
+        accepted: creditNoteAccepted,
+        error: creditNoteError,
+      });
+    }
+
+    const acceptedCount = invoices.filter((d) => d.accepted).length + creditNotes.filter((d) => d.accepted).length;
+    const allAccepted = acceptedCount === 10;
+
+    return {
+      allAccepted,
+      totalDocuments: 10,
+      acceptedCount,
+      invoices,
+      creditNotes,
+      message: allAccepted
+        ? 'Los 10 documentos (5 facturas y 5 notas crédito) fueron aceptados correctamente.'
+        : `Se aceptaron ${acceptedCount} de 10 documentos. Revisar invoices y creditNotes para detalles.`,
+    };
+  }
+
+  /**
+   * Envía una nota crédito al servicio apidian.
+   * @returns Respuesta del servicio (para validar IsValid/cufe)
+   */
+  private async sendCreditNoteToApidian(
+    data: CreditNoteRequestDto,
+    token: string,
+  ): Promise<{ ResponseDian?: any; cufe?: string; message?: string }> {
+    const response = await firstValueFrom(
+      this.httpService.post<{ ResponseDian?: any; cufe?: string; message?: string }>(
+        `${this.externalApiUrl}/credit-note`,
+        data,
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            Accept: 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          timeout: 120000,
+        },
+      ),
+    );
+    return response.data;
+  }
+}
 
