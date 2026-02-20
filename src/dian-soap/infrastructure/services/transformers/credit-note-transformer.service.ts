@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { DocumentTransformer } from './document-transformer.interface';
-import { DocumentoReferenciadoDto, DocumentosReferenciadosDto, FacturaDetalleDto, FacturaGeneralDto } from '../../../presentation/dtos/request/factura-general.dto';
+import { DocumentoReferenciadoDto, FacturaDetalleDto, FacturaGeneralDto } from '../../../presentation/dtos/request/factura-general.dto';
 import { CreditNoteRequestDto } from '@/credit-note/domain/interfaces/credit-note.interface';
 import { GenerateDataService } from '@/common/infrastructure/services/generate-data.service';
 import { CatalogService } from '@/catalog/application/services/catalog.service';
@@ -90,7 +90,7 @@ export class CreditNoteTransformerService implements DocumentTransformer<CreditN
       number: parseInt(number),
       date,
       time,
-      send_mail: sendMail,
+      sendmail: sendMail,
       email_cc_list: cc,
       customer,
       credit_note_lines: creditNoteLines,

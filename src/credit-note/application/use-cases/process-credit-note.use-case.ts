@@ -147,7 +147,7 @@ export class ProcessCreditNoteUseCase implements DocumentProcessorPort {
       type_operation_id: typeOperationId,
       head_note: headNote,
       resolution_number: resolutionNumber,
-      send_mail: sendmail,
+      sendmail: sendmail,
       billing_reference: billingReference,
       legal_monetary_totals: legalMonetaryTotals,
       customer: customerDto,
