@@ -11,6 +11,7 @@ import { CompanyService } from '@/company/application/services/company.service';
 
 import { CommonModule } from '@/common/common.module';
 import { CatalogModule } from '@/catalog/catalog.module';
+import { ResolutionsModule } from '@/resolutions/resolutions.module';
 
 import { Company } from '@/company/domain/entities/company.entity';
 import { Certificate } from '@/certificates/domain/entities/certificate.entity';
@@ -22,6 +23,7 @@ import { UserDian } from '@/auth/domain/entities/userDian.entity';
     JwtModule,
     CommonModule,
     CatalogModule,
+    ResolutionsModule,
     TypeOrmModule.forFeature([
       Company,
       Certificate,
