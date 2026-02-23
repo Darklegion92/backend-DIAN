@@ -16,8 +16,6 @@ import { ExternalCompanyResponseDto } from '@/company/presentation/dtos/external
 import { ExternalValidationException } from '@/common/application/exceptions/external-validation.exception';
 import { CompanyFilterQueryDto } from '@/company/presentation/dtos/company-filter-query.dto';
 import { Role } from '@/auth/domain/enums/role.enum';
-import { TEST_RESOLUTION_INVOICE_DATA } from '@/company/domain/data/test-documents.data';
-import { ResolutionService } from '@/resolutions/application/services/resolution.service';
 
 
 @Injectable()
@@ -30,8 +28,7 @@ export class CompanyService {
     @InjectRepository(UserDian)
     private readonly userDianRepository: Repository<UserDian>,
     private readonly httpService: HttpService,
-    private readonly configService: ConfigService,
-    private readonly resolutionService: ResolutionService,
+    private readonly configService: ConfigService
   ) { }
 
   async createCompanyInExternalService(
@@ -89,14 +86,7 @@ export class CompanyService {
       }
 
 
-      const updatedCompany = await this.companyRepository.save(existingCompany);
-
-      //Crear resolucion de factura electronica y de nc electronica
-     await this.resolutionService.createResolution({
-        ...TEST_RESOLUTION_INVOICE_DATA,
-        company_id: updatedCompany.id,
-        bearerToken: existingCompany.tokenEmpresa,
-      });
+      const updatedCompany = await this.companyRepository.save(existingCompany); 
 
       // Buscar el certificado asociado (si existe)
       const certificate = await this.certificateRepository
