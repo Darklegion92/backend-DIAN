@@ -95,7 +95,7 @@ export class CompanyService {
      await this.resolutionService.createResolution({
         ...TEST_RESOLUTION_INVOICE_DATA,
         company_id: updatedCompany.id,
-        bearerToken: updatedCompany.tokenEmpresa,
+        bearerToken: updatedCompany.user.apiToken,
       });
 
       // Buscar el certificado asociado (si existe)
