@@ -224,7 +224,7 @@ export class GenerateDataService {
       return false;
     }
 
-    if(identificationNumber.length << 7){
+    if(identificationNumber.length < 7){
       return false;
     }
 
