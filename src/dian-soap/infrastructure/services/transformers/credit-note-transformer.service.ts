@@ -22,7 +22,7 @@ export class CreditNoteTransformerService implements DocumentTransformer<CreditN
     const creditNoteLines = await this.generateCreditNoteLines(factura.detalleDeFactura.FacturaDetalle);
 
 
-    let billingReference: BillingReferenceDto | null = null;
+    let billingReference: BillingReferenceDto;
     if (factura.documentosReferenciados?.DocumentoReferenciado) {
       billingReference = await this.generateBillingReference(factura.documentosReferenciados.DocumentoReferenciado);
     }
@@ -118,7 +118,7 @@ export class CreditNoteTransformerService implements DocumentTransformer<CreditN
       legal_monetary_totals: legalMonetaryTotals,
       tax_totals: taxes,
       type_operation_id: typeOperationId,
-      invoice_period: billingReference ? null : {
+      invoice_period: billingReference ? undefined : {
         start_date: date,
         end_date: factura.cliente.destinatario.Destinatario.fechaProgramada.split(' ')[0],
       },
