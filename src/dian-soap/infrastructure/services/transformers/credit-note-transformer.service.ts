@@ -22,56 +22,56 @@ export class CreditNoteTransformerService implements DocumentTransformer<CreditN
     const creditNoteLines = await this.generateCreditNoteLines(factura.detalleDeFactura.FacturaDetalle);
 
     const billingReference = await this.generateBillingReference(factura.documentosReferenciados.DocumentoReferenciado);
-    
-    const { taxes } = await this.generateDataService.generateTaxtotals(factura.impuestosGenerales.FacturaImpuestos, this.catalogService);
 
     const typeOperationId = await this.catalogService.getTypeOperationIdByCode(factura.tipoOperacion);
 
-
-    const legalMonetaryTotals: LegalMonetaryTotalsDto = {
-      line_extension_amount: Number(factura.totalBaseImponible),
-      tax_exclusive_amount: Number(factura.totalSinImpuestos),
-      tax_inclusive_amount: Number(factura.totalBrutoConImpuesto),
-      payable_amount: Number(factura.totalMonto),
-      allowance_total_amount: Number(factura.totalDescuentos),
-      charge_total_amount: Number(factura.totalCargosAplicados),
-    };
-
-
-    const totalTaxes: number = taxes.reduce((acc, tax) => acc + (tax.percent === 0 ? tax.taxable_amount : 0), 0);
-    const totalTaxesDetail: number = creditNoteLines.reduce((acc, line) => acc + (line.tax_totals.reduce((acc, tax) => acc + (tax.percent === 0 && tax.tax_id === 1 ? tax.taxable_amount : 0), 0)), 0);
-
-
-    if (totalTaxes !== totalTaxesDetail) {
-      const diff = totalTaxesDetail - totalTaxes;
-
-      const existTaxZero = taxes.some(tax => tax.percent === 0 && tax.tax_id === 1);
-      if(!existTaxZero){
-        for(const line of creditNoteLines){
-          if(line.tax_totals.some(tax => tax.percent === 0 && tax.tax_id === 1)){
-            if(line.tax_totals.length > 1){
-              line.tax_totals = line.tax_totals.filter(tax => tax.tax_id !== 1);
-            }else{
-              legalMonetaryTotals.tax_exclusive_amount = legalMonetaryTotals.tax_exclusive_amount - line.tax_totals[0].taxable_amount;
-              delete line.tax_totals;
-            }
-          }
-        }
-      
-      }else{
-
-      const index = creditNoteLines.findIndex(line => line.tax_totals.some(tax => tax.percent === 0 && tax.tax_id === 1 && tax.taxable_amount === diff));
-      if (index !== -1) {
-        if(creditNoteLines[index].tax_totals.length > 1){
-          creditNoteLines[index].tax_totals = creditNoteLines[index].tax_totals.filter(tax => tax.tax_id !== 1);
-        }else{
-          legalMonetaryTotals.tax_exclusive_amount = legalMonetaryTotals.tax_exclusive_amount - diff;
-          delete creditNoteLines[index].tax_totals;
+    // CAU02/CAU04: Totales derivados de las líneas (Base Imponible = suma bases líneas; Valor Bruto = suma line_extension)
+    const lineExtensionSum = creditNoteLines.reduce((sum, line) => sum + Number(line.line_extension_amount ?? 0), 0);
+    const taxMap = new Map<string, { tax_id?: number; percent?: number; taxable_amount: number; tax_amount: number; unit_measure_id?: number }>();
+    for (const line of creditNoteLines) {
+      for (const t of line.tax_totals ?? []) {
+        const key = `${t.tax_id ?? 0}-${t.percent ?? 0}`;
+        const taxable = Number(t.taxable_amount) || 0;
+        const amount = Number(t.tax_amount) || 0;
+        const existing = taxMap.get(key);
+        if (!existing) {
+          taxMap.set(key, {
+            tax_id: t.tax_id,
+            percent: t.percent,
+            taxable_amount: taxable,
+            tax_amount: amount,
+            unit_measure_id: t.unit_measure_id,
+          });
+        } else {
+          existing.taxable_amount += taxable;
+          existing.tax_amount += amount;
         }
       }
     }
+    const taxes = Array.from(taxMap.values()).map((t) => {
+      const taxAmount =
+        (t.percent ?? 0) === 0
+          ? t.tax_amount
+          : Math.round((t.taxable_amount * (t.percent ?? 0)) / 100 * 100) / 100;
+      return {
+        tax_id: t.tax_id,
+        percent: t.percent,
+        taxable_amount: Math.round(t.taxable_amount * 100) / 100,
+        tax_amount: taxAmount,
+        unit_measure_id: t.unit_measure_id,
+      };
+    });
+    const sumTaxes = taxes.reduce((sum, t) => sum + Number(t.tax_amount ?? 0), 0);
+    const payableAmount = Math.round((lineExtensionSum + sumTaxes) * 100) / 100;
 
-    }
+    const legalMonetaryTotals: LegalMonetaryTotalsDto = {
+      line_extension_amount: Math.round(lineExtensionSum * 100) / 100,
+      tax_exclusive_amount: Math.round(lineExtensionSum * 100) / 100,
+      tax_inclusive_amount: payableAmount,
+      payable_amount: payableAmount,
+      allowance_total_amount: Number(factura.totalDescuentos),
+      charge_total_amount: Number(factura.totalCargosAplicados),
+    };
 
     const sendMail = await this.generateDataService.sendEmail(customer.email, customer.identification_number.toString(), number);
 
