@@ -23,7 +23,7 @@ export class CreditNoteTransformerService implements DocumentTransformer<CreditN
 
 
     let billingReference: BillingReferenceDto | null = null;
-    if(factura.documentosReferenciados?.DocumentoReferenciado){
+    if (factura.documentosReferenciados?.DocumentoReferenciado) {
       billingReference = await this.generateBillingReference(factura.documentosReferenciados.DocumentoReferenciado);
     }
 
@@ -97,7 +97,7 @@ export class CreditNoteTransformerService implements DocumentTransformer<CreditN
 
     const emails = customer.email.split(';');
     let cc = [];
-    if(emails.length > 1){
+    if (emails.length > 1) {
       customer.email = emails[0];
       cc = emails.slice(1).map(email => ({ email }));
     }
@@ -118,7 +118,11 @@ export class CreditNoteTransformerService implements DocumentTransformer<CreditN
       legal_monetary_totals: legalMonetaryTotals,
       tax_totals: taxes,
       type_operation_id: typeOperationId,
-      notes: factura.informacionAdicional?.string === 'string'  ? factura.informacionAdicional.string : factura.informacionAdicional?.string[0]
+      invoice_period: billingReference ? null : {
+        start_date: date,
+        end_date: factura.cliente.destinatario.Destinatario.fechaProgramada.split(' ')[0],
+      },
+      notes: factura.informacionAdicional?.string === 'string' ? factura.informacionAdicional.string : factura.informacionAdicional?.string[0]
     };
   }
 
@@ -160,7 +164,7 @@ export class CreditNoteTransformerService implements DocumentTransformer<CreditN
 
       const unitMeasureId = await this.catalogService.getUnitMeasureIdByCode(notaCreditoDetalle.unidadMedida);
       const typeItemIdentificationId = await this.catalogService.getTypeItemIdentificationIdByCode(notaCreditoDetalle.estandarCodigoProducto);
-      const { taxes } = await this.generateDataService.generateTaxtotals(notaCreditoDetalle.impuestosDetalles.FacturaImpuestos, this.catalogService, Number(notaCreditoDetalle.cantidadUnidades));     
+      const { taxes } = await this.generateDataService.generateTaxtotals(notaCreditoDetalle.impuestosDetalles.FacturaImpuestos, this.catalogService, Number(notaCreditoDetalle.cantidadUnidades));
 
       invoiceLines.push({
         unit_measure_id: unitMeasureId,

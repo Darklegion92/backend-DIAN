@@ -487,7 +487,7 @@ export interface PrepaidPaymentDto {
 export interface InvoicePeriodDto {
   start_date: string;
   end_date: string;
-  start_time: string;
-  end_time: string;
+  start_time?: string;
+  end_time?: string;
 }
 
