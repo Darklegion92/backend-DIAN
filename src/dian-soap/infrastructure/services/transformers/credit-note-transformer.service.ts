@@ -25,13 +25,17 @@ export class CreditNoteTransformerService implements DocumentTransformer<CreditN
 
     const typeOperationId = await this.catalogService.getTypeOperationIdByCode(factura.tipoOperacion);
 
-    // CAX07: Tributo = precio unitario del impuesto × cantidad de ítems
+    // CAX07: Tributo = precio unitario del impuesto × cantidad de ítems vendidos
+    const qtySold = (line: LineDto) => Number(line.invoiced_quantity) || 0;
     for (const line of creditNoteLines) {
+      const quantitySold = qtySold(line);
       for (const t of line.tax_totals ?? []) {
         const perUnit = t.per_unit_amount != null ? Number(t.per_unit_amount) : NaN;
-        const qty = t.base_unit_measure != null ? Number(t.base_unit_measure) : Number(line.invoiced_quantity) || 0;
-        if (!Number.isNaN(perUnit) && perUnit > 0 && qty > 0) {
-          t.tax_amount = Math.round(perUnit * qty * 100) / 100;
+        if (!Number.isNaN(perUnit) && perUnit > 0 && quantitySold > 0) {
+          t.tax_amount = Math.round(perUnit * quantitySold * 100) / 100;
+        }
+        if ((t.percent ?? 0) === 0 && (t.tax_id === 2 || t.per_unit_amount != null) && quantitySold > 0 && t.taxable_amount === 0) {
+          t.base_unit_measure = quantitySold;
         }
       }
     }
@@ -131,7 +135,7 @@ export class CreditNoteTransformerService implements DocumentTransformer<CreditN
       for (const detalle of notaCreditoDetalle) {
         const unitMeasureId = await this.catalogService.getUnitMeasureIdByCode(detalle.unidadMedida);
         const typeItemIdentificationId = await this.catalogService.getTypeItemIdentificationIdByCode(detalle.estandarCodigoProducto);
-        const { taxes } = await this.generateDataService.generateTaxtotals(detalle.impuestosDetalles.FacturaImpuestos, this.catalogService);
+        const { taxes } = await this.generateDataService.generateTaxtotals(detalle.impuestosDetalles.FacturaImpuestos, this.catalogService, Number(detalle.cantidadUnidades));
 
 
         invoiceLines.push({
@@ -151,7 +155,7 @@ export class CreditNoteTransformerService implements DocumentTransformer<CreditN
 
       const unitMeasureId = await this.catalogService.getUnitMeasureIdByCode(notaCreditoDetalle.unidadMedida);
       const typeItemIdentificationId = await this.catalogService.getTypeItemIdentificationIdByCode(notaCreditoDetalle.estandarCodigoProducto);
-      const { taxes } = await this.generateDataService.generateTaxtotals(notaCreditoDetalle.impuestosDetalles.FacturaImpuestos, this.catalogService);     
+      const { taxes } = await this.generateDataService.generateTaxtotals(notaCreditoDetalle.impuestosDetalles.FacturaImpuestos, this.catalogService, Number(notaCreditoDetalle.cantidadUnidades));     
 
       invoiceLines.push({
         unit_measure_id: unitMeasureId,
