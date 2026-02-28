@@ -236,7 +236,7 @@ export interface MedioDePagoDto {
 }
 
 export interface DocumentosReferenciadosDto {
-  DocumentoReferenciado: DocumentoReferenciadoDto | DocumentoReferenciadoDto[];
+  DocumentoReferenciado?: DocumentoReferenciadoDto | DocumentoReferenciadoDto[];
 }
 
 export interface DocumentoReferenciadoDto {

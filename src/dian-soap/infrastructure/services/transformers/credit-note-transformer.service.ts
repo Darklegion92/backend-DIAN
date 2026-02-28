@@ -21,7 +21,12 @@ export class CreditNoteTransformerService implements DocumentTransformer<CreditN
 
     const creditNoteLines = await this.generateCreditNoteLines(factura.detalleDeFactura.FacturaDetalle);
 
-    const billingReference = await this.generateBillingReference(factura.documentosReferenciados.DocumentoReferenciado);
+
+    let billingReference: BillingReferenceDto | null = null;
+    if(factura.documentosReferenciados?.DocumentoReferenciado){
+      billingReference = await this.generateBillingReference(factura.documentosReferenciados.DocumentoReferenciado);
+    }
+
 
     const typeOperationId = await this.catalogService.getTypeOperationIdByCode(factura.tipoOperacion);
 
