@@ -211,9 +211,9 @@ export class GenerateDataService {
   sendEmail(email: string, identificationNumber: string, code?: string): boolean {
 
 
-    if (code === "11") {
+   /* if (code === "11") {
       return false
-    }
+    }*/
 
     if (!email) {
       return false;
