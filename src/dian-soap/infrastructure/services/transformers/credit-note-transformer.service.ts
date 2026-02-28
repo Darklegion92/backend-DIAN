@@ -25,6 +25,17 @@ export class CreditNoteTransformerService implements DocumentTransformer<CreditN
 
     const typeOperationId = await this.catalogService.getTypeOperationIdByCode(factura.tipoOperacion);
 
+    // CAX07: Tributo = precio unitario del impuesto × cantidad de ítems
+    for (const line of creditNoteLines) {
+      for (const t of line.tax_totals ?? []) {
+        const perUnit = t.per_unit_amount != null ? Number(t.per_unit_amount) : NaN;
+        const qty = t.base_unit_measure != null ? Number(t.base_unit_measure) : Number(line.invoiced_quantity) || 0;
+        if (!Number.isNaN(perUnit) && perUnit > 0 && qty > 0) {
+          t.tax_amount = Math.round(perUnit * qty * 100) / 100;
+        }
+      }
+    }
+
     // CAU02/CAU04: Totales derivados de las líneas (Base Imponible = suma bases líneas; Valor Bruto = suma line_extension)
     const lineExtensionSum = creditNoteLines.reduce((sum, line) => sum + Number(line.line_extension_amount ?? 0), 0);
     const taxMap = new Map<string, { tax_id?: number; percent?: number; taxable_amount: number; tax_amount: number; unit_measure_id?: number }>();
