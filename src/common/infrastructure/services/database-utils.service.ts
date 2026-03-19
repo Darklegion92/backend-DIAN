@@ -8,6 +8,8 @@ import { DataSource } from 'typeorm';
  */
 @Injectable()
 export class DatabaseUtilsService {
+  private cache = new Map<string, number>();
+
   constructor(
     @InjectDataSource() private readonly dataSource: DataSource
   ) { }
@@ -27,6 +29,12 @@ export class DatabaseUtilsService {
         return null;
       }
 
+      // 1. Verificar cache antes de consultar BD (Alta concurrencia)
+      const cacheKey = `${tableName}:${code}`;
+      if (this.cache.has(cacheKey)) {
+        return this.cache.get(cacheKey);
+      }
+
       // Convertir code a number (como en el método Java original)
       const numericCode = parseInt(code, 10);
       if (isNaN(numericCode)) {
@@ -37,9 +45,12 @@ export class DatabaseUtilsService {
       const query = `SELECT id FROM ?? WHERE code = ?`;
       const result = await this.dataSource.query(query, [tableName, numericCode]);
 
-      // Retornar resultado (igual que el método Java)
+      // Retornar resultado
       if (result && result.length > 0) {
-        return parseInt(result[0].id.toString());
+        const id = parseInt(result[0].id.toString());
+        // 2. Almacenar en cache para futuras consultas
+        this.cache.set(cacheKey, id);
+        return id;
       }
 
       return null;

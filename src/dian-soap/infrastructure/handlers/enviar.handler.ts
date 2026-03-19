@@ -26,7 +26,7 @@ export class EnviarHandler {
     const requestId = Date.now().toString();
     soapLogger.info('Recibida solicitud Enviar', {
       requestId,
-      args: JSON.stringify(args)
+      consecutivo: args.factura?.consecutivoDocumento
     });
 
     try {
@@ -75,8 +75,6 @@ export class EnviarHandler {
       }
       let responseDian
 
-      console.log(JSON.stringify(documentoTransformado));
-
       switch (factura.tipoDocumento) {
         case "01":
           responseDian = await this.processInvoiceUseCase.sendInvoiceToDian(documentoTransformado, company.tokenDian);
@@ -100,8 +98,7 @@ export class EnviarHandler {
 
 
           if(!body.SendBillSyncResponse.SendBillSyncResult.StatusMessage?.includes(`${documentoTransformado.prefix}${documentoTransformado.number}`)){
-
-            console.log("Documento no valido");
+            soapLogger.warn('Documento no válido según mensaje de estatus de la DIAN', { requestId, prefix: documentoTransformado.prefix, number: documentoTransformado.number });
 
           //borrar los registros del documento en la base de datos
           await this.documentService.deleteDocument(documentoTransformado.prefix, documentoTransformado.number, company.identificationNumber);
@@ -186,7 +183,7 @@ export class EnviarHandler {
           resultado: 'Error',
         });
 
-        console.log(response);
+        soapLogger.warn('Respuesta de error DIAN procesada', { requestId, consecutivov: response.consecutivoDocumento });
 
         return { EnviarResult: response };
 

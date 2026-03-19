@@ -51,9 +51,8 @@ export class ProcessInvoiceUseCase implements DocumentProcessorPort {
     
     const company: CompanyWithCertificateDto = await this.companyService.getCompanyByNit(dto.nit);
     const transformedData = await this.transformInvoiceData(dto, company.tokenDian);
-    console.log("PDF Document", transformedData);
-    try {   
 
+    try {   
       const dianResponse = await this.sendInvoiceToDian(transformedData, company.tokenDian);
 
       if (dianResponse?.ResponseDian?.Envelope?.Body?.SendBillSyncResponse?.SendBillSyncResult?.IsValid === 'true') {
