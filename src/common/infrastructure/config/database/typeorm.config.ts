@@ -20,12 +20,10 @@ export const getTypeOrmConfig = (
   connectorPackage: 'mysql2',
   extra: {
     charset: 'utf8mb4',
-    collation: 'utf8mb4_unicode_ci',
     connectionLimit: 5, // Reducimos un poco para evitar saturación de hilos
     waitForConnections: true,
     queueLimit: 0,
-    acquireTimeout: 30000,
-    timeout: 30000,
+    connectTimeout: 30000,
     enableKeepAlive: true,
     keepAliveInitialDelay: 0,
   },

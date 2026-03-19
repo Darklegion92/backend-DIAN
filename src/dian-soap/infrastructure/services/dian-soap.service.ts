@@ -33,14 +33,18 @@ export class DianSoapService implements OnModuleInit {
     private readonly envioCorreoHandler: EnvioCorreoHandler,
     private readonly descargaPdfHandler: DescargaPdfHandler,
   ) {
-    // Busca el archivo WSDL en el directorio src o dist
-    const srcPath = path.join(__dirname, '..', 'wsdl', 'dian.wsdl');
-    const distPath = path.join(__dirname, '..', '..', '..', 'src', 'dian-soap', 'infrastructure', 'wsdl', 'dian.wsdl');
+    // Busca el archivo WSDL en diferentes ubicaciones posibles (desarrollo y producción)
+    const pathsToTry = [
+      path.resolve(__dirname, '..', 'wsdl', 'dian.wsdl'),
+      path.resolve(__dirname, '..', '..', 'wsdl', 'dian.wsdl'), // Por si acaso la estructura en dist es diferente
+      path.resolve(process.cwd(), 'src', 'dian-soap', 'infrastructure', 'wsdl', 'dian.wsdl'),
+      path.resolve(process.cwd(), 'dist', 'dian-soap', 'infrastructure', 'wsdl', 'dian.wsdl'),
+    ];
 
-    this.wsdlPath = fs.existsSync(srcPath) ? srcPath : distPath;
+    this.wsdlPath = pathsToTry.find(p => fs.existsSync(p));
 
-    if (!fs.existsSync(this.wsdlPath)) {
-      throw new Error(`WSDL file not found at ${this.wsdlPath}`);
+    if (!this.wsdlPath) {
+      throw new Error(`WSDL file not found at any of the locations: ${pathsToTry.join(', ')}`);
     }
 
     this.server = express();
