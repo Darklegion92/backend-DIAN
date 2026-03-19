@@ -16,7 +16,9 @@ import { MailService } from './infrastructure/services/mail.service';
 @Global()
 @Module({
   imports: [
-    NestConfigModule.forRoot(),
+    NestConfigModule.forRoot({
+      isGlobal: true,
+    }),
     TypeOrmModule.forRootAsync({
       imports: [NestConfigModule],
       useFactory: (configService: ConfigService) => getTypeOrmConfig(configService),

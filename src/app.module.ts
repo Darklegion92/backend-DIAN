@@ -42,14 +42,6 @@ import { DianSoapModule } from './dian-soap/dian-soap.module';
     SystemModule,
     PayrollModule,
     DianSoapModule,
-    NestConfigModule.forRoot({
-      isGlobal: true,
-    }),
-    TypeOrmModule.forRootAsync({
-      imports: [NestConfigModule],
-      useFactory: (configService) => getTypeOrmConfig(configService),
-      inject: [ConfigService],
-    }),
   ],
   controllers: [],
   providers: [],

@@ -11,17 +11,23 @@ export const getTypeOrmConfig = (
 ): TypeOrmModuleOptions => ({
   type: 'mysql',
   host: configService.get('DB_HOST'),
-  port: configService.get('DB_PORT'),
+  port: parseInt(configService.get('DB_PORT'), 10) || 3306,
   username: configService.get('DB_USERNAME'),
   password: configService.get('DB_PASSWORD'),
   database: configService.get('DB_DATABASE'),
   charset: 'utf8mb4',
+  // Optimizaciones de pool y reconexión
+  connectorPackage: 'mysql2',
   extra: {
     charset: 'utf8mb4',
     collation: 'utf8mb4_unicode_ci',
-    connectionLimit: 10,
-    acquireTimeout: 60000,
-    timeout: 60000,
+    connectionLimit: 5, // Reducimos un poco para evitar saturación de hilos
+    waitForConnections: true,
+    queueLimit: 0,
+    acquireTimeout: 30000,
+    timeout: 30000,
+    enableKeepAlive: true,
+    keepAliveInitialDelay: 0,
   },
   // Carga automática de todas las entidades usando glob pattern
   entities: ['dist/**/*.entity{.ts,.js}'],
