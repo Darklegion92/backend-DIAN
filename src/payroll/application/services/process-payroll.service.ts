@@ -41,6 +41,7 @@ import { DevengadosDto, EnviarPayrollRequestDto, EnviarPayrollResponseDto } from
 import { SubTypeWorker } from '@/catalog/domain/entities/sub-type-worker.entity';
 import { PaymentMethod } from '@/catalog/domain/entities/payment-method.entity';
 import { LaborUnionDto } from '@/payroll/infrastructure/dtos/labor-union.dto';
+import { PayrollResponseDto } from '@/payroll/domain/interfaces/payroll-response.interface';
 
 
 /**
@@ -513,22 +514,45 @@ export class ProcessPayrollService {
 
       const company = await this.companyService.getCompanyByNit(nitCompany);
 
-      const response = await this.sendPayrollToService(payroll, company.tokenDian);
+      const responseDian = await this.sendPayrollToService(payroll, company.tokenDian);
 
-
-      //TODO: validar la respuesta de la dian antes de responder
-
-
+      if (responseDian.ResponseDian) {
+        const body = responseDian.ResponseDian.Envelope.Body;
+        if (body.SendBillSyncResponse.SendBillSyncResult.IsValid === "true") {
+          return {
+            success: true,
+            statusCode: 200,
+            message: 'Nómina enviada correctamente',
+            data: {
+              cufe: responseDian.cune,
+              date: this.generateDataService.formatDate(new Date()),
+            }
+          }
+        }
+      } else if (responseDian.message = 'Este documento ya fue enviado anteriormente, se registra en la base de datos.') {
+        return {
+          success: true,
+          statusCode: 200,
+          message: 'Nómina enviada correctamente',
+          data: {
+            cufe: responseDian.cune,
+            date: this.generateDataService.formatDate(new Date()),
+          }
+        }
+      }
 
       return {
-        success: true,
-        statusCode: 200,
-        message: 'Nómina enviada correctamente',
+        success: false,
+        statusCode: 400,
+        message: 'Nómina no enviada',
         data: {
-          cufe: response.cune,
+          cufe: responseDian.cune,
           date: this.generateDataService.formatDate(new Date()),
         }
       }
+
+
+
 
 
     } catch (error) {
@@ -537,7 +561,7 @@ export class ProcessPayrollService {
     }
   }
 
-  async sendPayrollToService(payroll: PayrollDto, token: string) {
+  async sendPayrollToService(payroll: PayrollDto, token: string): Promise<PayrollResponseDto> {
     try {
 
       let url = `${this.externalApiUrl}/payroll`;
@@ -551,7 +575,7 @@ export class ProcessPayrollService {
       console.log("Payroll:", JSON.stringify(payroll, null, 2));
 
       const response = await firstValueFrom(
-        this.httpService.post<any>(
+        this.httpService.post<PayrollResponseDto>(
           url,
           payroll,
           {
@@ -848,33 +872,71 @@ export class ProcessPayrollService {
     );
     console.log(JSON.stringify(payroll, null, 2));
 
-    const response = await this.sendPayrollToService(payroll, company.tokenDian);
+    const responseDian = await this.sendPayrollToService(payroll, company.tokenDian);
 
 
-    //TODO: validar respuesta de la dian antes de responder
-
-    console.log(response);
+    if (responseDian.ResponseDian) {
+      const body = responseDian.ResponseDian.Envelope.Body;
+      if (body.SendBillSyncResponse.SendBillSyncResult.IsValid === "true") {
+        return {
+          codigo: "200",
+          mensaje: 'Nómina enviada correctamente',
+          resultado: 'Procesado',
+          consecutivoDocumento: prefix + number,
+          cune: responseDian.cune,
+          trackId: "551523",
+          reglasNotificacionesTFHKA: [],
+          reglasNotificacionesDIAN: [],
+          reglasRechazoTFHKA: [],
+          reglasRechazoDIAN: [],
+          nitEmpleador: company.identificationNumber,
+          nitEmpleado: trabajador.numeroDocumento,
+          idSoftware: "SOLTEC",
+          qr: responseDian.cune,
+          esvalidoDIAN: true,
+          xml: "ninguno"
+        }
+      }
+    } else if (responseDian.message = 'Este documento ya fue enviado anteriormente, se registra en la base de datos.') {
+      return {
+        codigo: "200",
+        mensaje: 'Nómina enviada correctamente',
+        resultado: 'Procesado',
+        consecutivoDocumento: prefix + number,
+        cune: responseDian.cune,
+        trackId: "551523",
+        reglasNotificacionesTFHKA: [],
+        reglasNotificacionesDIAN: [],
+        reglasRechazoTFHKA: [],
+        reglasRechazoDIAN: [],
+        nitEmpleador: company.identificationNumber,
+        nitEmpleado: trabajador.numeroDocumento,
+        idSoftware: "SOLTEC",
+        qr: responseDian.cune,
+        esvalidoDIAN: true,
+        xml: "ninguno"
+      }
+    }
 
     return {
-      codigo: "200",
-      mensaje: 'Nómina enviada correctamente',
-      resultado: 'Procesado',
+      codigo: "400",
+      mensaje: 'Nómina no enviada',
+      resultado: 'Error',
       consecutivoDocumento: prefix + number,
-      //cune: response.cune,
+      cune: responseDian.cune,
       trackId: "551523",
-      reglasNotificacionesTFHKA: response.reglasNotificacionesTFHKA,
-      reglasNotificacionesDIAN: response.reglasNotificacionesDIAN,
-      reglasRechazoTFHKA: response.reglasRechazoTFHKA,
-      reglasRechazoDIAN: response.reglasRechazoDIAN,
+      reglasNotificacionesTFHKA: [],
+      reglasNotificacionesDIAN: [],
+      reglasRechazoTFHKA: [],
+      reglasRechazoDIAN: [],
       nitEmpleador: company.identificationNumber,
       nitEmpleado: trabajador.numeroDocumento,
       idSoftware: "SOLTEC",
-      qr: response.cune,
-      esvalidoDIAN: true,
+      qr: responseDian.cune,
+      esvalidoDIAN: false,
       xml: "ninguno"
     }
   }
-
 
   async getAccrued(devengados: DevengadosDto, totalDevengados: string, tiempoLaborado: string, sueldo: string): Promise<AccruedDto> {
     const accrued = new AccruedDto(
