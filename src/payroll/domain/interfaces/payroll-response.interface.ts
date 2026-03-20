@@ -86,7 +86,7 @@ export interface ErrorMessageDto {
 /**
  * Respuesta de error del endpoint de invoice
  */
-export interface InvoiceErrorResponseDto {
+export interface PayrollErrorResponseDto {
   success: false;
   message: string;
   errors?: {
@@ -97,7 +97,7 @@ export interface InvoiceErrorResponseDto {
 /**
  * Respuesta de vista preliminar de factura
  */
-export interface InvoicePreviewResponseDto {
+export interface PayrollPreviewResponseDto {
   success: boolean;
   message: string;
   urlinvoicepdf: string;
@@ -107,7 +107,7 @@ export interface InvoicePreviewResponseDto {
 /**
  * Respuesta cuando el documento ya fue enviado anteriormente
  */
-export interface InvoiceDuplicateResponseDto {
+export interface PayrollDuplicateResponseDto {
   success: false;
   message: string;
   customer: any;
@@ -127,8 +127,8 @@ export interface DianUnavailableResponseDto {
  * Union type que representa todas las posibles respuestas del endpoint de invoice
  */
 export type InvoiceApiResponseDto =
-  | InvoiceResponseDto
-  | InvoiceErrorResponseDto
-  | InvoicePreviewResponseDto
-  | InvoiceDuplicateResponseDto
+  | PayrollResponseDto
+  | PayrollErrorResponseDto
+  | PayrollPreviewResponseDto
+  | PayrollDuplicateResponseDto
   | DianUnavailableResponseDto; 
