@@ -875,9 +875,12 @@ export class ProcessPayrollService {
     const responseDian = await this.sendPayrollToService(payroll, company.tokenDian);
 
 
-    if (responseDian.ResponseDian) {
-      const body = responseDian.ResponseDian.Envelope.Body;
-      if (body.SendBillSyncResponse.SendBillSyncResult.IsValid === "true") {
+    if (responseDian?.ResponseDian) {
+      const body = responseDian?.ResponseDian?.Envelope?.Body;
+
+      console.log(body);
+
+      if (body?.SendBillSyncResponse?.SendBillSyncResult?.IsValid === "true") {
         return {
           codigo: "200",
           mensaje: 'Nómina enviada correctamente',
