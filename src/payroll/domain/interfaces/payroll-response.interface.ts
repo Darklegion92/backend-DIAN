@@ -62,11 +62,11 @@ export interface EnvelopedDto {
 }
 
 export interface BodyDto {
-  SendBillSyncResponse: SendBillSyncResponseDto;
+  SendNominaSyncResponse: SendNominaSyncResponseDto;
 }
 
-export interface SendBillSyncResponseDto {
-  SendBillSyncResult: SendBillSyncResultDto;
+export interface SendNominaSyncResponseDto {
+  SendNominaSyncResult: SendNominaSyncResultDto;
 }
 
 export interface SendBillSyncResultDto {

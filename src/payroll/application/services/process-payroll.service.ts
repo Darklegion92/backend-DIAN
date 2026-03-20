@@ -518,7 +518,7 @@ export class ProcessPayrollService {
 
       if (responseDian.ResponseDian) {
         const body = responseDian.ResponseDian.Envelope.Body;
-        if (body.SendBillSyncResponse.SendBillSyncResult.IsValid === "true") {
+        if (body.SendNominaSyncResponse.SendNominaSyncResult.IsValid === "true") {
           return {
             success: true,
             statusCode: 200,
@@ -875,12 +875,12 @@ export class ProcessPayrollService {
     const responseDian = await this.sendPayrollToService(payroll, company.tokenDian);
 
 
+    const body = responseDian?.ResponseDian?.Envelope?.Body;
     if (responseDian?.ResponseDian) {
-      const body = responseDian?.ResponseDian?.Envelope?.Body;
 
-      console.log(body);
+      console.log(body.SendNominaSyncResponse.SendNominaSyncResult.ErrorMessage);
 
-      if (body?.SendBillSyncResponse?.SendBillSyncResult?.IsValid === "true") {
+      if (body?.SendNominaSyncResponse?.SendNominaSyncResult?.IsValid === "true") {
         return {
           codigo: "200",
           mensaje: 'Nómina enviada correctamente',
@@ -889,7 +889,7 @@ export class ProcessPayrollService {
           cune: responseDian.cune,
           trackId: "551523",
           reglasNotificacionesTFHKA: [],
-          reglasNotificacionesDIAN: [],
+          reglasNotificacionesDIAN: body.SendNominaSyncResponse.SendNominaSyncResult.ErrorMessage,
           reglasRechazoTFHKA: [],
           reglasRechazoDIAN: [],
           nitEmpleador: company.identificationNumber,
@@ -929,7 +929,7 @@ export class ProcessPayrollService {
       cune: responseDian.cune,
       trackId: "551523",
       reglasNotificacionesTFHKA: [],
-      reglasNotificacionesDIAN: [],
+      reglasNotificacionesDIAN: body.SendNominaSyncResponse.SendNominaSyncResult.ErrorMessage,
       reglasRechazoTFHKA: [],
       reglasRechazoDIAN: [],
       nitEmpleador: company.identificationNumber,
