@@ -514,6 +514,12 @@ export class ProcessPayrollService {
       const company = await this.companyService.getCompanyByNit(nitCompany);
 
       const response = await this.sendPayrollToService(payroll, company.tokenDian);
+
+
+      //TODO: validar la respuesta de la dian antes de responder
+
+
+
       return {
         success: true,
         statusCode: 200,
@@ -678,7 +684,7 @@ export class ProcessPayrollService {
 
     console.log(objNomina);
 
-    const { trabajador, periodos, pagos, novedad,fechaEmisionNom, rangoNumeracionNom,consecutivoDocumentoNom, deducciones, devengados, totalDevengados, totalDeducciones } = objNomina;
+    const { trabajador, periodos, pagos, novedad, fechaEmisionNom, rangoNumeracionNom, consecutivoDocumentoNom, deducciones, devengados, totalDevengados, totalDeducciones } = objNomina;
 
     if (tokenEnterprise == null || tokenPassword == null) {
       throw new HttpException(
@@ -844,12 +850,17 @@ export class ProcessPayrollService {
 
     const response = await this.sendPayrollToService(payroll, company.tokenDian);
 
+
+    //TODO: validar respuesta de la dian antes de responder
+
+    console.log(response);
+
     return {
       codigo: "200",
       mensaje: 'Nómina enviada correctamente',
       resultado: 'Procesado',
       consecutivoDocumento: prefix + number,
-      cune: response.cune,
+      //cune: response.cune,
       trackId: "551523",
       reglasNotificacionesTFHKA: response.reglasNotificacionesTFHKA,
       reglasNotificacionesDIAN: response.reglasNotificacionesDIAN,
@@ -872,7 +883,7 @@ export class ProcessPayrollService {
     );
 
     devengados?.transporte?.forEach(transporte => {
-      accrued.setTransportationAllowance( (parseFloat(accrued.getTransportationAllowance() || '0') + parseFloat(transporte?.auxilioTransporte || '0')).toString());
+      accrued.setTransportationAllowance((parseFloat(accrued.getTransportationAllowance() || '0') + parseFloat(transporte?.auxilioTransporte || '0')).toString());
     });
 
     accrued.setAccruedTotal(totalDevengados);
