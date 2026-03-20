@@ -69,7 +69,7 @@ export interface SendNominaSyncResponseDto {
   SendNominaSyncResult: SendNominaSyncResultDto;
 }
 
-export interface SendBillSyncResultDto {
+export interface SendNominaSyncResultDto {
   ErrorMessage: ErrorMessageDto;
   IsValid: string;
   StatusCode: string;
