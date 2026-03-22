@@ -577,7 +577,7 @@ export class ProcessPayrollService {
       this.logger.log('Enviando solicitud de nómina al servicio externo');
       this.logger.debug('URL del servicio externo:', url);
       this.logger.debug('Token:', token);
-      console.log("Payroll:", JSON.stringify(payroll, null, 2));
+      // console.log("Payroll:", JSON.stringify(payroll, null, 2)); // LOG PESADO DEHABILITADO
 
       const response = await firstValueFrom(
         this.httpService.post<PayrollResponseDto>(
@@ -592,7 +592,7 @@ export class ProcessPayrollService {
           },
         ),
       );
-      console.log(response.data);
+      // console.log(response.data); // LOG PESADO DEHABILITADO
 
       this.logger.log('Respuesta exitosa del servicio externo');
 
@@ -711,7 +711,7 @@ export class ProcessPayrollService {
    */
   async enviarPayroll({ objNomina, tokenEnterprise, tokenPassword }: EnviarPayrollRequestDto): Promise<EnviarPayrollResponseDto> {
 
-    console.log(objNomina);
+    // console.log(objNomina); // LOG PESADO DEHABILITADO
 
     const { trabajador, periodos, pagos, novedad, fechaEmisionNom, rangoNumeracionNom, consecutivoDocumentoNom, deducciones, devengados, totalDevengados, totalDeducciones } = objNomina;
 
