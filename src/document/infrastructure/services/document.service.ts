@@ -34,8 +34,37 @@ export class DocumentService {
       this.logger.log('Obteniendo todos los documentos de la tabla documents');
       this.logger.debug('Filtros aplicados:', JSON.stringify(filters, null, 2));
 
-      // Consulta simple para traer TODOS los campos de la tabla
+      // Consulta simple excluyendo campos pesados (XML, JSON blobs, PDFs)
       const queryBuilder = this.documentRepository.createQueryBuilder('d')
+        .select([
+          'd.id',
+          'd.identificationNumber',
+          'd.stateDocumentId',
+          'd.typeDocumentId',
+          'd.customer',
+          'd.prefix',
+          'd.number',
+          'd.cufe',
+          'd.typeInvoiceId',
+          'd.clientId',
+          'd.currencyId',
+          'd.dateIssue',
+          'd.referenceId',
+          'd.noteConceptId',
+          'd.sale',
+          'd.totalDiscount',
+          'd.totalTax',
+          'd.subtotal',
+          'd.total',
+          'd.versionUblId',
+          'd.ambientId',
+          'd.aceptacion',
+          'd.sendEmailSuccess',
+          'd.sendEmailDateTime',
+          'd.cudeAceptacion',
+          'd.createdAt',
+          'd.updatedAt'
+        ])
         .where('d.state_document_id = :stateId', { stateId: 1 });
 
       // Filtros dinámicos

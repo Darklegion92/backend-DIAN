@@ -61,6 +61,13 @@ export class CatalogService {
     private readonly discountRepository: Repository<Discount>,
   ) {}
 
+  // Simple in-memory cache for static dictionary data
+  private memoryCache = new Map<string, any>();
+
+  private getCacheKey(entityName: string, identifier: string): string {
+    return `${entityName}:${identifier}`;
+  }
+
   // ========================================================================
   // TIPOS DE DOCUMENTO DE IDENTIFICACIÓN
   // ========================================================================
@@ -91,6 +98,11 @@ export class CatalogService {
       throw new Error('Código de tipo de documento es requerido');
     }
 
+    const cacheKey = this.getCacheKey('DocumentType', code.trim());
+    if (this.memoryCache.has(cacheKey)) {
+      return this.memoryCache.get(cacheKey);
+    }
+
     try {
     const documentType = await this.documentTypeRepository.findOne({
       where: { code: code.trim() },
@@ -101,6 +113,7 @@ export class CatalogService {
       throw new Error(`Tipo de documento con código '${code}' no encontrado`);
     }
 
+    this.memoryCache.set(cacheKey, documentType);
     return documentType;
     } catch (error) {
       if (error.message.includes('no encontrado') || error.message.includes('requerido')) {
@@ -140,6 +153,11 @@ export class CatalogService {
       throw new Error('Código de tipo de organización es requerido');
     }
 
+    const cacheKey = this.getCacheKey('OrganizationType', code.trim());
+    if (this.memoryCache.has(cacheKey)) {
+      return this.memoryCache.get(cacheKey);
+    }
+
     const organizationType = await this.organizationTypeRepository.findOne({
       where: { code: code.trim() },
       select: ['id', 'name', 'code']
@@ -149,6 +167,7 @@ export class CatalogService {
       throw new Error(`Tipo de organización con código '${code}' no encontrado`);
     }
 
+    this.memoryCache.set(cacheKey, organizationType);
     return organizationType;
   }
 
@@ -178,11 +197,19 @@ export class CatalogService {
       throw new Error('Código de tipo de régimen es requerido');
     }
 
+    const cacheKey = this.getCacheKey('RegimeType', code.trim());
+    if (this.memoryCache.has(cacheKey)) {
+      return this.memoryCache.get(cacheKey);
+    }
+
     const regimeType = await this.regimeTypeRepository.findOne({
       where: { code: code.trim() },
       select: ['id', 'name', 'code']
     });
     
+    if (regimeType) {
+      this.memoryCache.set(cacheKey, regimeType);
+    }
     return regimeType;
   }
 
@@ -212,11 +239,19 @@ export class CatalogService {
       throw new Error('Código de tipo de responsabilidad es requerido');
     }
 
+    const cacheKey = this.getCacheKey('LiabilityType', code.trim());
+    if (this.memoryCache.has(cacheKey)) {
+      return this.memoryCache.get(cacheKey);
+    }
+
     const liabilityType = await this.liabilityTypeRepository.findOne({
       where: { code: code.trim() },
       select: ['id', 'name', 'code']
     });
 
+    if (liabilityType) {
+      this.memoryCache.set(cacheKey, liabilityType);
+    }
     return liabilityType;
   }
 
@@ -318,6 +353,11 @@ export class CatalogService {
       throw new Error('Código de municipio es requerido');
     }
 
+    const cacheKey = this.getCacheKey('Municipality', code.trim());
+    if (this.memoryCache.has(cacheKey)) {
+      return this.memoryCache.get(cacheKey);
+    }
+
     const municipality = await this.municipalityRepository
       .createQueryBuilder('municipality')
       .leftJoinAndSelect('municipality.department', 'department')
@@ -337,7 +377,7 @@ export class CatalogService {
     }
 
     // Formatear resultado con displayName concatenado
-    return {
+    const result = {
       id: municipality.id,
       name: municipality.name,
       code: municipality.code,
@@ -348,6 +388,9 @@ export class CatalogService {
         code: municipality.department.code
       } : null
     };
+
+    this.memoryCache.set(cacheKey, result);
+    return result;
   }
 
 
@@ -373,6 +416,12 @@ export class CatalogService {
     if (!code || code.trim() === '') {
       throw new Error('Código de unidad de medida es requerido');
     }
+
+    const cacheKey = this.getCacheKey('UnitMeasure', code.trim());
+    if (this.memoryCache.has(cacheKey)) {
+      return this.memoryCache.get(cacheKey);
+    }
+
     const unitMeasure = await this.unitMeasureRepository.findOne({
       where: { 
         code: code.trim(),
@@ -384,6 +433,7 @@ export class CatalogService {
       throw new Error(`Unidad de medida con código '${code}' no encontrada`);
     }
 
+    this.memoryCache.set(cacheKey, unitMeasure);
     return unitMeasure;
   }
 
@@ -413,6 +463,11 @@ export class CatalogService {
       throw new Error('Código de impuesto es requerido');
     }
 
+    const cacheKey = this.getCacheKey('Tax', code.trim());
+    if (this.memoryCache.has(cacheKey)) {
+      return this.memoryCache.get(cacheKey);
+    }
+
     const tax = await this.taxRepository.findOne({
       where: { code: code.trim() },
       select: ['id', 'name', 'code', 'description']
@@ -422,6 +477,7 @@ export class CatalogService {
       throw new Error(`Impuesto con código '${code}' no encontrado`);
     }
 
+    this.memoryCache.set(cacheKey, tax);
     return tax;
   }
 
@@ -451,6 +507,11 @@ export class CatalogService {
       throw new Error('Código de tipo de identificación de item es requerido');
     }
 
+    const cacheKey = this.getCacheKey('TypeItemIdent', code.trim());
+    if (this.memoryCache.has(cacheKey)) {
+      return this.memoryCache.get(cacheKey);
+    }
+
     const typeItemIdentification = await this.typeItemIdentificationRepository.findOne({
       where: { code: code.trim() },
       select: ['id', 'name', 'code', 'codeAgency']
@@ -460,6 +521,7 @@ export class CatalogService {
       throw new Error(`Tipo de identificación de item con código '${code}' no encontrado`);
     }
 
+    this.memoryCache.set(cacheKey, typeItemIdentification);
     return typeItemIdentification;
   }
 
@@ -499,6 +561,11 @@ export class CatalogService {
       throw new Error('Código de forma de pago es requerido');
     }
 
+    const cacheKey = this.getCacheKey('PaymentForm', code.trim());
+    if (this.memoryCache.has(cacheKey)) {
+      return this.memoryCache.get(cacheKey);
+    }
+
     const paymentForm = await this.paymentFormRepository.findOne({
       where: { 
         code: code.trim(),
@@ -510,6 +577,7 @@ export class CatalogService {
       throw new Error(`Forma de pago con código '${code}' no encontrada`);
     }
 
+    this.memoryCache.set(cacheKey, paymentForm);
     return paymentForm;
   }
 
@@ -539,11 +607,19 @@ export class CatalogService {
       throw new Error('Código de método de pago es requerido');
     }
 
+    const cacheKey = this.getCacheKey('PaymentMethod', code.trim());
+    if (this.memoryCache.has(cacheKey)) {
+      return this.memoryCache.get(cacheKey);
+    }
+
     const paymentMethod = await this.paymentMethodRepository.findOne({
       where: { code: code.trim() },
       select: ['id', 'name', 'code']
     });
 
+    if (paymentMethod) {
+      this.memoryCache.set(cacheKey, paymentMethod);
+    }
     return paymentMethod;
   }
 
@@ -559,6 +635,11 @@ export class CatalogService {
    * Obtener tipo de operación por código
    */
   async getTypeOperationByCode(code: string) {
+    const cacheKey = this.getCacheKey('TypeOperation', code.trim());
+    if (this.memoryCache.has(cacheKey)) {
+      return this.memoryCache.get(cacheKey);
+    }
+
     const typeOperation = await this.typeOperationRepository.findOne({
       where: { code: code.trim() },
       select: ['id', 'name', 'code']
@@ -568,6 +649,7 @@ export class CatalogService {
       throw new Error(`Tipo de operación con código '${code}' no encontrado`);
     }
 
+    this.memoryCache.set(cacheKey, typeOperation);
     return typeOperation;
   }
 
@@ -583,6 +665,11 @@ export class CatalogService {
    * Obtener ID de descuento por código
    */
   async getDiscountIdByCode(code: string): Promise<number> {
+    const cacheKey = this.getCacheKey('DiscountId', code.trim());
+    if (this.memoryCache.has(cacheKey)) {
+      return this.memoryCache.get(cacheKey);
+    }
+
     const discount = await this.discountRepository.findOne({
       where: { code: code.trim() },
       select: ['id', 'name', 'code']
@@ -592,6 +679,7 @@ export class CatalogService {
       throw new Error(`Descuento con código '${code}' no encontrado`);
     }
 
+    this.memoryCache.set(cacheKey, discount.id);
     return discount.id;
   }
 

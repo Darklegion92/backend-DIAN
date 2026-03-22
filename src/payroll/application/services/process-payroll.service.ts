@@ -53,6 +53,11 @@ export class ProcessPayrollService {
   private readonly logger = new Logger(ProcessPayrollService.name);
   private readonly externalApiUrl: string;
 
+  private memoryCache = new Map<string, any>();
+  private getCacheKey(entityName: string, identifier: string): string {
+    return `${entityName}:${identifier}`;
+  }
+
   constructor(
     @InjectRepository(TypeWorker)
     private readonly typeWorkerRepository: Repository<TypeWorker>,
@@ -1230,6 +1235,11 @@ export class ProcessPayrollService {
       throw new Error('Código de tipo de trabajador es requerido');
     }
 
+    const cacheKey = this.getCacheKey('TypeWorker', code.trim());
+    if (this.memoryCache.has(cacheKey)) {
+      return this.memoryCache.get(cacheKey);
+    }
+
     const typeWorker = await this.typeWorkerRepository
       .createQueryBuilder('TypeWorker')
       .where('BINARY TypeWorker.code LIKE :code', { code: `%${code.trim()}%` })
@@ -1240,6 +1250,7 @@ export class ProcessPayrollService {
       throw new Error(`Tipo de trabajador con código '${code}' no encontrado`);
     }
 
+    this.memoryCache.set(cacheKey, typeWorker);
     return typeWorker;
   }
 
@@ -1250,11 +1261,19 @@ export class ProcessPayrollService {
   }
 
   async getTypeContractByCode(code: string) {
+    const cacheKey = this.getCacheKey('TypeContract', code.trim());
+    if (this.memoryCache.has(cacheKey)) {
+      return this.memoryCache.get(cacheKey);
+    }
+
     const typeContract = await this.typeContractRepository.findOne({
       where: { code: code.trim() },
       select: ['id', 'name', 'code']
     });
 
+    if (typeContract) {
+      this.memoryCache.set(cacheKey, typeContract);
+    }
     return typeContract;
   }
 
@@ -1264,20 +1283,36 @@ export class ProcessPayrollService {
   }
 
   async getSubTypeWorkerIdByCode(code: string) {
+    const cacheKey = this.getCacheKey('SubTypeWorker', code.trim());
+    if (this.memoryCache.has(cacheKey)) {
+      return this.memoryCache.get(cacheKey);
+    }
+
     const subTypeWorker = await this.subTypeWorkerRepository.findOne({
       where: { code: code.trim() },
       select: ['id', 'name', 'code']
     });
 
-    return subTypeWorker?.id?.toString();
+    const idStr = subTypeWorker?.id?.toString();
+    if (idStr) {
+      this.memoryCache.set(cacheKey, idStr);
+    }
+    return idStr;
   }
 
   async getPaymentMethodIdByCode(code: string) {
+    const cacheKey = this.getCacheKey('PaymentMethodId', code.trim());
+    if (this.memoryCache.has(cacheKey)) {
+      return this.memoryCache.get(cacheKey);
+    }
+
     const paymentMethod = await this.paymentMethodRepository.findOne({
       where: { code: code.trim() },
       select: ['id', 'name', 'code']
     });
 
-    return paymentMethod.id.toString();
+    const idStr = paymentMethod.id.toString();
+    this.memoryCache.set(cacheKey, idStr);
+    return idStr;
   }
 } 
