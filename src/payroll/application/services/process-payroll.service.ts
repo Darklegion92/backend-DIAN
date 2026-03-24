@@ -829,11 +829,15 @@ export class ProcessPayrollService {
 
     deductions.setDeductionsTotal(totalDeducciones);
 
-    deductions.setFondosspTypeLawDeductionsId("9");
-    deductions.setFondospDeductionSP(deducciones.fondosSP?.[0]?.deduccionSP);
+    if (deducciones.fondosSP?.[0]?.deduccionSP) {
+      deductions.setFondosspTypeLawDeductionsId("9");
+      deductions.setFondospDeductionSP(deducciones.fondosSP[0].deduccionSP);
+    }
 
-    deductions.setFondosspSubTypeLawDeductionsId("9");
-    deductions.setFondospDeductionSub(deducciones.fondosSP?.[0]?.deduccionSub);
+    if (deducciones.fondosSP?.[0]?.deduccionSub) {
+      deductions.setFondosspSubTypeLawDeductionsId("9");
+      deductions.setFondospDeductionSub(deducciones.fondosSP[0].deduccionSub);
+    }
 
     const laborUnion = [];
 
