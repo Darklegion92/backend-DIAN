@@ -969,11 +969,14 @@ export class ProcessPayrollService {
 
 
 
+      const horaInicio = this.formatDateTime(horaExtra.horaInicio);
+      const horaFin = this.formatDateTime(horaExtra.horaFin);
+
       switch (horaExtra.tipoHorasExtra) {
         case "0":
           accrued.setHEDs([new HDto(
-            horaExtra.horaInicio,
-            horaExtra.horaFin,
+            horaInicio,
+            horaFin,
             Number(horaExtra.cantidad),
             1,
             horaExtra.pago
@@ -981,8 +984,8 @@ export class ProcessPayrollService {
           break;
         case "1":
           accrued.setHENs([new HDto(
-            horaExtra.horaInicio,
-            horaExtra.horaFin,
+            horaInicio,
+            horaFin,
             Number(horaExtra.cantidad),
             2,
             horaExtra.pago
@@ -990,8 +993,8 @@ export class ProcessPayrollService {
           break;
         case "2":
           accrued.setHRNs([new HDto(
-            horaExtra.horaInicio,
-            horaExtra.horaFin,
+            horaInicio,
+            horaFin,
             Number(horaExtra.cantidad),
             3,
             horaExtra.pago
@@ -999,8 +1002,8 @@ export class ProcessPayrollService {
           break;
         case "3":
           accrued.setHEDDFs([new HDto(
-            horaExtra.horaInicio,
-            horaExtra.horaFin,
+            horaInicio,
+            horaFin,
             Number(horaExtra.cantidad),
             4,
             horaExtra.pago
@@ -1008,8 +1011,8 @@ export class ProcessPayrollService {
           break;
         case "4":
           accrued.setHRDDFs([new HDto(
-            horaExtra.horaInicio,
-            horaExtra.horaFin,
+            horaInicio,
+            horaFin,
             Number(horaExtra.cantidad),
             5,
             horaExtra.pago
@@ -1017,8 +1020,8 @@ export class ProcessPayrollService {
           break;
         case "5":
           accrued.setHENDFs([new HDto(
-            horaExtra.horaInicio,
-            horaExtra.horaFin,
+            horaInicio,
+            horaFin,
             Number(horaExtra.cantidad),
             6,
             horaExtra.pago
@@ -1026,8 +1029,8 @@ export class ProcessPayrollService {
           break;
         case "6":
           accrued.setHRNDFs([new HDto(
-            horaExtra.horaInicio,
-            horaExtra.horaFin,
+            horaInicio,
+            horaFin,
             Number(horaExtra.cantidad),
             7,
             horaExtra.pago
@@ -1319,4 +1322,9 @@ export class ProcessPayrollService {
     this.memoryCache.set(cacheKey, idStr);
     return idStr;
   }
-} 
+
+  private formatDateTime(dateTime: string): string {
+    if (!dateTime) return dateTime;
+    return dateTime.replace(' ', 'T');
+  }
+}
