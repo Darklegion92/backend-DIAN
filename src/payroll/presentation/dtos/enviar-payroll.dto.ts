@@ -13,6 +13,11 @@ export class AnticipoNomDto {
   @IsString()
   @IsOptional()
   montoanticipo?: string;  
+
+  @ApiProperty({ description: 'Extras de nómina', required: false })
+  @Allow()
+  @IsOptional()
+  extrasNom?: any[] | null;
 }
 
 export class FondoPensionDto {
@@ -82,6 +87,11 @@ export class OtraDeduccionDto {
   @IsString()
   @IsOptional()
   montootraDeduccion?: string;
+
+  @ApiProperty({ description: 'Extras de nómina', required: false })
+  @Allow()
+  @IsOptional()
+  extrasNom?: any[] | null;
 }
 
 export class PagoTerceroDto {
@@ -127,6 +137,10 @@ export class SancionDto {
   @IsNotEmpty()
   sancionPriv: string;
 
+  @ApiProperty({ description: 'Extras de nómina', required: false })
+  @Allow()
+  @IsOptional()
+  extrasNom?: any[] | null;
 }
 
 export class SindicatoDto {
@@ -139,6 +153,11 @@ export class SindicatoDto {
   @IsString()
   @IsNotEmpty()
   deduccion: string;
+
+  @ApiProperty({ description: 'Extras de nómina', required: false })
+  @Allow()
+  @IsOptional()
+  extrasNom?: any[] | null;
 }
 
 export class DeduccionesDto {
@@ -267,6 +286,11 @@ export class AnticiposNomDto {
   @IsString()
   @IsOptional()
   montoanticipo?: string;
+
+  @ApiProperty({ description: 'Extras de nómina', required: false })
+  @Allow()
+  @IsOptional()
+  extrasNom?: any[] | null;
 }
 
 export class AuxilioDto {
@@ -280,6 +304,10 @@ export class AuxilioDto {
   @IsOptional()
   auxilioS?: string;
 
+  @ApiProperty({ description: 'Extras de nómina', required: false })
+  @Allow()
+  @IsOptional()
+  extrasNom?: any[] | null;
 }
 
 export class BasicoDto {
@@ -310,6 +338,11 @@ export class BonificacionDto {
   @IsString()
   @IsOptional()
   bonificacionS?: string;
+
+  @ApiProperty({ description: 'Extras de nómina', required: false })
+  @Allow()
+  @IsOptional()
+  extrasNom?: any[] | null;
 }
 
 export class BonoEPCTVDto {
@@ -332,6 +365,11 @@ export class BonoEPCTVDto {
   @IsString()
   @IsOptional()
   pagoS?: string;
+
+  @ApiProperty({ description: 'Extras de nómina', required: false })
+  @Allow()
+  @IsOptional()
+  extrasNom?: any[] | null;
 }
 
 export class CesantiaDto {
@@ -363,6 +401,11 @@ export class ComisionDto {
   @IsString()
   @IsOptional()
   montoComision?: string;
+
+  @ApiProperty({ description: 'Extras de nómina', required: false })
+  @Allow()
+  @IsOptional()
+  extrasNom?: any[] | null;
 }
 
 export class CompensacionDto {
@@ -375,6 +418,11 @@ export class CompensacionDto {
   @IsString()
   @IsNotEmpty()
   compensacionO: string;
+
+  @ApiProperty({ description: 'Extras de nómina', required: false })
+  @Allow()
+  @IsOptional()
+  extrasNom?: any[] | null;
 }
 
 export class HoraExtraDto {
@@ -429,6 +477,11 @@ export class HuelgaLegalDto {
   @IsString()
   @IsNotEmpty()
   fechaFin: string;
+
+  @ApiProperty({ description: 'Extras de nómina', required: false })
+  @Allow()
+  @IsOptional()
+  extrasNom?: any[] | null;
 }
 
 export class IncapacidadDto {
@@ -593,6 +646,11 @@ export class OtroConceptoDto {
   @IsString()
   @IsOptional()
   descripcionConcepto?: string;
+
+  @ApiProperty({ description: 'Extras de nómina', required: false })
+  @Allow()
+  @IsOptional()
+  extrasNom?: any[] | null;
 }
 
 export class PrimaDto {
@@ -898,6 +956,11 @@ export class DocumentoReferenciadoNomDto {
   @IsString()
   @IsNotEmpty()
   fechaGenPred: string;
+
+  @ApiProperty({ description: 'Extras de nómina', required: false })
+  @Allow()
+  @IsOptional()
+  extrasNom?: any[] | null;
 }
 
 // ============================================================================
@@ -909,6 +972,11 @@ export class NotaDto {
   @IsString()
   @IsNotEmpty()
   texto: string;
+
+  @ApiProperty({ description: 'Extras de nómina', required: false })
+  @Allow()
+  @IsOptional()
+  extrasNom?: any[] | null;
 }
 
 // ============================================================================
