@@ -849,6 +849,16 @@ export class ProcessPayrollService {
     });
 
     deductions.setLaborUnion(laborUnion);
+    
+    const advancededs = [];
+    deducciones.anticiposNom?.forEach(anticipo => {
+      advancededs.push(new AdvanceDto(
+        Math.abs(parseFloat(anticipo.montoanticipo || '0')).toString()
+      ));
+    });
+    if (advancededs.length > 0) {
+      deductions.setAdvances(advancededs);
+    }
 
     const sanctions = [];
 
@@ -1215,7 +1225,7 @@ export class ProcessPayrollService {
 
     devengados?.anticiposNom?.forEach(anticipo => {
       advances.push(new AdvanceDto(
-        anticipo.montoanticipo
+        Math.abs(parseFloat(anticipo.montoanticipo || '0')).toString()
       ));
     });
 
