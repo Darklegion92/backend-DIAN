@@ -35,14 +35,14 @@ export class LoginUseCase {
     try {
       const user = await this.userRepository.findByUsername(loginDto.username);
       if (!user) {
-        this.logger.debug(`Usuario no encontrado para IP ${ip}`);
+        this.logger.warn(`Intento de login fallido: Usuario '${loginDto.username}' no encontrado desde IP ${ip}`);
         this.hostBlockService.recordFailedAttempt(ip);
         throw new UnauthorizedException('Credenciales inválidas');
       }
 
       const isPasswordValid = await bcrypt.compare(loginDto.password, user.password);
       if (!isPasswordValid) {
-        this.logger.debug(`Contraseña inválida para IP ${ip}`);
+        this.logger.warn(`Intento de login fallido: Contraseña incorrecta para el usuario '${loginDto.username}' desde IP ${ip}`);
         this.hostBlockService.recordFailedAttempt(ip);
         throw new UnauthorizedException('Credenciales inválidas');
       }
