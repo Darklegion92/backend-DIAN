@@ -1,4 +1,4 @@
-import { Controller, Put, Get, Post, Body, Param, Query, UseGuards, ParseIntPipe, NotFoundException, HttpCode, Res } from '@nestjs/common';
+import { Controller, Put, Get, Post, Body, Param, Query, UseGuards, ParseIntPipe, NotFoundException, HttpCode, Res, Logger } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth, ApiQuery} from '@nestjs/swagger';
 import { Response } from 'express';
 
@@ -19,6 +19,8 @@ import { CreateCompanyExternalDto } from '@/company/presentation/dtos/create-com
 @UseGuards(JwtAuthGuard)
 @ApiBearerAuth()
 export class CompaniesController {
+  private readonly logger = new Logger(CompaniesController.name);
+
   constructor(
     private readonly updateEnvironmentUseCase: UpdateEnvironmentUseCase,
     private readonly companyService: CompanyService
@@ -44,6 +46,7 @@ export class CompaniesController {
     @Query() filterQuery: CompanyFilterQueryDto,
     @CurrentUser() currentUser: User,
   ): Promise<PaginatedResponseDto<CompanyWithCertificateDto>> {
+    this.logger.debug(`Consultando lista de compañías. Usuario: ${currentUser.username} (ID: ${currentUser.id})`);
     return this.companyService.getCompaniesByUserPaginated(
       currentUser,
       filterQuery,

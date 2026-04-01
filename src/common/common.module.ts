@@ -10,6 +10,7 @@ import { getTypeOrmConfig } from '@/common/infrastructure/config/database/typeor
 import { RateLimitService } from '@/common/infrastructure/services/rate-limit.service';
 import { DatabaseUtilsService } from '@/common/infrastructure/services/database-utils.service';
 import { RateLimitInterceptor } from '@/common/infrastructure/interceptors/rate-limit.interceptor';
+import { LoggingInterceptor } from './infrastructure/interceptors/logging.interceptor';
 import { GenerateDataService } from './infrastructure/services/generate-data.service';
 import { MailService } from './infrastructure/services/mail.service';
 
@@ -31,7 +32,7 @@ import { MailService } from './infrastructure/services/mail.service';
         global: true,
         secret: configService.get<string>('JWT_SECRET'),
         signOptions: { 
-          expiresIn: configService.get<string>('JWT_EXPIRATION')
+          expiresIn: configService.get<string>('JWT_EXPIRATION') || '24h'
         },
       }),
       inject: [ConfigService],
@@ -45,6 +46,10 @@ import { MailService } from './infrastructure/services/mail.service';
     {
       provide: APP_INTERCEPTOR,
       useClass: RateLimitInterceptor,
+    },
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: LoggingInterceptor,
     },
   ],
   exports: [
