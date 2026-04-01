@@ -72,12 +72,12 @@ export class LoginUseCase {
         }
       };
     } catch (error) {
-      if (error instanceof UnauthorizedException) {
+      if (error instanceof UnauthorizedException || error instanceof HttpException) {
         throw error;
       }
-      this.logger.error(`Error inesperado durante el login para IP ${ip}:`, error);
+      this.logger.error(`Error crítico durante el login para IP ${ip}: ${error.message}`, error.stack);
       throw new HttpException(
-        'Error interno del servidor',
+        'Error interno del servidor durante la autenticación',
         HttpStatus.INTERNAL_SERVER_ERROR
       );
     }

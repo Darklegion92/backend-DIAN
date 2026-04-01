@@ -6,7 +6,7 @@ import * as bodyParser from 'body-parser';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
-    logger: false, // Deshabilita el logger interno de NestJS para evitar consumo alto de CPU en producción
+    logger: ['error', 'warn', 'log', 'debug'], // Habilitar logs para diagnóstico en producción
   });
 
   // Aumentar el límite del body a 10MB para peticiones grandes (ej. imágenes base64)
