@@ -21,6 +21,7 @@ import { DocumentModule } from './document/document.module';
 import { SystemModule } from './system/system.module';
 import { PayrollModule } from './payroll/payroll.module';
 import { DianSoapModule } from './dian-soap/dian-soap.module';
+import { HealthController } from './health.controller';
 
 @Module({
   imports: [
@@ -43,7 +44,7 @@ import { DianSoapModule } from './dian-soap/dian-soap.module';
     PayrollModule,
     DianSoapModule,
   ],
-  controllers: [],
+  controllers: [HealthController],
   providers: [],
 })
 export class AppModule {}
