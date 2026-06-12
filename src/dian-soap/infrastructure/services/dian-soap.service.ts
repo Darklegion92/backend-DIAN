@@ -122,7 +122,7 @@ export class DianSoapService implements OnModuleInit {
       const xml = fs.readFileSync(this.wsdlPath, 'utf8');
 
       await new Promise<void>((resolve, reject) => {
-        soap.listen(this.server, '/ws/v1.0/Service.svc', serviceObject, xml, (err) => {
+        soap.listen(this.server as any, '/ws/v1.0/Service.svc', serviceObject, xml, (err) => {
           if (err) {
             soapLogger.error('Error al iniciar servidor SOAP', {
               error: err.message,

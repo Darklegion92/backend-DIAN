@@ -9,6 +9,7 @@ services:
     environment:
       - VIRTUAL_HOST=betel-api.tecnologiaydesarrollo.net
       - LETSENCRYPT_HOST=betel-api.tecnologiaydesarrollo.net
+      - LETSENCRYPT_EMAIL=onlin1992@gmail.com
       - NODE_ENV=production
     restart: unless-stopped
     networks:
@@ -22,6 +23,7 @@ services:
     environment:
       - VIRTUAL_HOST=betel.tecnologiaydesarrollo.net
       - LETSENCRYPT_HOST=betel.tecnologiaydesarrollo.net
+      - LETSENCRYPT_EMAIL=onlin1992@gmail.com
     restart: unless-stopped
     networks:
       - webnet
