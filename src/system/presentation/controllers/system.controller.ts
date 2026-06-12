@@ -18,6 +18,7 @@ import {
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiConsumes, ApiBody } from '@nestjs/swagger';
 import { Response } from 'express';
+import { CacheInterceptor } from '@nestjs/cache-manager';
 import { JwtAuthGuard } from '@/auth/presentation/guards/jwt-auth.guard';
 import { VersionResponseDto } from '../dtos/version-response.dto';
 import { AppVersionService } from '../../application/services/app-version.service';
@@ -33,6 +34,7 @@ export class SystemController {
   constructor(private readonly appVersionService: AppVersionService) { }
 
   @Get('version')
+  @UseInterceptors(CacheInterceptor)
   @ApiOperation({
     summary: 'Obtener versión actual de la aplicación',
     description: 'Retorna la información de la versión más reciente de la aplicación disponible para descarga'
@@ -56,6 +58,7 @@ export class SystemController {
   }
 
   @Get('versions')
+  @UseInterceptors(CacheInterceptor)
   @ApiOperation({
     summary: 'Obtener todas las versiones activas',
     description: 'Retorna la lista de todas las versiones activas de la aplicación'

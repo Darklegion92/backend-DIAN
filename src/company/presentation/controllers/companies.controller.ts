@@ -1,6 +1,7 @@
-import { Controller, Put, Get, Post, Body, Param, Query, UseGuards, ParseIntPipe, NotFoundException, HttpCode, Res, Logger } from '@nestjs/common';
+import { Controller, Put, Get, Post, Body, Param, Query, UseGuards, ParseIntPipe, NotFoundException, HttpCode, Res, Logger, UseInterceptors } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth, ApiQuery} from '@nestjs/swagger';
 import { Response } from 'express';
+import { CacheInterceptor } from '@nestjs/cache-manager';
 
 import { UpdateEnvironmentUseCase } from '@/company/application/use-cases/update-environment.use-case';
 import { UpdateEnvironmentDto } from '@/company/presentation/dtos/update-environment.dto';
@@ -27,6 +28,7 @@ export class CompaniesController {
   ) {}
 
   @Get()
+  @UseInterceptors(CacheInterceptor)
   @ApiOperation({
     summary: 'Listar compañías con filtro de búsqueda general',
     description: `

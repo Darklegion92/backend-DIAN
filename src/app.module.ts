@@ -5,6 +5,8 @@ import { ConfigModule as NestConfigModule, ConfigService } from '@nestjs/config'
 
 import { join } from 'path';
 
+import { CacheModule } from '@nestjs/cache-manager';
+
 import { getTypeOrmConfig } from './common/infrastructure/config/database/typeorm.config';
 import { AuthModule } from './auth/auth.module';
 import { CommonModule } from './common/common.module';
@@ -25,6 +27,10 @@ import { HealthController } from './health.controller';
 
 @Module({
   imports: [
+    CacheModule.register({
+      isGlobal: true,
+      ttl: 60000, // 60 seconds
+    }),
     ServeStaticModule.forRoot({
       rootPath: join(__dirname, '..', 'public'),
     }),

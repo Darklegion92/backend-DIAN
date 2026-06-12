@@ -3,15 +3,20 @@ import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { ValidationPipe } from '@nestjs/common';
 import { AppModule } from './app.module';
 import * as bodyParser from 'body-parser';
+import * as compression from 'compression';
 
 async function bootstrap() {
+  const isProduction = process.env.NODE_ENV === 'production';
   const app = await NestFactory.create(AppModule, {
-    logger: ['error', 'warn', 'log', 'debug'], // Habilitar logs para diagnóstico en producción
+    logger: isProduction ? ['error', 'warn'] : ['error', 'warn', 'log', 'debug'], // Logs optimizados para producción
   });
 
   // Aumentar el límite del body a 10MB para peticiones grandes (ej. imágenes base64)
   app.use(bodyParser.json({ limit: '10mb' }));
   app.use(bodyParser.urlencoded({ limit: '10mb', extended: true }));
+
+  // Middleware de compresión para reducir ancho de banda
+  app.use(compression());
 
   // Configurar prefijo global para la API (compatible con Apache)
   app.setGlobalPrefix('api');
