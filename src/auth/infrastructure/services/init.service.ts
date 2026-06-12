@@ -21,10 +21,48 @@ export class InitService implements OnModuleInit {
   async onModuleInit() {
     try {
       await this.createUsersSoltecTableIfNotExists();
+      await this.checkAndAddCompanyColumns();
       await this.createDefaultAdmin();
     } catch (error) {
       if (error instanceof Error) {
         this.logger.error('Error during initialization:', error.message);
+      }
+    }
+  }
+
+  private async checkAndAddCompanyColumns() {
+    try {
+      this.logger.log('Verificando columnas de la tabla companies...');
+      
+      const checkColumnSQL = `
+        SELECT count(*) as count 
+        FROM information_schema.COLUMNS 
+        WHERE TABLE_NAME = 'companies' AND COLUMN_NAME = 'soltec_user_id' AND TABLE_SCHEMA = DATABASE()
+      `;
+      const result = await this.dataSource.query(checkColumnSQL);
+      
+      if (result[0].count == 0) {
+        this.logger.log('Agregando columna soltec_user_id a companies...');
+        await this.dataSource.query(`ALTER TABLE companies ADD COLUMN soltec_user_id VARCHAR(50) NULL`);
+      }
+      
+      const checkTokenEmpresaSQL = `
+        SELECT count(*) as count 
+        FROM information_schema.COLUMNS 
+        WHERE TABLE_NAME = 'companies' AND COLUMN_NAME = 'tokenEmpresa' AND TABLE_SCHEMA = DATABASE()
+      `;
+      const resultToken = await this.dataSource.query(checkTokenEmpresaSQL);
+      
+      if (resultToken[0].count == 0) {
+        this.logger.log('Agregando columnas tokenEmpresa y tokenPassword a companies...');
+        await this.dataSource.query(`ALTER TABLE companies ADD COLUMN tokenEmpresa VARCHAR(20) NULL`);
+        await this.dataSource.query(`ALTER TABLE companies ADD COLUMN tokenPassword VARCHAR(20) NULL`);
+      }
+      
+      this.logger.log('✅ Columnas de companies verificadas');
+    } catch (error) {
+      if (error instanceof Error) {
+        this.logger.error('❌ Error verificando columnas de companies:', error.message);
       }
     }
   }
