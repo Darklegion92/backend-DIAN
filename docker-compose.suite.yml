@@ -1,0 +1,32 @@
+version: '3.3'
+
+services:
+  soltec_backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: soltec_backend
+    environment:
+      - VIRTUAL_HOST=betel-api.tecnologiaydesarrollo.net
+      - LETSENCRYPT_HOST=betel-api.tecnologiaydesarrollo.net
+      - NODE_ENV=production
+    restart: unless-stopped
+    networks:
+      - webnet
+
+  soltec_frontend:
+    build:
+      context: ../frontend
+      dockerfile: Dockerfile
+    container_name: soltec_frontend
+    environment:
+      - VIRTUAL_HOST=betel.tecnologiaydesarrollo.net
+      - LETSENCRYPT_HOST=betel.tecnologiaydesarrollo.net
+    restart: unless-stopped
+    networks:
+      - webnet
+
+networks:
+  webnet:
+    name: proxynet
+    external: true
