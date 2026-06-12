@@ -21,6 +21,7 @@ export class InitService implements OnModuleInit {
   async onModuleInit() {
     try {
       await this.createUsersSoltecTableIfNotExists();
+      await this.createAppVersionsTableIfNotExists();
       await this.checkAndAddCompanyColumns();
       await this.createDefaultAdmin();
     } catch (error) {
@@ -64,6 +65,41 @@ export class InitService implements OnModuleInit {
       if (error instanceof Error) {
         this.logger.error('❌ Error verificando columnas de companies:', error.message);
       }
+    }
+  }
+
+  private async createAppVersionsTableIfNotExists() {
+    try {
+      this.logger.log('Verificando si la tabla app_versions existe...');
+
+      const createTableSQL = `
+        CREATE TABLE IF NOT EXISTS \`app_versions\` (
+          \`id\` int(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,
+          \`version\` varchar(20) NOT NULL UNIQUE,
+          \`downloadUrl\` varchar(500) NOT NULL,
+          \`changeLog\` json NOT NULL,
+          \`forceUpdate\` tinyint(1) NOT NULL DEFAULT 0,
+          \`releaseDate\` date NOT NULL,
+          \`fileSize\` bigint(20) NOT NULL,
+          \`checksum\` varchar(255) NOT NULL,
+          \`fileName\` varchar(255) NULL,
+          \`originalFileName\` varchar(255) NULL,
+          \`filePath\` varchar(255) NULL,
+          \`isActive\` tinyint(1) NOT NULL DEFAULT 1,
+          \`isLatest\` tinyint(1) NOT NULL DEFAULT 0,
+          \`description\` varchar(500) NULL,
+          \`createdAt\` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+          \`updatedAt\` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+      `;
+
+      await this.dataSource.query(createTableSQL);
+      this.logger.log('✅ Tabla app_versions verificada/creada exitosamente');
+    } catch (error) {
+      if (error instanceof Error) {
+        this.logger.error('❌ Error creando tabla app_versions:', error.message);
+      }
+      throw error;
     }
   }
 
