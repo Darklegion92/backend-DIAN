@@ -16,6 +16,7 @@ services:
     restart: unless-stopped
     networks:
       - webnet
+      - apidian_net
 
   soltec_frontend:
     build:
@@ -33,4 +34,7 @@ services:
 networks:
   webnet:
     name: proxynet
+    external: true
+  apidian_net:
+    name: root_api_dian
     external: true
