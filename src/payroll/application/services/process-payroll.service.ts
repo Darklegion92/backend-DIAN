@@ -747,8 +747,9 @@ export class ProcessPayrollService {
       );
     }
 
-    const prefix = rangoNumeracionNom.split("-")[0];
-    const number = consecutivoDocumentoNom.replaceAll(prefix, "");
+    const match = consecutivoDocumentoNom.match(/^(.*[a-zA-Z])(.*)$/);
+    const prefix = match ? match[1] : '';
+    const number = match ? match[2] : consecutivoDocumentoNom;
 
     const novelty = new NoveltyDto(
       novedad.split("|")[1] === "1"
