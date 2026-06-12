@@ -10,6 +10,7 @@ import { EnviarHandler } from '../handlers/enviar.handler';
 import { EstadoDocumentoHandler } from '../handlers/estado-documento.handler';
 import { EnvioCorreoHandler } from '../handlers/envio-correo.handler';
 import { DescargaPdfHandler } from '../handlers/descarga-pdf.handler';
+import { HttpAdapterHost } from '@nestjs/core';
 
 // Extender la interfaz Request para incluir rawBody
 declare global {
@@ -32,6 +33,7 @@ export class DianSoapService implements OnModuleInit {
     private readonly estadoDocumentoHandler: EstadoDocumentoHandler,
     private readonly envioCorreoHandler: EnvioCorreoHandler,
     private readonly descargaPdfHandler: DescargaPdfHandler,
+    private readonly adapterHost: HttpAdapterHost,
   ) {
     // Busca el archivo WSDL en diferentes ubicaciones posibles (desarrollo y producción)
     const pathsToTry = [
@@ -46,40 +48,6 @@ export class DianSoapService implements OnModuleInit {
     if (!this.wsdlPath) {
       throw new Error(`WSDL file not found at any of the locations: ${pathsToTry.join(', ')}`);
     }
-
-    this.server = express();
-    
-    // Configurar body-parser para manejar XML SOAP
-    this.server.use(bodyParser.raw({ 
-      type: () => true, 
-      limit: '50mb',
-      verify: (req: any, res, buf) => {
-        req.rawBody = buf;
-      }
-    }));
-    
-    // Middleware de logging mejorado
-    this.server.use((req, res, next) => {
-      soapLogger.info('Petición entrante', {
-        method: req.method,
-        url: req.url,
-        headers: req.headers,
-        body: req.method === 'POST' ? req.body : undefined,
-        rawBodyLength: req.rawBody ? req.rawBody.length : 0
-      });
-      next();
-    });
-
-    // Middleware para manejar errores de parsing
-    this.server.use((err, req, res, next) => {
-      soapLogger.error('Error del servidor', {
-        error: err.message,
-        stack: err.stack,
-        url: req.url,
-        method: req.method
-      });
-      next(err);
-    });
   }
 
   async onModuleInit() {
@@ -121,8 +89,30 @@ export class DianSoapService implements OnModuleInit {
 
       const xml = fs.readFileSync(this.wsdlPath, 'utf8');
 
+      const expressApp = this.adapterHost.httpAdapter.getInstance();
+
+      // Configurar body-parser raw específicamente para la ruta SOAP
+      expressApp.use('/ws/v1.0/Service.svc', bodyParser.raw({ 
+        type: () => true, 
+        limit: '50mb',
+        verify: (req: any, res, buf) => {
+          req.rawBody = buf;
+        }
+      }));
+
+      // Middleware de logging para la ruta SOAP
+      expressApp.use('/ws/v1.0/Service.svc', (req, res, next) => {
+        soapLogger.info('Petición entrante SOAP', {
+          method: req.method,
+          url: req.url,
+          headers: req.headers,
+          rawBodyLength: req.rawBody ? req.rawBody.length : 0
+        });
+        next();
+      });
+
       await new Promise<void>((resolve, reject) => {
-        soap.listen(this.server as any, '/ws/v1.0/Service.svc', serviceObject, xml, (err) => {
+        soap.listen(expressApp as any, '/ws/v1.0/Service.svc', serviceObject, xml, (err) => {
           if (err) {
             soapLogger.error('Error al iniciar servidor SOAP', {
               error: err.message,
@@ -131,16 +121,8 @@ export class DianSoapService implements OnModuleInit {
             reject(err);
             return;
           }
-          soapLogger.info('Servidor SOAP configurado correctamente');
+          soapLogger.info('Servidor SOAP expuesto en el puerto principal (3000) bajo /ws/v1.0/Service.svc');
           resolve();
-        });
-      });
-
-      this.server.listen(8081, () => {
-        soapLogger.info('Servidor SOAP iniciado', {
-          endpoint: 'http://localhost:8081/ws/v1.0/Service.svc',
-          wsdl: 'http://localhost:8081/ws/v1.0/Service.svc?wsdl',
-          startTime: new Date().toISOString()
         });
       });
 
