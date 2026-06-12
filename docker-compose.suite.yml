@@ -36,5 +36,5 @@ networks:
     name: proxynet
     external: true
   apidian_net:
-    name: root_api_dian
+    name: apidian_api_dian
     external: true
