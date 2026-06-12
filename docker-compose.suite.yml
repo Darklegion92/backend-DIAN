@@ -6,6 +6,8 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: soltec_backend
+    env_file:
+      - .env
     environment:
       - VIRTUAL_HOST=betel-api.tecnologiaydesarrollo.net
       - LETSENCRYPT_HOST=betel-api.tecnologiaydesarrollo.net
