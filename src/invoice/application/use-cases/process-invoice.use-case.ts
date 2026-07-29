@@ -372,10 +372,17 @@ export class ProcessInvoiceUseCase implements DocumentProcessorPort {
             console.log(error.response.data);
             console.log('==========================================');
 
+            let errorMessage = 'Datos de factura inválidos, valida el dv del cliente';
+            if (error.response.data && error.response.data.errors) {
+              const errorsArray = Object.values(error.response.data.errors).flat();
+              if (errorsArray.length > 0) {
+                errorMessage = errorsArray.join(', ');
+              }
+            }
 
             throw new HttpException(
               {
-                message: 'Datos de factura inválidos, valida el dv del cliente',
+                message: errorMessage,
                 details: error.response.data
               },
               HttpStatus.UNPROCESSABLE_ENTITY
