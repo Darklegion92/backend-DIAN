@@ -6,6 +6,8 @@ import { CurrentUser } from '@/auth/presentation/decorators/current-user.decorat
 import { JwtAuthGuard } from '@/auth/presentation/guards/jwt-auth.guard';
 import { DocumentListQueryDto, DownloadPDFDto, SendDocumentElectronicDto, SendEmailDto } from '../dtos/document.dto';
 import { DocumentListResponse, SendDocumentElectronicResponse } from '@/document/domain/interfaces/document.interface';
+import { InjectQueue } from '@nestjs/bull';
+import { Queue } from 'bull';
 import { DocumentService } from '@/document/infrastructure/services/document.service';
 import { Role } from '@/auth/domain/enums/role.enum';
 import { EnviarCorreoResponseDto } from '@/payroll/presentation/dtos/enviar-correo.dto';
@@ -18,7 +20,10 @@ import { EnviarCorreoResponseDto } from '@/payroll/presentation/dtos/enviar-corr
 export class DocumentController {
   private readonly logger = new Logger(DocumentController.name);
 
-  constructor(private readonly documentService: DocumentService) {}
+  constructor(
+    private readonly documentService: DocumentService,
+    @InjectQueue('mails_queue') private readonly mailsQueue: Queue
+  ) {}
 
   @Get()
   @ApiOperation({
@@ -423,7 +428,21 @@ export class DocumentController {
       document_company: sendEmailDto.document_company
     });
     
-    return this.documentService.sendEmail(sendEmailDto, currentUser);
+    // Encolar el correo
+    await this.mailsQueue.add('send_email_job', {
+      sendEmailDto,
+      currentUser
+    });
+
+    return {
+      success: true,
+      message: "Documento electrónico enviado a la cola de procesamiento",
+      data: {
+        codigo: 202,
+        mensaje: "Correo encolado para envío en segundo plano.",
+        resultado: "En cola"
+      }
+    } as any; // Cast temporal para evitar error de tipos si EnviarCorreoResponseDto difiere
  }
 
   @Get('download-pdf')

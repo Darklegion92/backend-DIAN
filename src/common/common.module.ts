@@ -13,6 +13,8 @@ import { RateLimitInterceptor } from '@/common/infrastructure/interceptors/rate-
 import { LoggingInterceptor } from './infrastructure/interceptors/logging.interceptor';
 import { GenerateDataService } from './infrastructure/services/generate-data.service';
 import { MailService } from './infrastructure/services/mail.service';
+import { ValidationService } from './infrastructure/services/validation.service';
+import { WorkerPoolService } from './infrastructure/workers/worker-pool.service';
 
 @Global()
 @Module({
@@ -43,6 +45,8 @@ import { MailService } from './infrastructure/services/mail.service';
     DatabaseUtilsService,
     GenerateDataService,
     MailService,
+    ValidationService,
+    WorkerPoolService,
     {
       provide: APP_INTERCEPTOR,
       useClass: RateLimitInterceptor,

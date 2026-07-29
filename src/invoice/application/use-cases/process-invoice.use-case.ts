@@ -368,6 +368,11 @@ export class ProcessInvoiceUseCase implements DocumentProcessorPort {
               HttpStatus.REQUEST_TIMEOUT
             );
           case 422:
+            console.log('==========================================');
+            console.log(error.response.data);
+            console.log('==========================================');
+
+
             throw new HttpException(
               {
                 message: 'Datos de factura inválidos, valida el dv del cliente',

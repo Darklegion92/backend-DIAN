@@ -13,6 +13,7 @@ services:
       - LETSENCRYPT_HOST=betel-api.tecnologiaydesarrollo.net
       - LETSENCRYPT_EMAIL=onlin1992@gmail.com
       - NODE_ENV=production
+      - REDIS_HOST=redis
     restart: unless-stopped
     networks:
       - webnet
@@ -30,6 +31,14 @@ services:
     restart: unless-stopped
     networks:
       - webnet
+
+  redis:
+    image: redis:alpine
+    container_name: soltec_redis
+    restart: unless-stopped
+    networks:
+      - webnet
+      - apidian_net
 
 networks:
   webnet:

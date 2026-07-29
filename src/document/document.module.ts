@@ -1,6 +1,7 @@
 import { Module, forwardRef } from '@nestjs/common';
 import { HttpModule } from '@nestjs/axios';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { BullModule } from '@nestjs/bull';
 
 import { CommonModule } from '@/common/common.module';
 import { CatalogModule } from '@/catalog/catalog.module';
@@ -17,6 +18,7 @@ import { DocumentRepository } from '@/invoice/infrastructure/repositories/docume
 // Servicios de la nueva arquitectura
 import { DocumentProcessorFactory } from './application/services/document-processor.factory';
 import { DocumentProcessorRegistryService } from './application/services/document-processor-registry.service';
+import { MailProcessor } from './infrastructure/queue/mail.processor';
 
 @Module({
   imports: [
@@ -24,6 +26,9 @@ import { DocumentProcessorRegistryService } from './application/services/documen
     CommonModule,
     CatalogModule,
     TypeOrmModule.forFeature([Document]),
+    BullModule.registerQueue({
+      name: 'mails_queue',
+    }),
     
     // Importar módulos que contienen los casos de uso específicos
     // Usar forwardRef() solo para InvoiceModule que tiene dependencia circular
@@ -37,9 +42,12 @@ import { DocumentProcessorRegistryService } from './application/services/documen
     DocumentService,
     DocumentRepository,
     
+    
     // Servicios de la nueva arquitectura hexagonal
     DocumentProcessorFactory,
-    DocumentProcessorRegistryService
+    DocumentProcessorRegistryService,
+    
+    MailProcessor
   ],
   exports: [
     DocumentService,
