@@ -418,7 +418,7 @@ export class DocumentController {
       }
     }
   })
-  sendEmail(@Body() sendEmailDto: SendEmailDto, @CurrentUser() currentUser: User): Promise<EnviarCorreoResponseDto> {
+  async sendEmail(@Body() sendEmailDto: SendEmailDto, @CurrentUser() currentUser: User): Promise<EnviarCorreoResponseDto> {
 
     this.logger.log('Iniciando envío de documento electrónico a un email');
     this.logger.debug('Datos del documento:', {
