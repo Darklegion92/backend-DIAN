@@ -5,7 +5,7 @@ import { join } from 'path';
 @Injectable()
 export class WorkerPoolService implements OnModuleDestroy {
   private readonly logger = new Logger(WorkerPoolService.name);
-  private pool: Piscina;
+  private pool: any;
 
   constructor() {
     this.logger.log('Inicializando Thread Pool (Piscina) acotado a 4 hilos máximos.');
