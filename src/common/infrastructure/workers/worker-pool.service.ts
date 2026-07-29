@@ -1,5 +1,5 @@
 import { Injectable, OnModuleDestroy, Logger } from '@nestjs/common';
-import Piscina from 'piscina';
+const Piscina = require('piscina');
 import { join } from 'path';
 
 @Injectable()
