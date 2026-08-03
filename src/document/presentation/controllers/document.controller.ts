@@ -428,22 +428,27 @@ export class DocumentController {
       document_company: sendEmailDto.document_company
     });
     
-    // Encolar el correo
-    await this.mailsQueue.add('send_email_job', {
-      sendEmailDto,
-      currentUser
-    });
+    try {
+      // Encolar el correo
+      await this.mailsQueue.add('send_email_job', {
+        sendEmailDto,
+        currentUser
+      });
 
-    return {
-      success: true,
-      message: "Documento electrónico enviado a la cola de procesamiento",
-      data: {
-        codigo: 202,
-        mensaje: "Correo encolado para envío en segundo plano.",
-        resultado: "En cola"
-      }
-    } as any; // Cast temporal para evitar error de tipos si EnviarCorreoResponseDto difiere
- }
+      return {
+        success: true,
+        message: "Documento electrónico enviado a la cola de procesamiento",
+        data: {
+          codigo: 202,
+          mensaje: "Correo encolado para envío en segundo plano.",
+          resultado: "En cola"
+        }
+      } as any; // Cast temporal para evitar error de tipos si EnviarCorreoResponseDto difiere
+    } catch (error) {
+      this.logger.error(`Error al encolar el correo en sendEmail (Prefijo: ${sendEmailDto.prefix}, Número: ${sendEmailDto.number}): ${error.message}`, error.stack);
+      throw error;
+    }
+  }
 
   @Get('download-pdf')
   @ApiOperation({

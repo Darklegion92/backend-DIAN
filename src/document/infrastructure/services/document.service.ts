@@ -203,7 +203,7 @@ export class DocumentService {
   async sendEmail({ number, prefix, correo, document_company }: SendEmailDto, user: User): Promise<any> {
 
     try {
-
+      this.logger.log(`Iniciando proceso de sendEmail para Prefijo: ${prefix}, Numero: ${number}, Correo: ${correo}, Compañía: ${document_company}`);
       const company = await this.companyService.getCompanyByNit(document_company);
 
       const document = await this.getDocument(prefix, number.toString(), document_company);
@@ -242,10 +242,13 @@ export class DocumentService {
 
       const email_cc_list = !!correo ? [{ email: correo }] : null;
 
+      this.logger.log(`Generando datos (getDocument) para Prefijo: ${prefix}, Numero: ${number}`);
       await this.generateDataService.getDocument(prefix, number.toString(), company.identificationNumber, parseInt(document.typeDocumentId.toString()), document.cufe, company.tokenDian);
 
+      this.logger.log(`Regenerando XML para Prefijo: ${prefix}, Numero: ${number}`);
       await this.regenerateXml(document);
 
+      this.logger.log(`Enviando correo con mailService para Prefijo: ${prefix}, Numero: ${number}`);
       const sendEmail = await this.mailService.sendMailWithCompanyConfig({
         prefix,
         number: number.toString(),
@@ -272,6 +275,7 @@ export class DocumentService {
       };
     } catch (error) {
       console.log("error", error);
+      this.logger.error(`Error en el proceso de sendEmail (Prefijo: ${prefix}, Numero: ${number}): ${error.message}`, error.stack);
       return {
         codigo: 500,
         mensaje: error.message,
