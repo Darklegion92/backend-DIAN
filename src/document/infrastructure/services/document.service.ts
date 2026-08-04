@@ -354,7 +354,7 @@ export class DocumentService {
     const basePath = process.env.STORAGE_PATH || 
                      (process.env.NODE_ENV === 'development' 
                        ? require('path').resolve(process.cwd(), '../apidian2026/storage/app/public') 
-                       : '/var/www/html/apidian/storage/app/public');
+                       : '/root/apidian/storage/app/public');
     const routeXml = `${basePath}/${document.identificationNumber}/${fileName}`;
 
     try {
