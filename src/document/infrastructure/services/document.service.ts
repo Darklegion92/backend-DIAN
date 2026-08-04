@@ -244,8 +244,9 @@ export class DocumentService {
 
       const email_cc_list = !!correo ? [{ email: correo }] : null;
 
-      this.logger.log(`Generando datos (getDocument) para Prefijo: ${prefix}, Numero: ${number}`);
-      await this.generateDataService.getDocument(prefix, number.toString(), company.identificationNumber, parseInt(document.typeDocumentId.toString()), document.cufe, company.tokenDian);
+      this.logger.log(`Generando PDF para Prefijo: ${prefix}, Numero: ${number}`);
+      const pdfBuffer = await this.generateDataService.getDocument(prefix, number.toString(), company.identificationNumber, parseInt(document.typeDocumentId.toString()), document.cufe, company.tokenDian);
+      const base64graphicrepresentation = pdfBuffer ? pdfBuffer.toString('base64') : undefined;
 
       this.logger.log(`Regenerando XML para Prefijo: ${prefix}, Numero: ${number}`);
       await this.regenerateXml(document);
@@ -257,6 +258,7 @@ export class DocumentService {
         token: company.tokenDian,
         email_cc_list,
         html_body: body,
+        base64graphicrepresentation,
       });
 
       console.log("sendEmail", sendEmail);
