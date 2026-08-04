@@ -54,6 +54,7 @@ export class CreditNoteXmlGeneratorService {
   <cbc:CreditNoteTypeCode>91</cbc:CreditNoteTypeCode>
   <cbc:DocumentCurrencyCode>COP</cbc:DocumentCurrencyCode>
   <cbc:LineCountNumeric>1</cbc:LineCountNumeric>
+
   <cac:AccountingSupplierParty>
     <cac:Party>
       <cac:PartyName>
@@ -195,6 +196,7 @@ export class CreditNoteXmlGeneratorService {
   <cbc:IssueTime>${issueTime}</cbc:IssueTime>
   <cbc:DocumentType>Contenedor de Factura Electrónica</cbc:DocumentType>
   <cbc:ParentDocumentID>${document.prefix}${document.number}</cbc:ParentDocumentID>
+  <XmlFileName>ad${document.prefix}${document.number}.xml</XmlFileName>
   <cac:SenderParty>
     <cac:PartyTaxScheme>
       <cbc:RegistrationName>${companyName}</cbc:RegistrationName>
