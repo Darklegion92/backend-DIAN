@@ -9,6 +9,7 @@ import { MailService } from '@/common/infrastructure/services/mail.service';
 import { User } from '@/auth/domain/entities/user.entity';
 import { CompanyService } from '@/company/application/services/company.service';
 import { GenerateDataService } from '@/common/infrastructure/services/generate-data.service';
+import { CreditNoteXmlGeneratorService } from '@/credit-note/infrastructure/services/credit-note-xml-generator.service';
 import { promises as fs } from 'fs';
 import * as path from 'path';
 
@@ -23,6 +24,7 @@ export class DocumentService {
     private readonly mailService: MailService,
     private readonly companyService: CompanyService,
     private readonly generateDataService: GenerateDataService,
+    private readonly creditNoteXmlGeneratorService: CreditNoteXmlGeneratorService,
   ) { }
 
   /**
@@ -320,9 +322,11 @@ export class DocumentService {
 
   async regenerateXml(document: Document) {
     let prefixDocument = "FE";
+    const typeId = parseInt(document.typeDocumentId.toString(), 10);
 
-    switch (document.typeDocumentId) {
+    switch (typeId) {
       case 1:
+      case 3:
         prefixDocument = "FE";
         break;
       case 4:
@@ -330,6 +334,18 @@ export class DocumentService {
         break;
       case 11:
         prefixDocument = "DS";
+        break;
+      case 15:
+        prefixDocument = "POS";
+        break;
+      case 19:
+        prefixDocument = "TTR";
+        break;
+      case 24:
+        prefixDocument = "SRV";
+        break;
+      case 5: // Assuming 5 is ND based on APIDIAN else clause
+        prefixDocument = "ND";
         break;
     }
 
@@ -339,17 +355,65 @@ export class DocumentService {
 
     try {
       await fs.access(routeXml);
-      return;
+      // Validar si el archivo está vacío
+      const stats = await fs.stat(routeXml);
+      if (stats.size > 0) {
+        this.logger.log(`El archivo XML ya existe y no está vacío: ${routeXml}`);
+        return;
+      }
+      this.logger.log(`El archivo XML existe pero está vacío, se regenerará: ${routeXml}`);
     } catch {
-      const xmlContent = this.buildXmlFromResponseDian(document.responseDian);
-      await fs.mkdir(path.dirname(routeXml), { recursive: true });
-      await fs.writeFile(routeXml, xmlContent, 'utf8');
+      // El archivo no existe
     }
+
+    let xmlContent = this.buildXmlFromResponseDian(document.responseDian);
+    
+    if (!xmlContent || xmlContent.trim() === '') {
+      if (typeId === 4 || typeId === 91) {
+        const company = await this.companyService.getCompanyByNit(document.identificationNumber);
+        xmlContent = this.creditNoteXmlGeneratorService.generateAttachedDocument(document, company);
+      }
+
+      if (!xmlContent || xmlContent.trim() === '') {
+        this.logger.error(`El contenido XML generado está vacío. document.responseDian = ${JSON.stringify(document.responseDian)}`);
+        throw new HttpException({
+          success: false,
+          message: 'No se puede enviar el correo porque el documento no tiene un XML válido asociado (responseDian es nulo o inválido).',
+        }, HttpStatus.BAD_REQUEST);
+      }
+    } else {
+      this.logger.log(`Escribiendo archivo XML en: ${routeXml}, longitud: ${xmlContent.length}`);
+    }
+
+    await fs.mkdir(path.dirname(routeXml), { recursive: true });
+    await fs.writeFile(routeXml, xmlContent, 'utf8');
   }
 
-  buildXmlFromResponseDian(responseDian: unknown): string {
+  buildXmlFromResponseDian(responseDian: any): string {
     if (responseDian === null || responseDian === undefined) {
       return '';
+    }
+
+    // Si tiene attacheddocument, es muy probable que sea el XML directo o en base64
+    if (typeof responseDian === 'object' && responseDian.attacheddocument) {
+      const attached = responseDian.attacheddocument;
+      // Verificar si parece base64 o XML directo
+      if (typeof attached === 'string') {
+        const trimmed = attached.trim();
+        if (trimmed.startsWith('<')) {
+          return trimmed;
+        }
+        // Si no empieza con <, intentar decodificar base64 por si acaso
+        try {
+          const decoded = Buffer.from(trimmed, 'base64').toString('utf8');
+          if (decoded.trim().startsWith('<')) {
+            return decoded;
+          }
+        } catch (e) {
+          // No es base64 válido
+        }
+        return trimmed;
+      }
     }
 
     if (typeof responseDian === 'string') {
@@ -361,6 +425,12 @@ export class DocumentService {
       if (trimmed.startsWith('{') || trimmed.startsWith('[')) {
         try {
           const parsed = JSON.parse(trimmed);
+          if (parsed.attacheddocument) {
+            const attached = parsed.attacheddocument;
+            if (typeof attached === 'string' && attached.trim().startsWith('<')) {
+               return attached.trim();
+            }
+          }
           return this.toXml(parsed);
         } catch {
           return trimmed;
