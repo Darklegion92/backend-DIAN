@@ -196,7 +196,7 @@ export class CreditNoteXmlGeneratorService {
   <cbc:IssueTime>${issueTime}</cbc:IssueTime>
   <cbc:DocumentType>Contenedor de Factura Electrónica</cbc:DocumentType>
   <cbc:ParentDocumentID>${document.prefix}${document.number}</cbc:ParentDocumentID>
-  <XmlFileName>ad${document.prefix}${document.number}.xml</XmlFileName>
+  <XmlFileName>nc${document.prefix}${document.number}</XmlFileName>
   <cac:SenderParty>
     <cac:PartyTaxScheme>
       <cbc:RegistrationName>${companyName}</cbc:RegistrationName>

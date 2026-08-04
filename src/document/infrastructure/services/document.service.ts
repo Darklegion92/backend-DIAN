@@ -392,6 +392,16 @@ export class DocumentService {
 
     await fs.mkdir(path.dirname(routeXml), { recursive: true });
     await fs.writeFile(routeXml, xmlContent, 'utf8');
+    
+    // Guardar una copia con el prefijo "ad" para que apidian pueda anexarlo al ZIP
+    const adFileName = `ad${document.prefix}${document.number}.xml`;
+    const routeAdXml = `${basePath}/${document.identificationNumber}/${adFileName}`;
+    try {
+      await fs.writeFile(routeAdXml, xmlContent, 'utf8');
+      this.logger.log(`Copia ad- XML guardada en: ${routeAdXml}`);
+    } catch (err) {
+      this.logger.error(`Error al guardar copia ad- XML: ${err.message}`);
+    }
   }
 
   buildXmlFromResponseDian(responseDian: any): string {
