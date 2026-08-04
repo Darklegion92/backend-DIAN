@@ -130,7 +130,8 @@ async function regenerateXml(document: Document) {
 
   const fileName = `Rpta${prefixDocument}-${document.prefix}${document.number}.xml`;
 
-  const routeXml = `/var/www/html/apidian/storage/app/public/${document.identificationNumber}/${fileName}`;
+  const basePath = process.env.STORAGE_PATH || '/var/www/html/apidian/storage/app/public';
+  const routeXml = `${basePath}/${document.identificationNumber}/${fileName}`;
 
   try {
     await fs.access(routeXml);

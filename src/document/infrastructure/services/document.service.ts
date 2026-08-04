@@ -351,7 +351,8 @@ export class DocumentService {
 
     const fileName = `Rpta${prefixDocument}-${document.prefix}${document.number}.xml`;
 
-    const routeXml = `/var/www/html/apidian/storage/app/public/${document.identificationNumber}/${fileName}`;
+    const basePath = process.env.STORAGE_PATH || '/var/www/html/apidian/storage/app/public';
+    const routeXml = `${basePath}/${document.identificationNumber}/${fileName}`;
 
     try {
       await fs.access(routeXml);
@@ -368,7 +369,8 @@ export class DocumentService {
 
     let xmlContent = this.buildXmlFromResponseDian(document.responseDian);
     
-    if (!xmlContent || xmlContent.trim() === '') {
+    // Si está vacío o si no tiene la estructura AttachedDocument (por ejemplo, si se generó un XML dummy desde toXml)
+    if (!xmlContent || xmlContent.trim() === '' || !xmlContent.includes('AttachedDocument')) {
       if (typeId === 4 || typeId === 91) {
         const company = await this.companyService.getCompanyByNit(document.identificationNumber);
         xmlContent = this.creditNoteXmlGeneratorService.generateAttachedDocument(document, company);
