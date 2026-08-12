@@ -521,7 +521,6 @@ export class GenerateDataService {
             Accept: 'application/json',
             'Content-Type': 'application/json',
             Authorization: `Bearer ${token}`,
-            v,
           },
         },
       ),
