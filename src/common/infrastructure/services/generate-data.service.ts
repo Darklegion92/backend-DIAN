@@ -1,44 +1,72 @@
-import { Injectable } from "@nestjs/common";
-import { DatabaseUtilsService } from "./database-utils.service";
-import { AllowanceChargeDto, PaymentFormDto, SellerOrCustomerDto, TaxTotalDto } from "@/common/domain/interfaces/document-common.interface";
-import { ClienteDto, CustomerDianDto, FacturaImpuestosDto } from "@/dian-soap/presentation/dtos/request/factura-general.dto";
-import { CatalogService } from "@/catalog/application/services/catalog.service";
-import { firstValueFrom } from "rxjs";
-import { HttpService } from "@nestjs/axios";
-import { ConfigService } from "@nestjs/config";
-import { cli } from "winston/lib/winston/config";
+import { Injectable } from '@nestjs/common';
+import { DatabaseUtilsService } from './database-utils.service';
+import {
+  AllowanceChargeDto,
+  PaymentFormDto,
+  SellerOrCustomerDto,
+  TaxTotalDto,
+} from '@/common/domain/interfaces/document-common.interface';
+import {
+  ClienteDto,
+  CustomerDianDto,
+  FacturaImpuestosDto,
+} from '@/dian-soap/presentation/dtos/request/factura-general.dto';
+import { CatalogService } from '@/catalog/application/services/catalog.service';
+import { firstValueFrom } from 'rxjs';
+import { HttpService } from '@nestjs/axios';
+import { ConfigService } from '@nestjs/config';
+import { cli } from 'winston/lib/winston/config';
 
 @Injectable()
 export class GenerateDataService {
   private readonly externalApiUrl: string;
-  constructor(private readonly databaseUtils: DatabaseUtilsService, private readonly httpService: HttpService, private readonly configService: ConfigService) { 
+  constructor(
+    private readonly databaseUtils: DatabaseUtilsService,
+    private readonly httpService: HttpService,
+    private readonly configService: ConfigService,
+  ) {
     this.externalApiUrl = this.configService.get('EXTERNAL_SERVER_URL');
   }
 
   /**
-    * Obtiene y construye datos de vendedor o cliente
-    * Método común reutilizable en todos los módulos
-    * 
-    * @param data - Array de datos parseados del string
-    * @returns SellerOrCustomerDto con los datos estructurados
-    */
-  async getSellerOrCustomerData(data: string[], token: string): Promise<SellerOrCustomerDto> {
-    const typeDocumentIdentificationId: number = await this.databaseUtils.findIdByCode(data[6], 'type_document_identifications');
-    const typeLiabilityId: number = await this.databaseUtils.findIdByCode(data[9], 'type_liabilities');
-    const typeRegimeId: number = await this.databaseUtils.findIdByCode(data[13], 'type_regimes');
+   * Obtiene y construye datos de vendedor o cliente
+   * Método común reutilizable en todos los módulos
+   *
+   * @param data - Array de datos parseados del string
+   * @returns SellerOrCustomerDto con los datos estructurados
+   */
+  async getSellerOrCustomerData(
+    data: string[],
+    token: string,
+  ): Promise<SellerOrCustomerDto> {
+    const typeDocumentIdentificationId: number =
+      await this.databaseUtils.findIdByCode(
+        data[6],
+        'type_document_identifications',
+      );
+    const typeLiabilityId: number = await this.databaseUtils.findIdByCode(
+      data[9],
+      'type_liabilities',
+    );
+    const typeRegimeId: number = await this.databaseUtils.findIdByCode(
+      data[13],
+      'type_regimes',
+    );
 
     let codeMunicipality: string = data[66];
-    if(codeMunicipality.length === 4){
-      codeMunicipality = "0" + codeMunicipality;
+    if (codeMunicipality.length === 4) {
+      codeMunicipality = '0' + codeMunicipality;
     }
 
-    const municipalityId: number = await this.databaseUtils.findIdByCode(codeMunicipality, 'municipalities');
-
+    const municipalityId: number = await this.databaseUtils.findIdByCode(
+      codeMunicipality,
+      'municipalities',
+    );
 
     let customerDian = null;
 
-    if(!data[5].includes("2222")){
-      customerDian = await this.getCustomerDian( data[5], token);
+    if (!data[5].includes('2222')) {
+      customerDian = await this.getCustomerDian(data[5], token);
     }
 
     return {
@@ -53,15 +81,15 @@ export class GenerateDataService {
       municipality_id: municipalityId,
       type_liability_id: typeLiabilityId || 117,
       type_regime_id: typeRegimeId || 2,
-      postal_zone_code: data[68] || "000000",
-      address: data[62] || 'Sin dirección'
+      postal_zone_code: data[68] || '000000',
+      address: data[62] || 'Sin dirección',
     };
   }
 
   /**
    * Obtiene y construye datos de totales de impuestos del documento
    * Método común reutilizable en todos los módulos
-   * 
+   *
    * @param data - Array de datos parseados del string
    * @returns TaxTotalDto[] con los datos estructurados
    */
@@ -69,22 +97,23 @@ export class GenerateDataService {
     const taxTotals: TaxTotalDto[] = [];
 
     for (const tax of data) {
-
       const dataTax: string[] = tax.split('|');
 
-      const taxId: number = await this.databaseUtils.findIdByCode(dataTax[2], 'taxes');
-
+      const taxId: number = await this.databaseUtils.findIdByCode(
+        dataTax[2],
+        'taxes',
+      );
 
       let taxTotal: TaxTotalDto = {
         tax_id: taxId,
         tax_amount: Number(dataTax[7]),
         percent: Number(dataTax[4]),
-        taxable_amount: Number(dataTax[1])
+        taxable_amount: Number(dataTax[1]),
       };
 
       switch (taxId) {
         case 2:
-          taxTotal.tax_name = "Impuesto al tabaco";
+          taxTotal.tax_name = 'Impuesto al tabaco';
           taxTotal.tax_id = 15;
           taxTotals.push(taxTotal);
           break;
@@ -93,8 +122,8 @@ export class GenerateDataService {
             tax_id: 10,
             base_unit_measure: 1,
             per_unit_amount: Number(dataTax[6]),
-            unit_measure_id: 70
-          }
+            unit_measure_id: 70,
+          };
           taxTotals.push(taxTotal);
           break;
         case 7:
@@ -113,7 +142,7 @@ export class GenerateDataService {
   /**
    * Formatea una fecha a un formato específico
    * Método común reutilizable en todos los módulos
-   * 
+   *
    * @param date - Fecha a formatear
    * @returns Fecha formateada en formato yyyy-MM-dd HH:mm:ss
    */
@@ -131,7 +160,7 @@ export class GenerateDataService {
   /**
    * Formatea una fecha a un formato específico
    * Método común reutilizable en todos los módulos
-   * 
+   *
    * @param date - Fecha a formatear
    * @returns Fecha formateada en formato yyyy-MM-dd
    */
@@ -139,51 +168,59 @@ export class GenerateDataService {
     return date.toISOString().split('T')[0];
   }
 
-
   /**
    * Obtiene y construye datos de forma de pago del documento
    * Método común reutilizable en todos los módulos
-   * 
+   *
    * @param data - Array de datos parseados del string
    * @returns PaymentFormDto con los datos estructurados
    */
   public async getPaymentFormData(data: string[]): Promise<PaymentFormDto> {
-
-    const paymentFormId: number = await this.databaseUtils.findIdByCode(data[6], 'payment_forms');
-    const paymentMethodId: number = await this.databaseUtils.findIdByCode(data[5], 'payment_methods');
+    const paymentFormId: number = await this.databaseUtils.findIdByCode(
+      data[6],
+      'payment_forms',
+    );
+    const paymentMethodId: number = await this.databaseUtils.findIdByCode(
+      data[5],
+      'payment_methods',
+    );
 
     if (paymentFormId === 2) {
       const fechaHoy = new Date();
-      const fechaMasOchoDias = new Date(fechaHoy.getTime() + (8 * 24 * 60 * 60 * 1000));
+      const fechaMasOchoDias = new Date(
+        fechaHoy.getTime() + 8 * 24 * 60 * 60 * 1000,
+      );
       const formato = fechaMasOchoDias.toISOString().split('T')[0]; // Formato yyyy-MM-dd
 
       return {
         payment_form_id: paymentFormId,
         payment_method_id: paymentMethodId,
         payment_due_date: formato,
-        duration_measure: 8
+        duration_measure: 8,
       };
     }
-
 
     return {
       payment_form_id: paymentFormId,
       payment_method_id: paymentMethodId,
       payment_due_date: data[4],
-      duration_measure: Number(data[9])
+      duration_measure: Number(data[9]),
     };
-
   }
 
   /**
    * Construye el nombre del documento basado en el tipo
    * Método común reutilizable en todos los módulos
-   * 
+   *
    * @param typeDocument - Tipo de documento ('invoice', 'credit-note', etc.)
    * @param urlinvoicepdf - URL del PDF de la respuesta DIAN (ej: "FES-123.pdf")
    * @returns Nombre del documento formateado
    */
-  public buildDocumentName(typeDocument: string, urlinvoicepdf: string, name?: string): string {
+  public buildDocumentName(
+    typeDocument: string,
+    urlinvoicepdf: string,
+    name?: string,
+  ): string {
     let documentPrefix = '';
 
     switch (typeDocument) {
@@ -199,7 +236,7 @@ export class GenerateDataService {
     }
 
     const pdfFileName = urlinvoicepdf || `${documentPrefix}${name}`;
-    
+
     return pdfFileName;
   }
 
@@ -208,10 +245,12 @@ export class GenerateDataService {
    * @param customer - Cliente de la factura
    * @returns boolean - true si el correo electrónico y el número de identificación son válidos, false en caso contrario
    */
-  sendEmail(email: string, identificationNumber: string, code?: string): boolean {
-
-
-   /* if (code === "11") {
+  sendEmail(
+    email: string,
+    identificationNumber: string,
+    code?: string,
+  ): boolean {
+    /* if (code === "11") {
       return false
     }*/
 
@@ -224,75 +263,101 @@ export class GenerateDataService {
       return false;
     }
 
-    if(identificationNumber.length < 7){
+    if (identificationNumber.length < 7) {
       return false;
     }
 
     return true;
-
   }
 
-  getNumberAndPrefixString(text: string): { number: number, prefix: string } {
+  getNumberAndPrefixString(text: string): { number: number; prefix: string } {
     const match = text.match(/\d+$/);
     let number = match ? Number(match[0]) : 0;
-    const prefix = text.replace(number.toString(), "");
+    const prefix = text.replace(number.toString(), '');
     return { number, prefix };
   }
 
-    /**
+  /**
    * Genera el cliente de la factura
    * @param cliente - Cliente de la factura
    * @returns SellerOrCustomerDto - Cliente de la factura
    */
-    async generateCustomer(cliente: ClienteDto, catalogService: CatalogService, token: string): Promise<SellerOrCustomerDto> {
-      const typeDocumentIdentificationId = await catalogService.getDocumentTypeIdByCode(cliente.tipoIdentificacion);
-      const municipalityId = await catalogService.getMunicipalityIdByCode(cliente.direccionCliente.municipio);
-      const typeLiabilityId = await catalogService.getLiabilityTypeIdByCode(cliente.responsabilidadesRut.Obligaciones.obligaciones);
-      const typeRegimeId = await catalogService.getRegimeTypeIdByCode(cliente.responsabilidadesRut.Obligaciones.regimen);
-      
-      let customerDian = null;
-      let dv = cliente.numeroIdentificacionDV;
+  async generateCustomer(
+    cliente: ClienteDto,
+    catalogService: CatalogService,
+    token: string,
+  ): Promise<SellerOrCustomerDto> {
+    const typeDocumentIdentificationId =
+      await catalogService.getDocumentTypeIdByCode(cliente.tipoIdentificacion);
+    const municipalityId = await catalogService.getMunicipalityIdByCode(
+      cliente.direccionCliente.municipio,
+    );
+    const typeLiabilityId = await catalogService.getLiabilityTypeIdByCode(
+      cliente.responsabilidadesRut.Obligaciones.obligaciones,
+    );
+    const typeRegimeId = await catalogService.getRegimeTypeIdByCode(
+      cliente.responsabilidadesRut.Obligaciones.regimen,
+    );
 
-      if(cliente.tipoIdentificacion === "13"){
-        dv = null;
-      }else if(!cliente.numeroDocumento.includes("2222")){
-        customerDian = await this.getCustomerDian(cliente.numeroDocumento, token);
-      }
+    let customerDian = null;
+    let dv = cliente.numeroIdentificacionDV;
 
-        return {
-        identification_number: cliente.numeroDocumento,
-        dv: customerDian?.dv?.toString() || dv,
-        name: customerDian?.business_name || cliente.nombreRazonSocial,
-        phone: cliente.telefono || '5777777777',
-        email: cliente.email || customerDian?.email || 'sinemail@email.com',
-        merchant_registration: cliente?.informacionLegalCliente?.numeroMatriculaMercantil || '00000-0',
-        type_document_identification_id: typeDocumentIdentificationId,
-        type_organization_id: Number(cliente.tipoPersona),
-        municipality_id: municipalityId,
-        type_liability_id: typeLiabilityId,
-        type_regime_id: typeRegimeId,
-        postal_zone_code: cliente.direccionCliente.zonaPostal,
-        address: cliente.direccionCliente.direccion,
-  
-      };
+    if (cliente.tipoIdentificacion === '13') {
+      dv = null;
+    } else if (!cliente.numeroDocumento.includes('2222')) {
+      customerDian = await this.getCustomerDian(cliente.numeroDocumento, token);
     }
 
-     /**
+    return {
+      identification_number: cliente.numeroDocumento,
+      dv: customerDian?.dv?.toString() || dv,
+      name: customerDian?.business_name || cliente.nombreRazonSocial,
+      phone: cliente.telefono || '5777777777',
+      email: cliente.email || customerDian?.email || 'sinemail@email.com',
+      merchant_registration:
+        cliente?.informacionLegalCliente?.numeroMatriculaMercantil || '00000-0',
+      type_document_identification_id: typeDocumentIdentificationId,
+      type_organization_id: Number(cliente.tipoPersona),
+      municipality_id: municipalityId,
+      type_liability_id: typeLiabilityId,
+      type_regime_id: typeRegimeId,
+      postal_zone_code: cliente.direccionCliente.zonaPostal,
+      address: cliente.direccionCliente.direccion,
+    };
+  }
+
+  /**
    * Genera los impuestos de la factura
    * @param impuestos - Impuestos de la factura
    * @returns TaxTotalDto[] - Impuestos de la factura
    */
-  async generateTaxtotals(impuestos: FacturaImpuestosDto | FacturaImpuestosDto[], catalogService: CatalogService, quantity?: number): Promise<{ taxes: TaxTotalDto[], allowance_charges: AllowanceChargeDto[], with_holding_taxes: TaxTotalDto[] }> {
+  async generateTaxtotals(
+    impuestos: FacturaImpuestosDto | FacturaImpuestosDto[],
+    catalogService: CatalogService,
+    quantity?: number,
+  ): Promise<{
+    taxes: TaxTotalDto[];
+    allowance_charges: AllowanceChargeDto[];
+    with_holding_taxes: TaxTotalDto[];
+  }> {
     const taxTotals: TaxTotalDto[] = [];
     const allowance_charges: AllowanceChargeDto[] = [];
     const withholding_taxes: TaxTotalDto[] = [];
-    if (typeof impuestos === "string") {
-      return { taxes: taxTotals, allowance_charges: allowance_charges, with_holding_taxes: withholding_taxes };
+    if (typeof impuestos === 'string') {
+      return {
+        taxes: taxTotals,
+        allowance_charges: allowance_charges,
+        with_holding_taxes: withholding_taxes,
+      };
     }
     if (Array.isArray(impuestos)) {
       for (const impuesto of impuestos) {
-        const taxtId = await catalogService.getTaxIdByCode(impuesto.codigoTOTALImp);
-        const unitMeasureId = await catalogService.getUnitMeasureIdByCode(impuesto.unidadMedida);
+        const taxtId = await catalogService.getTaxIdByCode(
+          impuesto.codigoTOTALImp,
+        );
+        const unitMeasureId = await catalogService.getUnitMeasureIdByCode(
+          impuesto.unidadMedida,
+        );
         if (taxtId === 10) {
           taxTotals.push({
             tax_id: taxtId,
@@ -306,11 +371,10 @@ export class GenerateDataService {
 
           allowance_charges.push({
             charge_indicator: false,
-            allowance_charge_reason: "DESCUENTO GENERAL",
+            allowance_charge_reason: 'DESCUENTO GENERAL',
             amount: 0,
             base_amount: Number(impuesto.valorTOTALImp),
           });
-
         } else if ([5, 6, 7].includes(taxtId)) {
           withholding_taxes.push({
             tax_id: taxtId,
@@ -319,19 +383,21 @@ export class GenerateDataService {
             taxable_amount: Number(impuesto.baseImponibleTOTALImp),
             unit_measure_id: unitMeasureId,
           });
-
-        } else if(taxtId === 2){
+        } else if (taxtId === 2) {
           taxTotals.push({
             tax_id: taxtId,
             tax_amount: Number(impuesto.valorTOTALImp),
             percent: Number(impuesto.porcentajeTOTALImp),
-            taxable_amount: quantity ? Number(impuesto.baseImponibleTOTALImp) : Number(impuesto.valorTOTALImp),
+            taxable_amount: quantity
+              ? Number(impuesto.baseImponibleTOTALImp)
+              : Number(impuesto.valorTOTALImp),
             unit_measure_id: unitMeasureId,
-            per_unit_amount: quantity ? Number(impuesto.valorTributoUnidad) : undefined,
+            per_unit_amount: quantity
+              ? Number(impuesto.valorTributoUnidad)
+              : undefined,
             base_unit_measure: quantity,
           });
-
-        }else{
+        } else {
           taxTotals.push({
             tax_id: taxtId,
             tax_amount: Number(impuesto.valorTOTALImp),
@@ -340,12 +406,14 @@ export class GenerateDataService {
             unit_measure_id: unitMeasureId,
           });
         }
-
-
       }
     } else {
-      const taxtId = await catalogService.getTaxIdByCode(impuestos.codigoTOTALImp);
-      const unitMeasureId = await catalogService.getUnitMeasureIdByCode(impuestos.unidadMedida);
+      const taxtId = await catalogService.getTaxIdByCode(
+        impuestos.codigoTOTALImp,
+      );
+      const unitMeasureId = await catalogService.getUnitMeasureIdByCode(
+        impuestos.unidadMedida,
+      );
       if (taxtId === 10) {
         taxTotals.push({
           tax_id: taxtId,
@@ -359,23 +427,25 @@ export class GenerateDataService {
 
         allowance_charges.push({
           charge_indicator: false,
-          allowance_charge_reason: "DESCUENTO GENERAL",
+          allowance_charge_reason: 'DESCUENTO GENERAL',
           amount: 0,
           base_amount: Number(impuestos.baseImponibleTOTALImp),
         });
-
-      } else if(taxtId === 2){
+      } else if (taxtId === 2) {
         taxTotals.push({
           tax_id: taxtId,
           tax_amount: Number(impuestos.valorTOTALImp),
           percent: Number(impuestos.porcentajeTOTALImp),
-          taxable_amount: quantity ? Number(impuestos.valorTOTALImp) : Number(impuestos.baseImponibleTOTALImp),
+          taxable_amount: quantity
+            ? Number(impuestos.valorTOTALImp)
+            : Number(impuestos.baseImponibleTOTALImp),
           unit_measure_id: unitMeasureId,
-          per_unit_amount: quantity ? Number(impuestos.valorTributoUnidad) : undefined,
+          per_unit_amount: quantity
+            ? Number(impuestos.valorTributoUnidad)
+            : undefined,
           base_unit_measure: quantity,
         });
-
-      }else{
+      } else {
         taxTotals.push({
           tax_id: taxtId,
           tax_amount: Number(impuestos.valorTOTALImp),
@@ -385,40 +455,53 @@ export class GenerateDataService {
         });
       }
     }
-    return { taxes: taxTotals, allowance_charges: allowance_charges, with_holding_taxes: withholding_taxes };
+    return {
+      taxes: taxTotals,
+      allowance_charges: allowance_charges,
+      with_holding_taxes: withholding_taxes,
+    };
   }
 
-
-  async getDocument(prefix: string, number: string, company_identification_number: string, type_document: number, cufe: string, token: string): Promise<any> {
-
+  async getDocument(
+    prefix: string,
+    number: string,
+    company_identification_number: string,
+    type_document: number,
+    cufe: string,
+    token: string,
+  ): Promise<any> {
     const urlMain = this.externalApiUrl.replace('/ubl2.1', '');
 
-    let prefixDocument = "FES";
+    let prefixDocument = 'FES';
 
-    switch(type_document){
+    switch (type_document) {
       case 1:
-        prefixDocument = "FES";
+        prefixDocument = 'FES';
         break;
       case 4:
-        prefixDocument = "NCS";
+        prefixDocument = 'NCS';
         break;
       case 11:
-        prefixDocument = "DSS";
+        prefixDocument = 'DSS';
         break;
     }
 
     let response: { data?: unknown } | null = null;
     try {
       response = await firstValueFrom(
-        this.httpService.get(`${urlMain}/invoice/${company_identification_number}/${prefixDocument}-${prefix}${number}.pdf`, {
-          headers: {
-            'Accept': 'application/pdf',
+        this.httpService.get(
+          `${urlMain}/invoice/${company_identification_number}/${prefixDocument}-${prefix}${number}.pdf`,
+          {
+            headers: {
+              Accept: 'application/pdf',
+              Authorization: `Bearer ${token}`,
+            },
+            responseType: 'arraybuffer', // Importante: especificar que esperamos datos binarios
           },
-          responseType: 'arraybuffer', // Importante: especificar que esperamos datos binarios
-        })
+        ),
       );
     } catch (error) {
-      console.error("Error al obtener el PDF:", error);
+      console.error('Error al obtener el PDF:', error);
     }
 
     const directPdf = this.extractPdfBuffer(response?.data);
@@ -435,16 +518,16 @@ export class GenerateDataService {
         {},
         {
           headers: {
-            'Accept': 'application/json',
+            Accept: 'application/json',
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`,
+            Authorization: `Bearer ${token}`,
+            v,
           },
-        }
-      )
+        },
+      ),
     );
     const regeneratedPdf = this.extractPdfBuffer(responseRegenerate.data);
-    return regeneratedPdf ?? Buffer.from("");
-     
+    return regeneratedPdf ?? Buffer.from('');
   }
 
   private extractPdfBuffer(data: unknown): Buffer | null {
@@ -460,35 +543,38 @@ export class GenerateDataService {
       return Buffer.from(data);
     }
 
-    if (typeof data === "string") {
+    if (typeof data === 'string') {
       return Buffer.from(data);
     }
 
-    if (typeof data === "object") {
+    if (typeof data === 'object') {
       const payload = data as { filebase64?: string };
       if (payload.filebase64) {
-        return Buffer.from(payload.filebase64, "base64");
+        return Buffer.from(payload.filebase64, 'base64');
       }
     }
 
     return null;
   }
 
-  async getCustomerDian(identification_number: string, token: string): Promise<CustomerDianDto> {
-    try{
-    const response = await firstValueFrom(
-      this.httpService.get(`${this.externalApiUrl}/query_rut`, {
-        params: {
-          identification_number,
-        },
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      })
-    );
+  async getCustomerDian(
+    identification_number: string,
+    token: string,
+  ): Promise<CustomerDianDto> {
+    try {
+      const response = await firstValueFrom(
+        this.httpService.get(`${this.externalApiUrl}/query_rut`, {
+          params: {
+            identification_number,
+          },
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }),
+      );
 
       return response?.data;
-    }catch(error){
+    } catch (error) {
       return null;
     }
   }
