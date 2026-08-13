@@ -203,7 +203,7 @@ export class InvoiceTransformerService
       ),
       with_holding_tax_total:
         with_holding_taxes.length > 0 ? with_holding_taxes : undefined,
-      head_note: notes,
+      seze,
       email_cc_list:
         emails?.length > 1
           ? emails?.slice(1)?.map((email) => ({ email }))
