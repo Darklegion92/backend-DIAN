@@ -397,7 +397,6 @@ export class CompanyService {
   async getCompanyLogo(companyId: number): Promise<Buffer> {
     const company = await this.companyRepository.findOne({
       where: { id: companyId },
-      relations: ['user'],
     });
 
     if (!company) {
@@ -428,10 +427,7 @@ export class CompanyService {
         this.httpService.get(logoUrl, {
           responseType: 'arraybuffer',
           headers: {
-            Authorization: `Bearer ${company.tokenEmpresa || ''}`,
-            Accept: 'application/json',
-            Connection: 'keep-alive',
-            'Accept-Encoding': 'gzip, deflate',
+            Authorization: `Bearer ${company.tokenEmpresa}`,
           },
         }),
       );
