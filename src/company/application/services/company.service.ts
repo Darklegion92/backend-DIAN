@@ -395,9 +395,11 @@ export class CompanyService {
    * @returns Buffer de la imagen del logo
    */
   async getCompanyLogo(companyId: number): Promise<Buffer> {
-    const company = await this.companyRepository.findOne({
-      where: { id: companyId },
-    });
+    const company = await this.companyRepository
+      .createQueryBuilder('company')
+      .leftJoinAndSelect('company.user', 'user')
+      .where('company.id = :companyId', { companyId })
+      .getOne();
 
     if (!company) {
       throw new Error('Compañía no encontrada');
@@ -427,7 +429,7 @@ export class CompanyService {
         this.httpService.get(logoUrl, {
           responseType: 'arraybuffer',
           headers: {
-            Authorization: `Bearer ${company.tokenEmpresa}`,
+            Authorization: `Bearer ${company.user.apiToken}`,
           },
         }),
       );
