@@ -4,12 +4,13 @@ import { SystemController } from './presentation/controllers/system.controller';
 import { AppVersionService } from './application/services/app-version.service';
 import { AppVersionRepositoryImpl } from './infrastructure/repositories/app-version.repository.impl';
 import { AppVersion } from './domain/entities/app-version.entity';
+import { EmailBlackList } from './domain/entities/email-black-list.entity';
 
 const APP_VERSION_REPOSITORY = 'APP_VERSION_REPOSITORY';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([AppVersion])
+    TypeOrmModule.forFeature([AppVersion, EmailBlackList])
   ],
   controllers: [SystemController],
   providers: [

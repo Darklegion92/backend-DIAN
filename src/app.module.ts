@@ -24,6 +24,7 @@ import { DocumentModule } from './document/document.module';
 import { SystemModule } from './system/system.module';
 import { PayrollModule } from './payroll/payroll.module';
 import { DianSoapModule } from './dian-soap/dian-soap.module';
+import { AwsSnsModule } from './aws-sns/aws-sns.module';
 import { HealthController } from './health.controller';
 
 @Module({
@@ -56,6 +57,7 @@ import { HealthController } from './health.controller';
     SystemModule,
     PayrollModule,
     DianSoapModule,
+    AwsSnsModule,
   ],
   controllers: [HealthController],
   providers: [],
