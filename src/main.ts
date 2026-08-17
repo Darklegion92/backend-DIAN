@@ -14,6 +14,8 @@ async function bootstrap() {
   // Aumentar el límite del body a 10MB para peticiones grandes (ej. imágenes base64)
   app.use(bodyParser.json({ limit: '10mb' }));
   app.use(bodyParser.urlencoded({ limit: '10mb', extended: true }));
+  // AWS SNS envia el payload JSON pero con Content-Type: text/plain
+  app.use(bodyParser.text({ type: 'text/plain', limit: '10mb' }));
 
   // Middleware de compresión para reducir ancho de banda
   app.use(compression());
