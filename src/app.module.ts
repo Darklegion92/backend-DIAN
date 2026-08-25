@@ -25,6 +25,7 @@ import { SystemModule } from './system/system.module';
 import { PayrollModule } from './payroll/payroll.module';
 import { DianSoapModule } from './dian-soap/dian-soap.module';
 import { AwsSnsModule } from './aws-sns/aws-sns.module';
+import { ZohoMailModule } from './zoho-mail/zoho-mail.module';
 import { HealthController } from './health.controller';
 
 @Module({
@@ -58,6 +59,7 @@ import { HealthController } from './health.controller';
     PayrollModule,
     DianSoapModule,
     AwsSnsModule,
+    ZohoMailModule,
   ],
   controllers: [HealthController],
   providers: [],
