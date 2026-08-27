@@ -45,7 +45,9 @@ export class ZohoMailController {
           const bounceAddress = message.recipient || 
                                 message.email_address || 
                                 message.email || 
-                                message.bounce_address;
+                                message.bounce_address ||
+                                message?.event_data?.[0]?.details?.[0]?.bounced_recipient ||
+                                message?.email_info?.to?.[0]?.email_address?.address;
                                 
           if (bounceAddress) {
             await this.zohoMailService.blacklistEmail(bounceAddress);
