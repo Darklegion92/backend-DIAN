@@ -14,21 +14,43 @@ export class ZohoMailController {
     try {
       const payload = req.body;
       
+      this.logger.log(`Received Zoho Webhook payload: ${JSON.stringify(payload)}`);
+      
       if (!payload || !payload.event_name) {
         this.logger.warn('Received empty or invalid payload from Zoho Webhook');
         return res.status(HttpStatus.OK).send('Empty or invalid payload');
       }
 
-      const eventNames: string[] = payload.event_name || [];
+      const eventNames: string[] = Array.isArray(payload.event_name) 
+        ? payload.event_name 
+        : [payload.event_name];
+        
       const isBounceOrComplaint = eventNames.some(name => 
-        ['hardbounce', 'softbounce', 'fbl_compliant'].includes(name)
+        ['hardbounce', 'softbounce', 'fbl_compliant', 'spam_complaint'].includes(name)
       );
 
-      if (isBounceOrComplaint && Array.isArray(payload.event_message)) {
-        for (const message of payload.event_message) {
-          const bounceAddress = message.bounce_address;
+      if (isBounceOrComplaint) {
+        let messages: any[] = [];
+        
+        if (Array.isArray(payload.event_message)) {
+          messages = payload.event_message;
+        } else if (payload.event_message) {
+          messages = [payload.event_message];
+        } else {
+          messages = [payload];
+        }
+
+        for (const message of messages) {
+          // Extract the recipient's email address from various possible fields
+          const bounceAddress = message.recipient || 
+                                message.email_address || 
+                                message.email || 
+                                message.bounce_address;
+                                
           if (bounceAddress) {
             await this.zohoMailService.blacklistEmail(bounceAddress);
+          } else {
+            this.logger.warn(`Could not extract email address from message: ${JSON.stringify(message)}`);
           }
         }
       } else {
