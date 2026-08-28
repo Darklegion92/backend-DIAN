@@ -79,12 +79,12 @@ export class CreateCompanyExternalDto {
     description: 'ID del tipo de responsabilidad tributaria según catálogo DIAN',
     example: 14,
     minimum: 1,
-    maximum: 100,
+    maximum: 999,
   })
   @IsNumber({}, { message: 'Debe ser un número válido' })
   @IsPositive({ message: 'Debe ser un número positivo' })
   @Min(1)
-  @Max(100)
+  @Max(999)
   type_liability_id: number;
 
   @ApiProperty({
