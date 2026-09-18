@@ -18,7 +18,7 @@ export class EnvioCorreoHandler {
     private readonly companyService: CompanyService,
     private readonly generateDataService: GenerateDataService,
     private readonly mailService: MailService,
-  ) { }
+  ) {}
 
   async handle(args: EnvioCorreoRequest): Promise<EnvioCorreoResponse> {
     const requestId = Date.now().toString();
@@ -31,20 +31,26 @@ export class EnvioCorreoHandler {
       const { tokenEmpresa, tokenPassword, documento, correo, adjuntos } = args;
 
       if (!tokenEmpresa || !tokenPassword || !documento || !adjuntos) {
-        throw new Error('Faltan datos requeridos: tokenEmpresa, tokenPassword, documento, correo o adjuntos');
+        throw new Error(
+          'Faltan datos requeridos: tokenEmpresa, tokenPassword, documento, correo o adjuntos',
+        );
       }
 
-      let { number, prefix } = this.generateDataService.getNumberAndPrefixString(documento);
+      let { number, prefix } =
+        this.generateDataService.getNumberAndPrefixString(documento);
 
+      const company =
+        await this.companyService.getCompanyByTokenEmpresa(tokenEmpresa);
 
-      const company = await this.companyService.getCompanyByTokenEmpresa(tokenEmpresa);
-
-
-      if (prefix === "SETP") {
+      if (prefix === 'SETP') {
         number = number + 990080000;
       }
 
-      const document = await this.documentService.getDocument(prefix, number.toString(), company.identificationNumber);
+      const document = await this.documentService.getDocument(
+        prefix,
+        number.toString(),
+        company.identificationNumber,
+      );
 
       const body = `
       <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 20px auto; border: 1px solid #ddd; border-radius: 10px; overflow: hidden;">
@@ -71,22 +77,28 @@ export class EnvioCorreoHandler {
       </div>
     `;
 
-      const email_cc_list = !!correo ? [{ email: correo }] : null;
+      const alternate_email = !!correo ? correo : null;
       // Asegura XML antes de solicitar el PDF en el servicio externo
       await this.documentService.regenerateXml(document);
       //Valida y reconstruye el pdf si es necesario
-      await this.generateDataService.getDocument(prefix, number.toString(), company.identificationNumber, parseInt(document.typeDocumentId.toString()), document.cufe, company.tokenDian);
+      await this.generateDataService.getDocument(
+        prefix,
+        number.toString(),
+        company.identificationNumber,
+        parseInt(document.typeDocumentId.toString()),
+        document.cufe,
+        company.tokenDian,
+      );
 
       await this.documentService.regenerateXml(document);
-      
+
       const sendEmail = await this.mailService.sendMailWithCompanyConfig({
         prefix,
         number: number.toString(),
         token: company.tokenDian,
-        email_cc_list,
+        alternate_email,
         html_body: body,
       });
-
 
       if (sendEmail.success) {
         return {
@@ -102,8 +114,11 @@ export class EnvioCorreoHandler {
         resultado: 'Error',
       };
     } catch (error) {
-      console.log("error", error);
-      soapLogger.error('Error en EnvioCorreo', { requestId, error: error.message });
+      console.log('error', error);
+      soapLogger.error('Error en EnvioCorreo', {
+        requestId,
+        error: error.message,
+      });
       return {
         codigo: 500,
         mensaje: error.message,
