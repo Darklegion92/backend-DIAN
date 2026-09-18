@@ -1,9 +1,16 @@
 import { Document } from '@/document/domain/entities/document.entity';
-import { DocumentListRequest, SendDocumentElectronicResponse } from '@/document/domain/interfaces/document.interface';
+import {
+  DocumentListRequest,
+  SendDocumentElectronicResponse,
+} from '@/document/domain/interfaces/document.interface';
 import { Injectable, Logger, HttpException, HttpStatus } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { DownloadPDFDto, SendDocumentElectronicDto, SendEmailDto } from '../../presentation/dtos/document.dto';
+import {
+  DownloadPDFDto,
+  SendDocumentElectronicDto,
+  SendEmailDto,
+} from '../../presentation/dtos/document.dto';
 import { DocumentProcessorFactory } from '../../application/services/document-processor.factory';
 import { MailService } from '@/common/infrastructure/services/mail.service';
 import { User } from '@/auth/domain/entities/user.entity';
@@ -25,7 +32,7 @@ export class DocumentService {
     private readonly companyService: CompanyService,
     private readonly generateDataService: GenerateDataService,
     private readonly creditNoteXmlGeneratorService: CreditNoteXmlGeneratorService,
-  ) { }
+  ) {}
 
   /**
    * Obtener lista de documentos por compañía con paginación y filtros
@@ -37,7 +44,8 @@ export class DocumentService {
       this.logger.debug('Filtros aplicados:', JSON.stringify(filters, null, 2));
 
       // Consulta simple excluyendo campos pesados (XML, JSON blobs, PDFs)
-      const queryBuilder = this.documentRepository.createQueryBuilder('d')
+      const queryBuilder = this.documentRepository
+        .createQueryBuilder('d')
         .select([
           'd.id',
           'd.identificationNumber',
@@ -65,16 +73,20 @@ export class DocumentService {
           'd.sendEmailDateTime',
           'd.cudeAceptacion',
           'd.createdAt',
-          'd.updatedAt'
+          'd.updatedAt',
         ])
         .where('d.state_document_id = :stateId', { stateId: 1 });
 
       // Filtros dinámicos
       if (filters.created_at_from) {
-        queryBuilder.andWhere('d.created_at >= :createdAtFrom', { createdAtFrom: filters.created_at_from });
+        queryBuilder.andWhere('d.created_at >= :createdAtFrom', {
+          createdAtFrom: filters.created_at_from,
+        });
       }
       if (filters.created_at_to) {
-        queryBuilder.andWhere('d.created_at <= :createdAtTo', { createdAtTo: filters.created_at_to });
+        queryBuilder.andWhere('d.created_at <= :createdAtTo', {
+          createdAtTo: filters.created_at_to,
+        });
       }
       if (filters.prefix) {
         queryBuilder.andWhere('d.prefix = :prefix', { prefix: filters.prefix });
@@ -83,10 +95,15 @@ export class DocumentService {
         queryBuilder.andWhere('d.number = :number', { number: filters.number });
       }
       if (filters.identification_number) {
-        queryBuilder.andWhere('d.identification_number = :identificationNumber', { identificationNumber: filters.identification_number });
+        queryBuilder.andWhere(
+          'd.identification_number = :identificationNumber',
+          { identificationNumber: filters.identification_number },
+        );
       }
       if (filters.type_document_id) {
-        queryBuilder.andWhere('d.type_document_id = :typeDocumentId', { typeDocumentId: filters.type_document_id });
+        queryBuilder.andWhere('d.type_document_id = :typeDocumentId', {
+          typeDocumentId: filters.type_document_id,
+        });
       }
 
       // Paginación básica
@@ -94,17 +111,14 @@ export class DocumentService {
       const perPage = filters.per_page || 10;
       const skip = (page - 1) * perPage;
 
-      queryBuilder
-        .orderBy('d.created_at', 'DESC')
-        .skip(skip)
-        .take(perPage);
+      queryBuilder.orderBy('d.created_at', 'DESC').skip(skip).take(perPage);
 
       const [documents, total] = await queryBuilder.getManyAndCount();
 
       // Respuesta simple con los datos tal como están en la BD
       const response = {
         success: true,
-        message: "Documentos obtenidos exitosamente",
+        message: 'Documentos obtenidos exitosamente',
         data: {
           current_page: page,
           per_page: perPage,
@@ -112,21 +126,23 @@ export class DocumentService {
           documents: documents, // Los datos tal como están en la BD
           from: documents.length > 0 ? skip + 1 : 0,
           to: documents.length > 0 ? skip + documents.length : 0,
-          last_page: Math.ceil(total / perPage)
-        }
+          last_page: Math.ceil(total / perPage),
+        },
       };
 
       return response;
-
     } catch (error) {
-      this.logger.error('Error al obtener documentos de la base de datos', error);
+      this.logger.error(
+        'Error al obtener documentos de la base de datos',
+        error,
+      );
 
       throw new HttpException(
         {
           message: 'Error al consultar documentos',
-          details: error.message
+          details: error.message,
         },
-        HttpStatus.INTERNAL_SERVER_ERROR
+        HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
   }
@@ -135,35 +151,42 @@ export class DocumentService {
    * Enviar documento electrónico a la DIAN
    * Actúa como orchestrador delegando a los casos de uso específicos
    */
-  async sendDocumentElectronic(sendDocumentElectronicDto: SendDocumentElectronicDto): Promise<SendDocumentElectronicResponse> {
+  async sendDocumentElectronic(
+    sendDocumentElectronicDto: SendDocumentElectronicDto,
+  ): Promise<SendDocumentElectronicResponse> {
     try {
       const documentType = sendDocumentElectronicDto.typeDocumentId;
-      const documentTypeLabel = this.documentProcessorFactory.getDocumentTypeName(documentType);
+      const documentTypeLabel =
+        this.documentProcessorFactory.getDocumentTypeName(documentType);
 
-      this.logger.log(`🚀 Iniciando procesamiento de documento electrónico: ${documentTypeLabel}`);
+      this.logger.log(
+        `🚀 Iniciando procesamiento de documento electrónico: ${documentTypeLabel}`,
+      );
       this.logger.debug('📄 Datos del documento:', {
         number: sendDocumentElectronicDto.number,
         typeDocumentId: sendDocumentElectronicDto.typeDocumentId,
         typeLabel: documentTypeLabel,
         nit: sendDocumentElectronicDto.nit,
-        resolutionNumber: sendDocumentElectronicDto.resolutionNumber
+        resolutionNumber: sendDocumentElectronicDto.resolutionNumber,
       });
 
       // Obtener el procesador específico para el tipo de documento
-      const processor = this.documentProcessorFactory.getProcessor(documentType);
+      const processor =
+        this.documentProcessorFactory.getProcessor(documentType);
 
       // Delegar el procesamiento al caso de uso específico
       const result = await processor.process(sendDocumentElectronicDto);
 
-      this.logger.log(`✅ Documento electrónico ${documentTypeLabel} procesado exitosamente`);
+      this.logger.log(
+        `✅ Documento electrónico ${documentTypeLabel} procesado exitosamente`,
+      );
       this.logger.debug('📋 Resultado:', {
         success: result.success,
         cufe: result.data.cufe,
-        date: result.data.date
+        date: result.data.date,
       });
 
       return result;
-
     } catch (error) {
       this.logger.error('❌ Error al procesar documento electrónico', error);
 
@@ -175,13 +198,12 @@ export class DocumentService {
         {
           success: false,
           message: 'Error al procesar el documento',
-          error: error.message
+          error: error.message,
         },
-        HttpStatus.INTERNAL_SERVER_ERROR
+        HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
   }
-
 
   /**
    * Obtener un documento por su prefix, number y companyIdentification
@@ -190,31 +212,46 @@ export class DocumentService {
    * @param companyIdentification - Identificación de la compañía
    * @returns Documento encontrado o null si no existe
    */
-  async getDocument(prefix: string, number: string, companyIdentification: string) {
-
+  async getDocument(
+    prefix: string,
+    number: string,
+    companyIdentification: string,
+  ) {
     return await this.documentRepository.findOne({
       where: {
         prefix,
         number,
         identificationNumber: companyIdentification,
-        stateDocumentId: 1
-      }
+        stateDocumentId: 1,
+      },
     });
   }
 
-  async sendEmail({ number, prefix, correo, document_company }: SendEmailDto, user: User): Promise<any> {
-
+  async sendEmail(
+    { number, prefix, correo, document_company }: SendEmailDto,
+    user: User,
+  ): Promise<any> {
     try {
-      this.logger.log(`Iniciando proceso de sendEmail para Prefijo: ${prefix}, Numero: ${number}, Correo: ${correo}, Compañía: ${document_company}`);
-      const company = await this.companyService.getCompanyByNit(document_company);
+      this.logger.log(
+        `Iniciando proceso de sendEmail para Prefijo: ${prefix}, Numero: ${number}, Correo: ${correo}, Compañía: ${document_company}`,
+      );
+      const company =
+        await this.companyService.getCompanyByNit(document_company);
 
-      const document = await this.getDocument(prefix, number.toString(), document_company);
+      const document = await this.getDocument(
+        prefix,
+        number.toString(),
+        document_company,
+      );
 
       if (!document) {
-        throw new HttpException({
-          success: false,
-          message: 'Documento no encontrado',
-        }, HttpStatus.NOT_FOUND);
+        throw new HttpException(
+          {
+            success: false,
+            message: 'Documento no encontrado',
+          },
+          HttpStatus.NOT_FOUND,
+        );
       }
 
       const body = `
@@ -242,27 +279,41 @@ export class DocumentService {
       </div>
     `;
 
-      const email_cc_list = !!correo ? [{ email: correo }] : null;
+      const alternate_email = !!correo ? correo : null;
 
-      this.logger.log(`Generando PDF para Prefijo: ${prefix}, Numero: ${number}`);
-      const pdfBuffer = await this.generateDataService.getDocument(prefix, number.toString(), company.identificationNumber, parseInt(document.typeDocumentId.toString()), document.cufe, company.tokenDian);
-      const base64graphicrepresentation = pdfBuffer ? pdfBuffer.toString('base64') : undefined;
+      this.logger.log(
+        `Generando PDF para Prefijo: ${prefix}, Numero: ${number}`,
+      );
+      const pdfBuffer = await this.generateDataService.getDocument(
+        prefix,
+        number.toString(),
+        company.identificationNumber,
+        parseInt(document.typeDocumentId.toString()),
+        document.cufe,
+        company.tokenDian,
+      );
+      const base64graphicrepresentation = pdfBuffer
+        ? pdfBuffer.toString('base64')
+        : undefined;
 
-      this.logger.log(`Regenerando XML para Prefijo: ${prefix}, Numero: ${number}`);
+      this.logger.log(
+        `Regenerando XML para Prefijo: ${prefix}, Numero: ${number}`,
+      );
       await this.regenerateXml(document);
 
-      this.logger.log(`Enviando correo con mailService para Prefijo: ${prefix}, Numero: ${number}`);
+      this.logger.log(
+        `Enviando correo con mailService para Prefijo: ${prefix}, Numero: ${number}`,
+      );
       const sendEmail = await this.mailService.sendMailWithCompanyConfig({
         prefix,
         number: number.toString(),
         token: company.tokenDian,
-        email_cc_list,
+        alternate_email,
         html_body: body,
         base64graphicrepresentation,
       });
 
-      console.log("sendEmail", sendEmail);
-
+      console.log('sendEmail', sendEmail);
 
       if (sendEmail.success) {
         return {
@@ -278,8 +329,11 @@ export class DocumentService {
         resultado: 'Error',
       };
     } catch (error) {
-      console.log("error", error);
-      this.logger.error(`Error en el proceso de sendEmail (Prefijo: ${prefix}, Numero: ${number}): ${error.message}`, error.stack);
+      console.log('error', error);
+      this.logger.error(
+        `Error en el proceso de sendEmail (Prefijo: ${prefix}, Numero: ${number}): ${error.message}`,
+        error.stack,
+      );
       return {
         codigo: 500,
         mensaje: error.message,
@@ -288,32 +342,57 @@ export class DocumentService {
     }
   }
 
-
-  async downloadPDF({ prefix, number, company_document }: DownloadPDFDto): Promise<Buffer> {
+  async downloadPDF({
+    prefix,
+    number,
+    company_document,
+  }: DownloadPDFDto): Promise<Buffer> {
     try {
-      const company = await this.companyService.getCompanyByNit(company_document);
-      const document = await this.getDocument(prefix, number.toString(), company_document);
+      const company =
+        await this.companyService.getCompanyByNit(company_document);
+      const document = await this.getDocument(
+        prefix,
+        number.toString(),
+        company_document,
+      );
 
-      const pdf = await this.generateDataService.getDocument(prefix, number.toString(), company.identificationNumber, parseInt(document.typeDocumentId.toString()), document.cufe, company.tokenDian);
+      const pdf = await this.generateDataService.getDocument(
+        prefix,
+        number.toString(),
+        company.identificationNumber,
+        parseInt(document.typeDocumentId.toString()),
+        document.cufe,
+        company.tokenDian,
+      );
 
       if (!pdf || pdf.length === 0) {
-        throw new HttpException({
-          success: false,
-          message: 'No se pudo obtener el documento PDF',
-        }, HttpStatus.NOT_FOUND);
+        throw new HttpException(
+          {
+            success: false,
+            message: 'No se pudo obtener el documento PDF',
+          },
+          HttpStatus.NOT_FOUND,
+        );
       }
 
       return pdf;
     } catch (error) {
-      console.log("error", error);
-      throw new HttpException({
-        success: false,
-        message: error.message,
-      }, HttpStatus.NOT_FOUND);
+      console.log('error', error);
+      throw new HttpException(
+        {
+          success: false,
+          message: error.message,
+        },
+        HttpStatus.NOT_FOUND,
+      );
     }
   }
 
-  async deleteDocument(prefix: string, number: string, companyIdentification: string) {
+  async deleteDocument(
+    prefix: string,
+    number: string,
+    companyIdentification: string,
+  ) {
     await this.documentRepository.delete({
       prefix,
       number,
@@ -321,42 +400,45 @@ export class DocumentService {
     });
   }
 
-
   async regenerateXml(document: Document) {
-    let prefixDocument = "FE";
+    let prefixDocument = 'FE';
     const typeId = parseInt(document.typeDocumentId.toString(), 10);
 
     switch (typeId) {
       case 1:
       case 3:
-        prefixDocument = "FE";
+        prefixDocument = 'FE';
         break;
       case 4:
-        prefixDocument = "NC";
+        prefixDocument = 'NC';
         break;
       case 11:
-        prefixDocument = "DS";
+        prefixDocument = 'DS';
         break;
       case 15:
-        prefixDocument = "POS";
+        prefixDocument = 'POS';
         break;
       case 19:
-        prefixDocument = "TTR";
+        prefixDocument = 'TTR';
         break;
       case 24:
-        prefixDocument = "SRV";
+        prefixDocument = 'SRV';
         break;
       case 5: // Assuming 5 is ND based on APIDIAN else clause
-        prefixDocument = "ND";
+        prefixDocument = 'ND';
         break;
     }
 
     const fileName = `Rpta${prefixDocument}-${document.prefix}${document.number}.xml`;
 
-    const basePath = process.env.STORAGE_PATH || 
-                     (process.env.NODE_ENV === 'development' 
-                       ? require('path').resolve(process.cwd(), '../apidian2026/storage/app/public') 
-                       : '/root/apidian/storage/app/public');
+    const basePath =
+      process.env.STORAGE_PATH ||
+      (process.env.NODE_ENV === 'development'
+        ? require('path').resolve(
+            process.cwd(),
+            '../apidian2026/storage/app/public',
+          )
+        : '/root/apidian/storage/app/public');
     const routeXml = `${basePath}/${document.identificationNumber}/${fileName}`;
 
     try {
@@ -364,37 +446,59 @@ export class DocumentService {
       // Validar si el archivo está vacío
       const stats = await fs.stat(routeXml);
       if (stats.size > 0) {
-        this.logger.log(`El archivo XML ya existe y no está vacío: ${routeXml}`);
+        this.logger.log(
+          `El archivo XML ya existe y no está vacío: ${routeXml}`,
+        );
         return;
       }
-      this.logger.log(`El archivo XML existe pero está vacío, se regenerará: ${routeXml}`);
+      this.logger.log(
+        `El archivo XML existe pero está vacío, se regenerará: ${routeXml}`,
+      );
     } catch {
       // El archivo no existe
     }
 
     let xmlContent = this.buildXmlFromResponseDian(document.responseDian);
-    
+
     // Si está vacío o si no tiene la estructura AttachedDocument (por ejemplo, si se generó un XML dummy desde toXml)
-    if (!xmlContent || xmlContent.trim() === '' || !xmlContent.includes('AttachedDocument')) {
+    if (
+      !xmlContent ||
+      xmlContent.trim() === '' ||
+      !xmlContent.includes('AttachedDocument')
+    ) {
       if (typeId === 4 || typeId === 91) {
-        const company = await this.companyService.getCompanyByNit(document.identificationNumber);
-        xmlContent = this.creditNoteXmlGeneratorService.generateAttachedDocument(document, company);
+        const company = await this.companyService.getCompanyByNit(
+          document.identificationNumber,
+        );
+        xmlContent =
+          this.creditNoteXmlGeneratorService.generateAttachedDocument(
+            document,
+            company,
+          );
       }
 
       if (!xmlContent || xmlContent.trim() === '') {
-        this.logger.error(`El contenido XML generado está vacío. document.responseDian = ${JSON.stringify(document.responseDian)}`);
-        throw new HttpException({
-          success: false,
-          message: 'No se puede enviar el correo porque el documento no tiene un XML válido asociado (responseDian es nulo o inválido).',
-        }, HttpStatus.BAD_REQUEST);
+        this.logger.error(
+          `El contenido XML generado está vacío. document.responseDian = ${JSON.stringify(document.responseDian)}`,
+        );
+        throw new HttpException(
+          {
+            success: false,
+            message:
+              'No se puede enviar el correo porque el documento no tiene un XML válido asociado (responseDian es nulo o inválido).',
+          },
+          HttpStatus.BAD_REQUEST,
+        );
       }
     } else {
-      this.logger.log(`Escribiendo archivo XML en: ${routeXml}, longitud: ${xmlContent.length}`);
+      this.logger.log(
+        `Escribiendo archivo XML en: ${routeXml}, longitud: ${xmlContent.length}`,
+      );
     }
 
     await fs.mkdir(path.dirname(routeXml), { recursive: true });
     await fs.writeFile(routeXml, xmlContent, 'utf8');
-    
+
     // Guardar una copia con el prefijo "ad" para que apidian pueda anexarlo al ZIP
     const adFileName = `ad${document.prefix}${document.number}.xml`;
     const routeAdXml = `${basePath}/${document.identificationNumber}/${adFileName}`;
@@ -444,8 +548,11 @@ export class DocumentService {
           const parsed = JSON.parse(trimmed);
           if (parsed.attacheddocument) {
             const attached = parsed.attacheddocument;
-            if (typeof attached === 'string' && attached.trim().startsWith('<')) {
-               return attached.trim();
+            if (
+              typeof attached === 'string' &&
+              attached.trim().startsWith('<')
+            ) {
+              return attached.trim();
             }
           }
           return this.toXml(parsed);
@@ -493,19 +600,24 @@ export class DocumentService {
     }
 
     const obj = value as Record<string, unknown>;
-    const attributes = obj._attributes && typeof obj._attributes === 'object'
-      ? this.buildAttributes(obj._attributes as Record<string, unknown>)
-      : '';
+    const attributes =
+      obj._attributes && typeof obj._attributes === 'object'
+        ? this.buildAttributes(obj._attributes as Record<string, unknown>)
+        : '';
 
     const textValue = obj._value ?? obj._text;
     const cdataValue = obj._cdata;
     const childrenKeys = Object.keys(obj).filter(
-      (key) => !['_attributes', '_value', '_text', '_cdata'].includes(key)
+      (key) => !['_attributes', '_value', '_text', '_cdata'].includes(key),
     );
 
-    const childrenContent = childrenKeys.map((key) => this.serializeElement(key, obj[key])).join('');
-    const textContent = textValue !== undefined ? this.escapeXml(String(textValue)) : '';
-    const cdataContent = cdataValue !== undefined ? `<![CDATA[${String(cdataValue)}]]>` : '';
+    const childrenContent = childrenKeys
+      .map((key) => this.serializeElement(key, obj[key]))
+      .join('');
+    const textContent =
+      textValue !== undefined ? this.escapeXml(String(textValue)) : '';
+    const cdataContent =
+      cdataValue !== undefined ? `<![CDATA[${String(cdataValue)}]]>` : '';
     const content = `${textContent}${cdataContent}${childrenContent}`;
 
     if (!content) {
@@ -531,4 +643,4 @@ export class DocumentService {
       .replace(/"/g, '&quot;')
       .replace(/'/g, '&apos;');
   }
-} 
+}
