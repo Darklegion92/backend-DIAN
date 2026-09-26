@@ -74,50 +74,50 @@ export class UserDian {
 
     @ApiProperty({
         description: 'Host del servidor de correo',
-        example: 'smtp.example.com',
+        example: 'smtp.zeptomail.com',
     })
-    @Column({ name: 'mail_host', type: 'varchar', length: 191, default: '' })
+    @Column({ name: 'mail_host', type: 'varchar', length: 191, default: 'smtp.zeptomail.com' })
     mailHost: string;
 
     @ApiProperty({
         description: 'Puerto del servidor de correo',
         example: '587',
     })
-    @Column({ name: 'mail_port', type: 'varchar', length: 191, default: '' })
+    @Column({ name: 'mail_port', type: 'varchar', length: 191, default: '587' })
     mailPort: string;
 
     @ApiProperty({
         description: 'Usuario del servidor de correo',
-        example: 'user@example.com',
+        example: 'emailapikey',
     })
-    @Column({ name: 'mail_username', type: 'varchar', length: 191, default: '' })
+    @Column({ name: 'mail_username', type: 'varchar', length: 191, default: 'emailapikey' })
     mailUsername: string;
 
     @ApiProperty({
         description: 'Contraseña del servidor de correo',
-        example: 'mail-password',
+        example: 'wSsVR60irxX3Xax6zTKpIug9nQlQVlnyQBkr31WhuXT/HKzHpcc/xRGbAQ6vT6UaETZvQGNBo+h7yh8I0Dpb3d0lnFsJWSiF9mqRe1U4J3x17qnvhDzIXmtYmxSMLYgNwQRsm2ZpE8wm+g==',
     })
-    @Column({ name: 'mail_password', type: 'varchar', length: 191, default: '' })
+    @Column({ name: 'mail_password', type: 'varchar', length: 191, default: 'wSsVR60irxX3Xax6zTKpIug9nQlQVlnyQBkr31WhuXT/HKzHpcc/xRGbAQ6vT6UaETZvQGNBo+h7yh8I0Dpb3d0lnFsJWSiF9mqRe1U4J3x17qnvhDzIXmtYmxSMLYgNwQRsm2ZpE8wm+g==' })
     mailPassword: string;
 
     @ApiProperty({
         description: 'Encriptación del servidor de correo',
         example: 'tls',
     })
-    @Column({ name: 'mail_encryption', type: 'varchar', length: 191, default: '' })
+    @Column({ name: 'mail_encryption', type: 'varchar', length: 191, default: 'tls' })
     mailEncryption: string;
 
     @ApiProperty({
         description: 'Dirección de correo remitente',
-        example: 'noreply@example.com',
+        example: 'facturador@tecnologiaydesarrollo.net',
     })
-    @Column({ name: 'mail_from_address', type: 'varchar', length: 191, nullable: true })
+    @Column({ name: 'mail_from_address', type: 'varchar', length: 191, default: 'facturador@tecnologiaydesarrollo.net', nullable: true })
     mailFromAddress: string;
 
     @ApiProperty({
         description: 'Nombre del remitente',
-        example: 'System Notifications',
+        example: 'Facturacion Electronica',
     })
-    @Column({ name: 'mail_from_name', type: 'varchar', length: 191, nullable: true })
+    @Column({ name: 'mail_from_name', type: 'varchar', length: 191, default: 'Facturacion Electronica', nullable: true })
     mailFromName: string;
 }

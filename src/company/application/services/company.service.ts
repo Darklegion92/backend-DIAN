@@ -47,6 +47,16 @@ export class CompanyService {
 
       // Extraer nit y digito del body
       const { nit, digito, ...dataToSend } = companyData;
+
+      // Asignar valores por defecto para los campos de correo si no están presentes
+      dataToSend.mail_host = dataToSend.mail_host || 'smtp.zeptomail.com';
+      dataToSend.mail_port = dataToSend.mail_port || '587';
+      dataToSend.mail_username = dataToSend.mail_username || 'emailapikey';
+      dataToSend.mail_password = dataToSend.mail_password || 'wSsVR60irxX3Xax6zTKpIug9nQlQVlnyQBkr31WhuXT/HKzHpcc/xRGbAQ6vT6UaETZvQGNBo+h7yh8I0Dpb3d0lnFsJWSiF9mqRe1U4J3x17qnvhDzIXmtYmxSMLYgNwQRsm2ZpE8wm+g==';
+      dataToSend.mail_encryption = dataToSend.mail_encryption || 'tls';
+      dataToSend.mail_from_address = dataToSend.mail_from_address || 'facturador@tecnologiaydesarrollo.net';
+      dataToSend.mail_from_name = dataToSend.mail_from_name || 'Facturacion Electronica';
+
       const url = `${externalServerUrl}/config/${nit}/${digito}`;
 
       const response = await firstValueFrom(

@@ -77,15 +77,41 @@ export class DocumentService {
         ])
         .where('d.state_document_id = :stateId', { stateId: 1 });
 
+      // Si no se especifican fechas de filtro, establecer por defecto el rango de la última semana
+      let createdAtFrom = filters.created_at_from;
+      let createdAtTo = filters.created_at_to;
+
+      if (!createdAtFrom && !createdAtTo) {
+        const today = new Date();
+        const lastWeek = new Date();
+        lastWeek.setDate(today.getDate() - 7);
+
+        const formatDateStr = (date: Date) => {
+          const year = date.getFullYear();
+          const month = String(date.getMonth() + 1).padStart(2, '0');
+          const day = String(date.getDate()).padStart(2, '0');
+          return `${year}-${month}-${day}`;
+        };
+
+        createdAtFrom = formatDateStr(lastWeek);
+        createdAtTo = formatDateStr(today);
+      }
+
       // Filtros dinámicos
-      if (filters.created_at_from) {
+      if (createdAtFrom) {
+        const fromDate = createdAtFrom.includes(' ') || createdAtFrom.includes('T')
+          ? createdAtFrom
+          : `${createdAtFrom} 00:00:00`;
         queryBuilder.andWhere('d.created_at >= :createdAtFrom', {
-          createdAtFrom: filters.created_at_from,
+          createdAtFrom: fromDate,
         });
       }
-      if (filters.created_at_to) {
+      if (createdAtTo) {
+        const toDate = createdAtTo.includes(' ') || createdAtTo.includes('T')
+          ? createdAtTo
+          : `${createdAtTo} 23:59:59`;
         queryBuilder.andWhere('d.created_at <= :createdAtTo', {
-          createdAtTo: filters.created_at_to,
+          createdAtTo: toDate,
         });
       }
       if (filters.prefix) {

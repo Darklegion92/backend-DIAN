@@ -200,57 +200,70 @@ export class CreateCompanyExternalDto {
 
   @ApiProperty({
     description: 'Host del servidor SMTP',
-    example: 'smtp.gmail.com',
+    example: 'smtp.zeptomail.com',
+    required: false,
+    default: 'smtp.zeptomail.com',
   })
   @IsOptional()
   @IsString()
-  mail_host: string;
+  mail_host?: string;
 
   @ApiProperty({
     description: 'Puerto del servidor SMTP',
     example: '587',
+    required: false,
+    default: '587',
   })
   @IsOptional()
   @IsString()
-  mail_port: string;
+  mail_port?: string;
 
   @ApiProperty({
     description: 'Usuario del correo SMTP',
-    example: 'usuario@gmail.com',
+    example: 'emailapikey',
+    required: false,
+    default: 'emailapikey',
   })
   @IsOptional()
   @IsString()
-  mail_username: string;
+  mail_username?: string;
 
   @ApiProperty({
     description: 'Contraseña del correo SMTP',
-    example: '********',
+    example: 'wSsVR60irxX3Xax6zTKpIug9nQlQVlnyQBkr31WhuXT/HKzHpcc/xRGbAQ6vT6UaETZvQGNBo+h7yh8I0Dpb3d0lnFsJWSiF9mqRe1U4J3x17qnvhDzIXmtYmxSMLYgNwQRsm2ZpE8wm+g==',
+    required: false,
   })
   @IsOptional()
   @IsString()
-  mail_password: string;
+  mail_password?: string;
 
   @ApiProperty({
     description: 'Tipo de encriptación del servidor SMTP',
     example: 'tls',
+    required: false,
+    default: 'tls',
   })
   @IsOptional()
   @IsString()
-  mail_encryption: string;
+  mail_encryption?: string;
 
   @ApiProperty({
     description: 'Dirección de correo del remitente',
-    example: 'noreply@empresa.com',
+    example: 'facturador@tecnologiaydesarrollo.net',
+    required: false,
+    default: 'facturador@tecnologiaydesarrollo.net',
   })
   @IsOptional()
   @IsEmail({}, { message: 'Debe ser un correo electrónico válido' })
-  mail_from_address: string;
+  mail_from_address?: string;
 
   @ApiProperty({
     description: 'Nombre del remitente',
-    example: 'API DE FACTURACION ELECTRONICA',
+    example: 'Facturacion Electronica',
+    required: false,
+    default: 'Facturacion Electronica',
   })
   @IsOptional()
   @IsString()
-  mail_from_name: string;
+  mail_from_name?: string;
 } 
