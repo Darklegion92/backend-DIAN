@@ -144,7 +144,8 @@ export class CompanyService {
 
     let queryBuilder = this.companyRepository
       .createQueryBuilder('company')
-      .leftJoinAndSelect('company.soltecUser', 'soltecUser');
+      .leftJoinAndSelect('company.soltecUser', 'soltecUser')
+      .leftJoin('company.user', 'user');
 
     // Filtro por rol de usuario
     if (currentUser.role !== Role.ADMIN) {
@@ -155,18 +156,21 @@ export class CompanyService {
 
     // Aplicar filtros de búsqueda
     if (dato) {
+      const cleanDato = dato.replace(/\*/g, '%');
+      const searchTerm = cleanDato.includes('%') ? cleanDato : `%${cleanDato}%`;
+
       const searchCondition =
-        '(company.identification_number LIKE :searchTerm OR company.merchant_registration LIKE :searchTerm)';
+        '(company.identification_number LIKE :searchTerm OR company.merchant_registration LIKE :searchTerm OR user.name LIKE :searchTerm OR user.email LIKE :searchTerm)';
 
       if (currentUser.role !== Role.ADMIN) {
         // Ya hay una condición WHERE para el usuario, agregar AND
         queryBuilder = queryBuilder.andWhere(searchCondition, {
-          searchTerm: `%${dato}%`,
+          searchTerm,
         });
       } else {
         // No hay condición WHERE previa, usar WHERE
         queryBuilder = queryBuilder.where(searchCondition, {
-          searchTerm: `%${dato}%`,
+          searchTerm,
         });
       }
     }
