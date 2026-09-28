@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString, IsNotEmpty, IsNumber, Min, IsDateString, IsOptional, ValidateIf } from 'class-validator';
+import { IsString, IsNotEmpty, IsNumber, Min, IsDateString, IsOptional, ValidateIf, Matches } from 'class-validator';
 
 export class CreateResolutionDto {
   @ApiProperty({
@@ -19,6 +19,7 @@ export class CreateResolutionDto {
   })
   @IsString({ message: 'El prefijo debe ser una cadena de texto' })
   @IsNotEmpty({ message: 'El prefijo es requerido' })
+  @Matches(/^.*[^\d]$/, { message: 'El prefijo no puede terminar en número' })
   prefix: string;
 
   @ApiProperty({

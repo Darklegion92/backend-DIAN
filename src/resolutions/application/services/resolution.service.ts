@@ -198,7 +198,12 @@ export class ResolutionService {
   }
 
   private async generateExternalData(createResolutionDto: CreateResolutionDto):Promise<ExternalInvoiceData> {
-
+    if (createResolutionDto.prefix && /\d$/.test(createResolutionDto.prefix.trim())) {
+      throw new HttpException(
+        'El prefijo no puede terminar en número',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
 
     if(createResolutionDto.prefix === 'SETP' && [1,3].includes(createResolutionDto.type_document_id)) {
       return {
