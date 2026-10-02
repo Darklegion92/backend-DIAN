@@ -92,10 +92,6 @@ export class EnviarHandler {
           throw new Error(`Tipo de documento no soportado: ${factura.tipoDocumento}`);
       }
 
-      soapLogger.info('Respuesta recibida de DIAN en EnviarHandler', {
-        requestId,
-        responseDian: JSON.stringify(responseDian, null, 2),
-      });
 
       if (responseDian?.ResponseDian?.Envelope?.Body) {
         const body = responseDian.ResponseDian.Envelope.Body;
@@ -218,16 +214,54 @@ export class EnviarHandler {
             return { EnviarResult: response };
           }
         }
+
+        const errorMessage = responseDian?.message || 'Error en la comunicación con el servicio DIAN';
+        const response = new EnviarResponseDto({
+          codigo: 400,
+          consecutivoDocumento: factura.consecutivoDocumento || `PRUE${Date.now()}`,
+          esValidoDian: false,
+          fechaAceptacionDIAN: new Date().toISOString().slice(0, 19).replace('T', ' '),
+          hash: '',
+          mensaje: errorMessage,
+          nombre: 'DOCUMENTO_PROCESADO_ERROR',
+          reglasNotificacionDIAN: [],
+          reglasValidacionDIAN: [errorMessage],
+          mensajesValidacion: [
+            {
+              codigo: '400',
+              mensaje: errorMessage,
+              estado: 'Error',
+            },
+          ],
+          resultado: 'Error',
+        });
+
+        soapLogger.warn('Respuesta de error de API mapeada a EnviarResponseDto', {
+          requestId,
+          consecutivoDocumento: response.consecutivoDocumento,
+          mensaje: errorMessage,
+        });
+
+        return { EnviarResult: response };
       }
 
-      // Default empty response if logic falls through, though it shouldn't.
+      const errorMessage = responseDian?.message || 'Error interno al procesar el documento';
       return {
         EnviarResult: new EnviarResponseDto({
           codigo: 500,
-          consecutivoDocumento: factura.consecutivoDocumento,
+          consecutivoDocumento: factura.consecutivoDocumento || `PRUE${Date.now()}`,
           esValidoDian: false,
-          mensaje: 'Error interno del servidor',
-          mensajesValidacion: [],
+          mensaje: errorMessage,
+          nombre: 'DOCUMENTO_PROCESADO_ERROR',
+          reglasValidacionDIAN: [errorMessage],
+          mensajesValidacion: [
+            {
+              codigo: '500',
+              mensaje: errorMessage,
+              estado: 'Error',
+            },
+          ],
+          resultado: 'Error',
         }),
       };
     } catch (error) {

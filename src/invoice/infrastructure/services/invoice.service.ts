@@ -564,7 +564,6 @@ export class InvoiceService {
    * @returns Respuesta de la factura
    */
   private async evaluateInvoiceResponse(response: CreateInvoiceResponse, prefix: string, number: string, token: string, nit: string): Promise<any> {
-    this.logger.log(`Evaluando respuesta de factura DIAN: ${JSON.stringify(response, null, 2)}`);
 
     if (response?.ResponseDian?.Envelope?.Body) {
       if (response.ResponseDian.Envelope.Body.SendBillSyncResponse.SendBillSyncResult.IsValid === "true") {
