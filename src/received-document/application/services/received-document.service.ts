@@ -3,7 +3,7 @@ import { IReceivedDocumentRepository } from '@/received-document/domain/reposito
 import { PaginatedResult } from '@/received-document/domain/interfaces/paginated-result.interface';
 import { ReceivedDocument } from '@/received-document/domain/entities/received-document.entity';
 import { HttpService } from '@nestjs/axios';
-import { Injectable, Logger, Inject } from '@nestjs/common';
+import { Injectable, Logger, Inject, HttpException, HttpStatus } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { User } from '@/auth/domain/entities/user.entity';
 import { CompanyService } from '@/company/application/services/company.service';
@@ -94,6 +94,10 @@ export class ReceivedDocumentService {
     async fetchInvoicesEmail(start_date: string, end_date: string, document_company: string): Promise<ImapReceiptAcknowledgmentResponse> {
         const company = await this.companyService.getCompanyByNit(document_company);
 
+        if (!company || !company.tokenDian) {
+            throw new HttpException('La compañía no existe o no tiene configurado tokenDian en la base de datos', HttpStatus.BAD_REQUEST);
+        }
+
         // Verificar si end_date es el día actual
         const today = new Date().toISOString().split('T')[0];
         if (end_date === today) {
@@ -107,23 +111,42 @@ export class ReceivedDocumentService {
             end_date: end_date,
             only_read: true,
             base64_attacheddocument: false,
-        }
+        };
 
-        const response = await firstValueFrom(
-            this.httpService.post<ImapReceiptAcknowledgmentResponse>(
-                `${this.externalApiUrl}/imap_receipt_acknowledgment`,
-                request,
-                {
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${company.tokenDian}`,
+        try {
+            this.logger.log(`Consultando servicio IMAP externo: ${this.externalApiUrl}/imap_receipt_acknowledgment para el NIT ${document_company}`);
+
+            const response = await firstValueFrom(
+                this.httpService.post<ImapReceiptAcknowledgmentResponse>(
+                    `${this.externalApiUrl}/imap_receipt_acknowledgment`,
+                    request,
+                    {
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${company.tokenDian}`,
+                        },
+                        timeout: 20000000,
                     },
-                    timeout: 20000000,
-                },
-            ),
-        );
+                ),
+            );
 
-        return response.data;
+            return response.data;
+        } catch (error: any) {
+            const errorData = error.response?.data;
+            const status = error.response?.status || HttpStatus.INTERNAL_SERVER_ERROR;
+            const errorMessage = errorData?.message || errorData || error.message;
+
+            this.logger.error(`Error de API externa IMAP (${status}): ${JSON.stringify(errorMessage)}`);
+
+            throw new HttpException(
+                {
+                    success: false,
+                    message: `Falla en API externa IMAP: ${typeof errorMessage === 'object' ? JSON.stringify(errorMessage) : errorMessage}`,
+                    details: errorData || null,
+                },
+                status,
+            );
+        }
     }
 
     /**
