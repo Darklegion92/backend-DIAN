@@ -92,7 +92,12 @@ export class EnviarHandler {
           throw new Error(`Tipo de documento no soportado: ${factura.tipoDocumento}`);
       }
 
-      if (responseDian.ResponseDian) {
+      soapLogger.info('Respuesta recibida de DIAN en EnviarHandler', {
+        requestId,
+        responseDian: JSON.stringify(responseDian, null, 2),
+      });
+
+      if (responseDian?.ResponseDian?.Envelope?.Body) {
         const body = responseDian.ResponseDian.Envelope.Body;
         if (body.SendBillSyncResponse.SendBillSyncResult.IsValid === "true") {
 

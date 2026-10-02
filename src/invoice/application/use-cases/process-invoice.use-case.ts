@@ -55,6 +55,8 @@ export class ProcessInvoiceUseCase implements DocumentProcessorPort {
     try {   
       const dianResponse = await this.sendInvoiceToDian(transformedData, company.tokenDian);
 
+      this.logger.log(`Respuesta de DIAN (sendInvoiceToDian): ${JSON.stringify(dianResponse, null, 2)}`);
+
       if (dianResponse?.ResponseDian?.Envelope?.Body?.SendBillSyncResponse?.SendBillSyncResult?.IsValid === 'true') {
         const pdfDocument = await this.generateInvoicePdf(dto.nit, dianResponse.urlinvoicepdf, `${transformedData.prefix}${transformedData.number}.pdf`);
         return {
@@ -67,7 +69,7 @@ export class ProcessInvoiceUseCase implements DocumentProcessorPort {
           }
         };
       } else
-        if (dianResponse.message === "Este documento ya fue enviado anteriormente, se registra en la base de datos.") {
+        if (dianResponse?.message === "Este documento ya fue enviado anteriormente, se registra en la base de datos.") {
           return {
             success: true,
             message: 'Factura electrónica procesada correctamente',
@@ -78,7 +80,7 @@ export class ProcessInvoiceUseCase implements DocumentProcessorPort {
             }
           };
         } else {
-          const errorMessage = dianResponse.ResponseDian.Envelope.Body.SendBillSyncResponse.SendBillSyncResult.ErrorMessage;
+          const errorMessage = dianResponse?.ResponseDian?.Envelope?.Body?.SendBillSyncResponse?.SendBillSyncResult?.ErrorMessage;
           if (errorMessage?.string) {
             return {
               success: false,
@@ -89,10 +91,20 @@ export class ProcessInvoiceUseCase implements DocumentProcessorPort {
                 document: ''
               }
             }
-          } else {
+          } else if (errorMessage?.strings) {
             return {
               success: false,
               message: errorMessage.strings.join(', '),
+              data: {
+                cufe: '',
+                date: '',
+                document: ''
+              }
+            }
+          } else {
+            return {
+              success: false,
+              message: dianResponse?.message || 'Error al comunicarse con la DIAN',
               data: {
                 cufe: '',
                 date: '',

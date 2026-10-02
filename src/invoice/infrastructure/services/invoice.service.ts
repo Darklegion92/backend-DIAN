@@ -564,8 +564,9 @@ export class InvoiceService {
    * @returns Respuesta de la factura
    */
   private async evaluateInvoiceResponse(response: CreateInvoiceResponse, prefix: string, number: string, token: string, nit: string): Promise<any> {
+    this.logger.log(`Evaluando respuesta de factura DIAN: ${JSON.stringify(response, null, 2)}`);
 
-    if (response.ResponseDian) {
+    if (response?.ResponseDian?.Envelope?.Body) {
       if (response.ResponseDian.Envelope.Body.SendBillSyncResponse.SendBillSyncResult.IsValid === "true") {
 
         const document: string = await this.getDocumentPDF(nit, prefix, number, token);
@@ -582,13 +583,13 @@ export class InvoiceService {
 
         const errorMessage = response.ResponseDian.Envelope.Body.SendBillSyncResponse.SendBillSyncResult.ErrorMessage;
 
-        if (errorMessage.strings.length > 0) {
+        if (errorMessage?.strings && errorMessage.strings.length > 0) {
           for (const error of errorMessage.strings) {
             this.logger.error(error);
           }
           throw new HttpException(errorMessage.strings, HttpStatus.INTERNAL_SERVER_ERROR);
         } else {
-          throw new HttpException(errorMessage.string, HttpStatus.INTERNAL_SERVER_ERROR);
+          throw new HttpException(errorMessage?.string || 'Error indeterminado de la DIAN', HttpStatus.INTERNAL_SERVER_ERROR);
         }
       }
 
