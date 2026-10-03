@@ -154,7 +154,12 @@ async function bootstrap() {
     },
   });
 
-  await app.listen(process.env.PORT ?? 3000);
+  const server = await app.listen(process.env.PORT ?? 3000);
+  
+  // Aumentar los timeouts del servidor Node.js HTTP a 10 minutos (600,000 ms) para evitar Gateway Timeouts en llamadas IMAP largas
+  server.setTimeout(600000);
+  server.keepAliveTimeout = 610000;
+  server.headersTimeout = 620000;
   
   console.log(`🚀 Aplicación corriendo en: http://localhost:${process.env.PORT ?? 3000}`);
   console.log(`📚 Documentación Swagger: http://localhost:${process.env.PORT ?? 3000}/docs`);
