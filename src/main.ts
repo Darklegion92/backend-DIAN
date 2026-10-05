@@ -11,11 +11,11 @@ async function bootstrap() {
     logger: isProduction ? ['error', 'warn'] : ['error', 'warn', 'log', 'debug'], // Logs optimizados para producción
   });
 
-  // Aumentar el límite del body a 10MB para peticiones grandes (ej. imágenes base64)
-  app.use(bodyParser.json({ limit: '10mb' }));
-  app.use(bodyParser.urlencoded({ limit: '10mb', extended: true }));
+  // Aumentar el límite del body a 500MB para descargas y cargas de instaladores grandes (.exe)
+  app.use(bodyParser.json({ limit: '500mb' }));
+  app.use(bodyParser.urlencoded({ limit: '500mb', extended: true }));
   // AWS SNS envia el payload JSON pero con Content-Type: text/plain
-  app.use(bodyParser.text({ type: 'text/plain', limit: '10mb' }));
+  app.use(bodyParser.text({ type: 'text/plain', limit: '500mb' }));
 
   // Middleware de compresión para reducir ancho de banda
   app.use(compression());

@@ -102,6 +102,9 @@ export class SystemController {
   })
   @UsePipes(new ValidationPipe({ transform: true }))
   @UseInterceptors(FileInterceptor('file', {
+    limits: {
+      fileSize: 500 * 1024 * 1024, // Permite subida de instaladores .exe de hasta 500MB
+    },
     storage: diskStorage({
       destination: (req, file, cb) => {
         // Usar directorio temporal, luego moveremos el archivo en el servicio
@@ -122,13 +125,13 @@ export class SystemController {
         cb(null, `${timestamp}-${name}${extension}`);
       },
     }),
-          fileFilter: (req, file, cb) => {
-        if (file.mimetype === 'application/x-msdownload' || file.originalname.endsWith('.exe')) {
-          cb(null, true);
-        } else {
-          cb(new Error('Solo se permiten archivos .exe'), false);
-        }
-      },
+    fileFilter: (req, file, cb) => {
+      if (file.mimetype === 'application/x-msdownload' || file.originalname.endsWith('.exe')) {
+        cb(null, true);
+      } else {
+        cb(new Error('Solo se permiten archivos .exe'), false);
+      }
+    },
   }))
   async uploadVersion(
     @Body() createVersionDto: CreateVersionDto,
