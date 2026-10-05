@@ -42,6 +42,9 @@ docker run -d -p 80:80 -p 443:443 \
     -v /var/run/docker.sock:/tmp/docker.sock:ro \
     nginxproxy/nginx-proxy:latest
 
+echo -e "${CYAN}Configurando límite de carga Nginx (client_max_body_size 500m)...${NC}"
+docker exec nginx-proxy sh -c "echo 'client_max_body_size 500m;' > /etc/nginx/vhost.d/default"
+
 echo -e "${CYAN}Levantando Let's Encrypt Companion (acme-companion)...${NC}"
 
 docker run -d \
